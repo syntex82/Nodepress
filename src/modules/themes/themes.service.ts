@@ -117,7 +117,7 @@ export class ThemesService {
 
         if (stat.isDirectory()) {
           const configPath = path.join(themePath, 'theme.json');
-          
+
           try {
             const configContent = await fs.readFile(configPath, 'utf-8');
             const config = JSON.parse(configContent);
@@ -152,6 +152,9 @@ export class ThemesService {
         }
       }
 
+      // Fix data integrity: ensure only one theme is active
+      await this.ensureSingleActiveTheme();
+
       return themes;
     } catch (error) {
       console.error('Error scanning themes:', error);
@@ -160,9 +163,47 @@ export class ThemesService {
   }
 
   /**
+   * Ensure only one theme is active (data integrity fix)
+   */
+  private async ensureSingleActiveTheme() {
+    const activeThemes = await this.prisma.theme.findMany({
+      where: { isActive: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    if (activeThemes.length > 1) {
+      // Keep only the most recently updated active theme
+      const [keepActive, ...deactivate] = activeThemes;
+      console.log(`Fixing data: ${deactivate.length} extra active themes found. Keeping "${keepActive.name}" as active.`);
+
+      await this.prisma.theme.updateMany({
+        where: {
+          id: { in: deactivate.map(t => t.id) },
+        },
+        data: { isActive: false },
+      });
+    } else if (activeThemes.length === 0) {
+      // No active theme - activate the first available theme
+      const firstTheme = await this.prisma.theme.findFirst({
+        orderBy: { name: 'asc' },
+      });
+      if (firstTheme) {
+        await this.prisma.theme.update({
+          where: { id: firstTheme.id },
+          data: { isActive: true },
+        });
+        console.log(`No active theme found. Activated "${firstTheme.name}".`);
+      }
+    }
+  }
+
+  /**
    * Get all themes
    */
   async findAll() {
+    // Ensure data integrity before returning themes
+    await this.ensureSingleActiveTheme();
+
     return this.prisma.theme.findMany({
       orderBy: { name: 'asc' },
     });

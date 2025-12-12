@@ -191,6 +191,21 @@ export const pluginsApi = {
   scan: () => api.post('/plugins/scan'),
   activate: (id: string) => api.post(`/plugins/${id}/activate`),
   deactivate: (id: string) => api.post(`/plugins/${id}/deactivate`),
+  delete: (id: string) => api.delete(`/plugins/${id}`),
+  validate: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/plugins/validate', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  upload: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/plugins/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // Security API

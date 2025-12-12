@@ -7,11 +7,15 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Patch,
   Param,
   Body,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PluginsService } from './plugins.service';
 import { PluginLoaderService } from './plugin-loader.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,6 +31,8 @@ export class PluginsController {
     private readonly pluginLoader: PluginLoaderService,
   ) {}
 
+  // Static routes MUST come before parameterized routes
+
   /**
    * Scan and register plugins
    * POST /api/plugins/scan
@@ -35,6 +41,38 @@ export class PluginsController {
   @Roles(UserRole.ADMIN)
   scan() {
     return this.pluginsService.scanPlugins();
+  }
+
+  /**
+   * Validate plugin without installing
+   * POST /api/plugins/validate
+   */
+  @Post('validate')
+  @Roles(UserRole.ADMIN)
+  @UseInterceptors(FileInterceptor('file'))
+  validate(@UploadedFile() file: Express.Multer.File) {
+    return this.pluginsService.validatePlugin(file);
+  }
+
+  /**
+   * Upload and install plugin
+   * POST /api/plugins/upload
+   */
+  @Post('upload')
+  @Roles(UserRole.ADMIN)
+  @UseInterceptors(FileInterceptor('file'))
+  upload(@UploadedFile() file: Express.Multer.File) {
+    return this.pluginsService.uploadPlugin(file);
+  }
+
+  /**
+   * Get active plugins
+   * GET /api/plugins/active
+   */
+  @Get('active')
+  @Roles(UserRole.ADMIN)
+  findActive() {
+    return this.pluginsService.findActive();
   }
 
   /**
@@ -47,15 +85,7 @@ export class PluginsController {
     return this.pluginsService.findAll();
   }
 
-  /**
-   * Get active plugins
-   * GET /api/plugins/active
-   */
-  @Get('active')
-  @Roles(UserRole.ADMIN)
-  findActive() {
-    return this.pluginsService.findActive();
-  }
+  // Parameterized routes come AFTER static routes
 
   /**
    * Get plugin by ID
@@ -89,6 +119,20 @@ export class PluginsController {
     const plugin = await this.pluginsService.findById(id);
     await this.pluginLoader.unloadPlugin(plugin.slug);
     return this.pluginsService.deactivate(id);
+  }
+
+  /**
+   * Delete plugin
+   * DELETE /api/plugins/:id
+   */
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  async delete(@Param('id') id: string) {
+    const plugin = await this.pluginsService.findById(id);
+    if (plugin.isActive) {
+      await this.pluginLoader.unloadPlugin(plugin.slug);
+    }
+    return this.pluginsService.deletePlugin(id);
   }
 
   /**
