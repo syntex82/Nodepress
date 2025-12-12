@@ -1,9 +1,46 @@
 {
   "name": "SEO Plugin",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "WordPress Node",
-  "description": "Adds SEO meta fields to posts and pages for better search engine optimization",
+  "description": "Advanced SEO with redirects, sitemap generation, schema markup, Open Graph, Twitter Cards, and content analysis scoring",
   "entry": "index.js",
-  "hooks": ["beforeSave", "registerFields"]
+  "hooks": ["onActivate", "onDeactivate", "beforeSave", "registerFields"],
+  "features": [
+    "Meta title and description management",
+    "Open Graph and Twitter Card support",
+    "Canonical URL management",
+    "noindex/nofollow control",
+    "301/302 URL redirects with hit tracking",
+    "Dynamic XML sitemap generation",
+    "JSON-LD schema markup",
+    "Real-time SEO score analysis",
+    "robots.txt generation",
+    "Image alt text checking",
+    "Heading structure analysis"
+  ],
+  "endpoints": [
+    "GET /api/seo/redirects - List all redirects",
+    "POST /api/seo/redirects - Create redirect",
+    "PUT /api/seo/redirects/:id - Update redirect",
+    "DELETE /api/seo/redirects/:id - Delete redirect",
+    "GET /api/seo/sitemap.xml - Dynamic XML sitemap",
+    "GET /api/seo/sitemap/entries - List sitemap entries",
+    "POST /api/seo/sitemap/entries - Add sitemap entry",
+    "GET /api/seo/schema - List schema markups",
+    "POST /api/seo/schema - Create schema markup",
+    "GET /api/seo/schema/render - Get schemas for page",
+    "GET /api/seo/analyze/:type/:id - Analyze content SEO"
+  ],
+  "seoFields": [
+    "metaTitle (30-60 chars)",
+    "metaDescription (70-160 chars)",
+    "metaKeywords (comma-separated)",
+    "ogImage (social sharing image)",
+    "ogTitle (social media title)",
+    "ogDescription (social media description)",
+    "canonicalUrl (preferred URL)",
+    "noIndex (hide from search engines)",
+    "noFollow (don't follow links)"
+  ]
 }
 

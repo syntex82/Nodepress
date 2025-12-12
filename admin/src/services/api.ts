@@ -208,6 +208,43 @@ export const pluginsApi = {
   },
 };
 
+// Analytics API
+export const analyticsApi = {
+  getDashboard: (period?: string) => api.get('/analytics/dashboard', { params: { period } }),
+  getPageViews: (period?: string) => api.get('/analytics/pageviews', { params: { period } }),
+  getTopPages: (period?: string, limit?: number) => api.get('/analytics/top-pages', { params: { period, limit } }),
+  getTrafficSources: (period?: string) => api.get('/analytics/traffic-sources', { params: { period } }),
+  getDevices: (period?: string) => api.get('/analytics/devices', { params: { period } }),
+  getBrowsers: (period?: string) => api.get('/analytics/browsers', { params: { period } }),
+  getRealtime: () => api.get('/analytics/realtime'),
+  // Tracking endpoints (no auth)
+  trackPageView: (path: string, sessionId?: string) => api.post('/analytics/track/pageview', { path, sessionId }),
+  trackEvent: (data: { category: string; action: string; label?: string; value?: number; path?: string; sessionId?: string }) =>
+    api.post('/analytics/track/event', data),
+  startSession: (path?: string) => api.post('/analytics/track/session', { path }),
+};
+
+// SEO API
+export const seoApi = {
+  // Redirects
+  getRedirects: () => api.get('/seo/redirects'),
+  createRedirect: (data: { fromPath: string; toPath: string; type?: number }) => api.post('/seo/redirects', data),
+  updateRedirect: (id: string, data: any) => api.put(`/seo/redirects/${id}`, data),
+  deleteRedirect: (id: string) => api.delete(`/seo/redirects/${id}`),
+  // Sitemap
+  getSitemapEntries: () => api.get('/seo/sitemap/entries'),
+  createSitemapEntry: (data: { url: string; priority?: number; changefreq?: string }) => api.post('/seo/sitemap/entries', data),
+  updateSitemapEntry: (id: string, data: any) => api.put(`/seo/sitemap/entries/${id}`, data),
+  deleteSitemapEntry: (id: string) => api.delete(`/seo/sitemap/entries/${id}`),
+  // Schema Markup
+  getSchemas: (scope?: string) => api.get('/seo/schema', { params: { scope } }),
+  createSchema: (data: { name: string; type: string; content: any; scope?: string; scopeId?: string }) => api.post('/seo/schema', data),
+  updateSchema: (id: string, data: any) => api.put(`/seo/schema/${id}`, data),
+  deleteSchema: (id: string) => api.delete(`/seo/schema/${id}`),
+  // Analysis
+  analyzeContent: (contentType: string, contentId: string) => api.get(`/seo/analyze/${contentType}/${contentId}`),
+};
+
 // Security API
 export const securityApi = {
   getDashboard: () => api.get('/security/dashboard'),

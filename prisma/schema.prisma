@@ -312,16 +312,134 @@ model Session {
 
 // PageView model - for analytics plugin
 model PageView {
-  id        String   @id @default(uuid())
-  path      String
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  ipAddress String?
-  userAgent String?
-  referer   String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  path        String
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId   String?
+  ipAddress   String?
+  userAgent   String?
+  referer     String?
+  // Enhanced tracking fields
+  country     String?
+  city        String?
+  device      String?  // desktop, mobile, tablet
+  browser     String?
+  os          String?
+  duration    Int?     // time spent on page in seconds
+  scrollDepth Int?     // percentage scrolled (0-100)
+  createdAt   DateTime @default(now())
 
   @@index([path])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([device])
+  @@index([country])
+}
+
+// Analytics Event - track custom events
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  sessionId  String?
+  userId     String?
+  category   String   // e.g., "button", "form", "video", "purchase"
+  action     String   // e.g., "click", "submit", "play", "complete"
+  label      String?  // optional label for additional context
+  value      Float?   // optional numeric value
+  path       String?  // page where event occurred
+  metadata   Json?    // additional event data
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([category])
+  @@index([action])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// Analytics Session - track user sessions
+model AnalyticsSession {
+  id          String    @id @default(uuid())
+  userId      String?
+  ipAddress   String?
+  userAgent   String?
+  device      String?
+  browser     String?
+  os          String?
+  country     String?
+  city        String?
+  referer     String?
+  landingPage String?
+  exitPage    String?
+  pageCount   Int       @default(0)
+  duration    Int       @default(0) // total session duration in seconds
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  isActive    Boolean   @default(true)
+
+  @@index([userId])
+  @@index([startedAt])
+  @@index([isActive])
+}
+
+// SEO Redirect - manage URL redirects
+model SeoRedirect {
+  id          String   @id @default(uuid())
+  fromPath    String   @unique // Source path (e.g., /old-page)
+  toPath      String   // Destination path or URL
+  type        Int      @default(301) // 301 (permanent) or 302 (temporary)
+  isActive    Boolean  @default(true)
+  hitCount    Int      @default(0) // Number of times redirect was triggered
+  lastHitAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([fromPath])
+  @@index([isActive])
+}
+
+// SEO Sitemap Entry - custom sitemap entries
+model SeoSitemapEntry {
+  id          String   @id @default(uuid())
+  url         String   @unique // Full URL or path
+  priority    Float    @default(0.5) // 0.0 to 1.0
+  changefreq  String   @default("weekly") // always, hourly, daily, weekly, monthly, yearly, never
+  lastmod     DateTime @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// SEO Schema Markup - JSON-LD structured data
+model SeoSchemaMarkup {
+  id          String   @id @default(uuid())
+  name        String   // Friendly name for the schema
+  type        String   // Schema type: Organization, LocalBusiness, Article, Product, etc.
+  content     Json     // The actual JSON-LD content
+  scope       String   @default("global") // global, post, page, product, etc.
+  scopeId     String?  // Optional: specific content ID to attach to
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type])
+  @@index([scope])
+  @@index([isActive])
+}
+
+// SEO Audit Log - track SEO score changes
+model SeoAuditLog {
+  id          String   @id @default(uuid())
+  contentType String   // post, page, product, course
+  contentId   String
+  score       Int      // 0-100 SEO score
+  issues      Json     // Array of issues found
+  suggestions Json     // Array of improvement suggestions
+  createdAt   DateTime @default(now())
+
+  @@index([contentType, contentId])
   @@index([createdAt])
 }
 

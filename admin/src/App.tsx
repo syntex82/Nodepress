@@ -52,6 +52,10 @@ import LmsCertificate from './pages/lms/Certificate';
 // Profile pages
 import MyProfile from './pages/profile/MyProfile';
 import PublicProfile from './pages/profile/PublicProfile';
+// Analytics
+import Analytics from './pages/Analytics';
+// SEO
+import Seo from './pages/Seo';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -121,6 +125,10 @@ function App() {
               {/* Profile routes */}
               <Route path="profile" element={<MyProfile />} />
               <Route path="profile/:identifier" element={<PublicProfile />} />
+              {/* Analytics */}
+              <Route path="analytics" element={<Analytics />} />
+              {/* SEO */}
+              <Route path="seo" element={<Seo />} />
               <Route path="security/*" element={<Security />} />
               <Route path="settings" element={<Settings />} />
             </Route>

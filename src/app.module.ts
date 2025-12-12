@@ -21,6 +21,8 @@ import { GroupsModule } from './modules/groups/groups.module';
 import { MenusModule } from './modules/menus/menus.module';
 import { ShopModule } from './modules/shop/shop.module';
 import { LmsModule } from './modules/lms/lms.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { SeoModule } from './modules/seo/seo.module';
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { LmsModule } from './modules/lms/lms.module';
     MenusModule,
     ShopModule,
     LmsModule,
+    AnalyticsModule,
+    SeoModule,
   ],
 })
 export class AppModule {}

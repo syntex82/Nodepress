@@ -5,7 +5,7 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward } from 'react-icons/fi';
+import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch } from 'react-icons/fi';
 import { useState } from 'react';
 
 export default function Layout() {
@@ -15,6 +15,8 @@ export default function Layout() {
 
   const navigation = [
     { name: 'Dashboard', path: '/', icon: FiHome },
+    { name: 'Analytics', path: '/analytics', icon: FiBarChart2 },
+    { name: 'SEO', path: '/seo', icon: FiSearch },
     { name: 'Posts', path: '/posts', icon: FiFileText },
     { name: 'Pages', path: '/pages', icon: FiFile },
     { name: 'Media', path: '/media', icon: FiImage },

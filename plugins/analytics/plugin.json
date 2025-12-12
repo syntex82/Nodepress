@@ -1,9 +1,31 @@
 {
   "name": "Analytics Plugin",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "WordPress Node",
-  "description": "Tracks page views and provides basic analytics dashboard",
+  "description": "Advanced analytics with real-time tracking, session management, custom events, device/browser detection, and comprehensive dashboards",
   "entry": "index.js",
-  "hooks": ["onActivate", "registerRoutes"]
+  "hooks": ["onActivate", "onDeactivate", "registerRoutes"],
+  "features": [
+    "Page view tracking with engagement metrics",
+    "Session tracking and management",
+    "Custom event tracking",
+    "Device and browser detection",
+    "Real-time visitor monitoring",
+    "Traffic source analysis",
+    "Top pages report",
+    "Geographic data (when available)"
+  ],
+  "endpoints": [
+    "GET /api/analytics/dashboard - Dashboard stats",
+    "GET /api/analytics/pageviews - Page views over time",
+    "GET /api/analytics/top-pages - Most visited pages",
+    "GET /api/analytics/traffic-sources - Referrer breakdown",
+    "GET /api/analytics/devices - Device breakdown",
+    "GET /api/analytics/browsers - Browser breakdown",
+    "GET /api/analytics/realtime - Real-time stats",
+    "POST /api/analytics/track/pageview - Track page view",
+    "POST /api/analytics/track/event - Track custom event",
+    "POST /api/analytics/track/session - Start tracking session"
+  ]
 }
 
