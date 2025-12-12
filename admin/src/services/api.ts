@@ -11,6 +11,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Send cookies for cart session
 });
 
 // Add auth token to requests
@@ -40,6 +41,8 @@ export default api;
 export const authApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
+  register: (data: { email: string; name: string; password: string }) =>
+    api.post('/auth/register', data),
   verify2FA: (tempToken: string, code: string) =>
     api.post('/auth/verify-2fa', { tempToken, code }),
   me: () => api.get('/auth/me'),
@@ -442,11 +445,19 @@ export const ordersApi = {
 // Storefront API (public)
 export interface CartItem {
   id: string;
-  productId: string;
+  itemType: 'PRODUCT' | 'COURSE';
+  productId?: string;
+  courseId?: string;
   variantId?: string;
   quantity: number;
-  product: Product;
+  product?: Product;
+  course?: Course;
   variant?: { id: string; name: string; price: number; options: Record<string, string> };
+  // Pre-calculated fields from backend
+  price: number;
+  itemTotal: number;
+  name: string;
+  image?: string | null;
 }
 
 export interface Cart {
@@ -454,6 +465,8 @@ export interface Cart {
   items: CartItem[];
   subtotal: number;
   itemCount: number;
+  hasCourses?: boolean;
+  hasProducts?: boolean;
 }
 
 export const storefrontApi = {

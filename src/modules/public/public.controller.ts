@@ -64,13 +64,14 @@ export class PublicController {
    */
   @Get('lms')
   async lmsRoot(@Res() res: Response) {
-    res.redirect('http://localhost:5173/lms');
+    res.redirect('http://localhost:5173/admin/lms');
   }
 
   @Get('lms/*')
   async lmsFallback(@Res() res: Response) {
-    // In development, redirect to Vite dev server
-    res.redirect(`http://localhost:5173${res.req?.originalUrl || '/lms'}`);
+    // In development, redirect to Vite dev server (React app is at /admin/*)
+    const originalUrl = res.req?.originalUrl || '/lms';
+    res.redirect(`http://localhost:5173/admin${originalUrl}`);
   }
 
   /**
@@ -247,7 +248,7 @@ export class PublicController {
       // Redirect to the React app for the enrollment flow
       // For free courses, they'll be enrolled directly
       // For paid courses, they'll be redirected to checkout
-      res.redirect(`/lms/course/${slug}?enroll=true`);
+      res.redirect(`http://localhost:5173/admin/lms/course/${slug}?enroll=true`);
     } catch (error) {
       res.status(404).send('Course not found');
     }

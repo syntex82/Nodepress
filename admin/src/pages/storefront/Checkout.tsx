@@ -26,7 +26,7 @@ function CheckoutForm({ orderId, total }: { orderId: string; total: number }) {
     const { error: submitError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/shop/order-success?order=${orderId}`,
+        return_url: `${window.location.origin}/admin/order-success?order=${orderId}`,
       },
     });
 
@@ -256,24 +256,30 @@ export default function Checkout() {
               <h2 className="text-xl font-bold text-slate-900 mb-6">Order Summary</h2>
 
               <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2">
-                {cart?.items.map((item) => (
+                {cart?.items.map((item) => {
+                  const isCourse = item.itemType === 'COURSE';
+
+                  return (
                   <div key={item.id} className="flex gap-4 pb-4 border-b border-slate-100 last:border-b-0">
-                    <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl overflow-hidden flex-shrink-0">
-                      {item.product.images?.[0] ? (
-                        <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl overflow-hidden flex-shrink-0 relative">
+                      {item.image ? (
+                        <img src={item.image} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
                       )}
+                      {isCourse && (
+                        <div className="absolute top-1 left-1 bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">Course</div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-slate-900 truncate">{item.product.name}</div>
-                      <div className="text-sm text-slate-500">Qty: {item.quantity}</div>
+                      <div className="font-semibold text-slate-900 truncate">{item.name}</div>
+                      <div className="text-sm text-slate-500">{isCourse ? 'Lifetime access' : `Qty: ${item.quantity}`}</div>
                     </div>
-                    <div className="font-semibold text-slate-900">${(Number(item.product.salePrice || item.product.price) * item.quantity).toFixed(2)}</div>
+                    <div className="font-semibold text-slate-900">${item.itemTotal.toFixed(2)}</div>
                   </div>
-                ))}
+                );})}
               </div>
 
               <div className="space-y-3 py-4 border-t border-dashed border-slate-200">

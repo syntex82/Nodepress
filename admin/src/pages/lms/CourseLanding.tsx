@@ -33,11 +33,18 @@ export default function CourseLanding() {
   }, [course, loading, searchParams, isEnrolled]);
 
   const loadCourse = async () => {
+    if (!slug) {
+      console.error('No slug provided');
+      setLoading(false);
+      return;
+    }
     try {
-      const { data } = await lmsApi.getCourse(slug!);
+      console.log('Loading course:', slug);
+      const { data } = await lmsApi.getCourse(slug);
+      console.log('Course loaded:', data);
       setCourse(data);
-      
-      if (isAuthenticated) {
+
+      if (isAuthenticated && data?.id) {
         try {
           await lmsApi.getEnrollment(data.id);
           setIsEnrolled(true);
@@ -99,7 +106,7 @@ export default function CourseLanding() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{course.level.replace('_', ' ')}</span>
+                {course.level && <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{course.level.replace('_', ' ')}</span>}
                 {course.category && <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{course.category}</span>}
               </div>
               <h1 className="text-4xl font-bold mb-4">{course.title}</h1>

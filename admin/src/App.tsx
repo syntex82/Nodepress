@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
 import PostEditor from './pages/PostEditor';
@@ -61,13 +62,17 @@ function App() {
       <BrowserRouter basename="/admin">
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Public Storefront Routes */}
           <Route path="/shop" element={<StorefrontShop />} />
           <Route path="/shop/product/:slug" element={<StorefrontProduct />} />
           <Route path="/shop/cart" element={<StorefrontCart />} />
+          <Route path="/cart" element={<StorefrontCart />} />
           <Route path="/shop/checkout" element={<StorefrontCheckout />} />
+          <Route path="/checkout" element={<StorefrontCheckout />} />
           <Route path="/shop/order-success" element={<StorefrontOrderSuccess />} />
+          <Route path="/order-success" element={<StorefrontOrderSuccess />} />
 
           {/* Public LMS Routes */}
           <Route path="/lms/catalog" element={<LmsCourseCatalog />} />

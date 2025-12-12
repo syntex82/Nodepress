@@ -23,6 +23,18 @@ import { CreateCourseDto, UpdateCourseDto, CourseQueryDto } from '../dto/course.
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
+  // Static routes MUST come before parameterized routes
+  @Get('categories/list')
+  async getCategories() {
+    return this.coursesService.getCategories();
+  }
+
+  @Get('dashboard/stats')
+  async getDashboardStats(@Request() req) {
+    const isAdmin = req.user.role === 'ADMIN';
+    return this.coursesService.getAdminDashboardStats(isAdmin ? undefined : req.user.id);
+  }
+
   @Post()
   async create(@Body() dto: CreateCourseDto, @Request() req) {
     return this.coursesService.create(dto, req.user.id);
@@ -38,6 +50,7 @@ export class CoursesController {
     return this.coursesService.findAll(query);
   }
 
+  // Parameterized routes come AFTER static routes
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.coursesService.findOne(id);
@@ -57,17 +70,6 @@ export class CoursesController {
   async delete(@Param('id') id: string, @Request() req) {
     const isAdmin = req.user.role === 'ADMIN';
     return this.coursesService.delete(id, req.user.id, isAdmin);
-  }
-
-  @Get('categories/list')
-  async getCategories() {
-    return this.coursesService.getCategories();
-  }
-
-  @Get('dashboard/stats')
-  async getDashboardStats(@Request() req) {
-    const isAdmin = req.user.role === 'ADMIN';
-    return this.coursesService.getAdminDashboardStats(isAdmin ? undefined : req.user.id);
   }
 }
 
