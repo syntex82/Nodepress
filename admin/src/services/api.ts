@@ -196,12 +196,22 @@ export interface CustomThemeSettings {
   darkMode?: Partial<CustomThemeSettings['colors']>;
 }
 
+// Theme Page structure for multi-page themes
+export interface ThemePageData {
+  id: string;
+  name: string;
+  slug: string;
+  blocks: any[]; // ContentBlock[] - using any to avoid circular dependency
+  isHomePage?: boolean;
+}
+
 export interface CustomTheme {
   id: string;
   name: string;
   description?: string;
   settings: CustomThemeSettings;
   customCSS?: string;
+  pages?: ThemePageData[]; // Multi-page support
   isActive: boolean;
   isDefault: boolean;
   previewUrl?: string;
@@ -215,9 +225,9 @@ export const customThemesApi = {
   getAll: () => api.get<CustomTheme[]>('/custom-themes'),
   getById: (id: string) => api.get<CustomTheme>(`/custom-themes/${id}`),
   getActive: () => api.get<CustomTheme | null>('/custom-themes/active'),
-  create: (data: { name: string; description?: string; settings: CustomThemeSettings; customCSS?: string; isDefault?: boolean }) =>
+  create: (data: { name: string; description?: string; settings: CustomThemeSettings; customCSS?: string; pages?: ThemePageData[]; isDefault?: boolean }) =>
     api.post<CustomTheme>('/custom-themes', data),
-  update: (id: string, data: { name?: string; description?: string; settings?: CustomThemeSettings; customCSS?: string; isDefault?: boolean }) =>
+  update: (id: string, data: { name?: string; description?: string; settings?: CustomThemeSettings; customCSS?: string; pages?: ThemePageData[]; isDefault?: boolean }) =>
     api.put<CustomTheme>(`/custom-themes/${id}`, data),
   delete: (id: string) => api.delete(`/custom-themes/${id}`),
   duplicate: (id: string, name?: string) => api.post<CustomTheme>(`/custom-themes/${id}/duplicate`, { name }),

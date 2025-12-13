@@ -7,20 +7,37 @@ import {
   FiMusic, FiVideo, FiImage, FiSquare, FiStar, FiMessageSquare,
   FiGrid, FiMinus, FiPlay, FiPause, FiVolume2, FiVolumeX,
   FiMaximize, FiX, FiChevronLeft, FiChevronRight, FiTrash2,
-  FiMove, FiPlus, FiArrowUp, FiArrowDown
+  FiMove, FiPlus, FiArrowUp, FiArrowDown, FiCopy, FiEye, FiEyeOff
 } from 'react-icons/fi';
 import { CustomThemeSettings } from '../../services/api';
+
+import {
+  LinkSettings, BlockVisibility, AnimationSettings, RowSettings, HeaderSettings, ProductData,
+  LinkSettingsForm, VisibilitySettings, AnimationSettingsForm,
+  RowBlock, ProductCardBlock, ProductGridBlock, FeaturedProductBlock, ProductCarouselBlock,
+  HeaderBuilderBlock, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS
+} from './AdvancedBlocks';
 
 // ============ Block Type Definitions ============
 export type BlockType =
   | 'audio' | 'video' | 'gallery' | 'button' | 'hero'
-  | 'card' | 'testimonial' | 'cta' | 'features' | 'divider';
+  | 'card' | 'testimonial' | 'cta' | 'features' | 'divider'
+  | 'pricing' | 'stats' | 'timeline' | 'accordion' | 'tabs'
+  | 'imageText' | 'logoCloud' | 'newsletter' | 'socialProof' | 'countdown'
+  | 'row' | 'header' | 'productCard' | 'productGrid' | 'featuredProduct' | 'productCarousel';
 
 export interface ContentBlock {
   id: string;
   type: BlockType;
   props: Record<string, any>;
+  link?: LinkSettings;
+  visibility?: BlockVisibility;
+  animation?: AnimationSettings;
 }
+
+// Re-export advanced block types for use elsewhere
+export type { LinkSettings, BlockVisibility, AnimationSettings, RowSettings, HeaderSettings, ProductData };
+export { LinkSettingsForm, VisibilitySettings, AnimationSettingsForm, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS };
 
 // Block configurations with defaults
 export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.ElementType; defaultProps: Record<string, any> }> = {
@@ -137,7 +154,358 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       color: '',
     },
   },
+  pricing: {
+    label: 'Pricing Table',
+    icon: FiGrid,
+    defaultProps: {
+      plans: [
+        { name: 'Starter', price: '$9', period: '/month', features: ['5 Projects', '10GB Storage', 'Email Support'], highlighted: false, buttonText: 'Get Started' },
+        { name: 'Pro', price: '$29', period: '/month', features: ['Unlimited Projects', '100GB Storage', 'Priority Support', 'API Access'], highlighted: true, buttonText: 'Start Free Trial' },
+        { name: 'Enterprise', price: '$99', period: '/month', features: ['Everything in Pro', 'Unlimited Storage', '24/7 Support', 'Custom Integrations'], highlighted: false, buttonText: 'Contact Sales' },
+      ],
+    },
+  },
+  stats: {
+    label: 'Stats Counter',
+    icon: FiGrid,
+    defaultProps: {
+      stats: [
+        { value: '10K+', label: 'Active Users', icon: '👥' },
+        { value: '99.9%', label: 'Uptime', icon: '⚡' },
+        { value: '150+', label: 'Countries', icon: '🌍' },
+        { value: '24/7', label: 'Support', icon: '💬' },
+      ],
+      style: 'cards',
+    },
+  },
+  timeline: {
+    label: 'Timeline',
+    icon: FiMinus,
+    defaultProps: {
+      items: [
+        { date: '2024', title: 'Company Founded', description: 'Started with a vision to change the world.' },
+        { date: '2024', title: 'First Product Launch', description: 'Released our flagship product to market.' },
+        { date: '2025', title: 'Series A Funding', description: 'Raised $10M to accelerate growth.' },
+      ],
+      style: 'alternating',
+    },
+  },
+  accordion: {
+    label: 'FAQ Accordion',
+    icon: FiChevronRight,
+    defaultProps: {
+      items: [
+        { question: 'What is your refund policy?', answer: 'We offer a 30-day money-back guarantee on all plans.' },
+        { question: 'How do I get started?', answer: 'Simply sign up for a free account and follow our onboarding guide.' },
+        { question: 'Do you offer custom plans?', answer: 'Yes! Contact our sales team for enterprise pricing.' },
+      ],
+      allowMultiple: false,
+    },
+  },
+  tabs: {
+    label: 'Content Tabs',
+    icon: FiGrid,
+    defaultProps: {
+      tabs: [
+        { label: 'Features', content: 'Discover all the amazing features our platform offers.' },
+        { label: 'Benefits', content: 'Learn how our solution can help your business grow.' },
+        { label: 'Pricing', content: 'Flexible pricing plans for teams of all sizes.' },
+      ],
+      style: 'pills',
+    },
+  },
+  imageText: {
+    label: 'Image + Text',
+    icon: FiImage,
+    defaultProps: {
+      image: 'https://picsum.photos/600/400',
+      title: 'Feature Highlight',
+      description: 'Describe your amazing feature here with compelling copy that converts visitors into customers.',
+      buttonText: 'Learn More',
+      buttonUrl: '#',
+      imagePosition: 'left',
+      style: 'rounded',
+    },
+  },
+  logoCloud: {
+    label: 'Logo Cloud',
+    icon: FiGrid,
+    defaultProps: {
+      title: 'Trusted by Industry Leaders',
+      logos: [
+        { name: 'Company 1', url: 'https://via.placeholder.com/120x40?text=Logo+1' },
+        { name: 'Company 2', url: 'https://via.placeholder.com/120x40?text=Logo+2' },
+        { name: 'Company 3', url: 'https://via.placeholder.com/120x40?text=Logo+3' },
+        { name: 'Company 4', url: 'https://via.placeholder.com/120x40?text=Logo+4' },
+        { name: 'Company 5', url: 'https://via.placeholder.com/120x40?text=Logo+5' },
+      ],
+      style: 'grayscale',
+    },
+  },
+  newsletter: {
+    label: 'Newsletter',
+    icon: FiMessageSquare,
+    defaultProps: {
+      title: 'Stay Updated',
+      description: 'Subscribe to our newsletter for the latest news and updates.',
+      buttonText: 'Subscribe',
+      placeholder: 'Enter your email',
+      style: 'inline',
+    },
+  },
+  socialProof: {
+    label: 'Social Proof',
+    icon: FiStar,
+    defaultProps: {
+      type: 'reviews',
+      rating: 4.9,
+      reviewCount: 2847,
+      avatars: [
+        'https://i.pravatar.cc/40?img=1',
+        'https://i.pravatar.cc/40?img=2',
+        'https://i.pravatar.cc/40?img=3',
+        'https://i.pravatar.cc/40?img=4',
+      ],
+      text: 'Join 10,000+ happy customers',
+    },
+  },
+  countdown: {
+    label: 'Countdown Timer',
+    icon: FiGrid,
+    defaultProps: {
+      title: 'Launch Coming Soon',
+      targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      style: 'cards',
+      showLabels: true,
+    },
+  },
+  row: {
+    label: 'Row / Columns',
+    icon: FiGrid,
+    defaultProps: {
+      columns: [
+        { id: 'col-1', width: { desktop: 6, tablet: 6, mobile: 12 }, blocks: [] },
+        { id: 'col-2', width: { desktop: 6, tablet: 6, mobile: 12 }, blocks: [] },
+      ],
+      gap: 24,
+      verticalAlign: 'top',
+      horizontalAlign: 'left',
+    } as RowSettings,
+  },
+  header: {
+    label: 'Header',
+    icon: FiGrid,
+    defaultProps: {
+      logo: { url: '', width: 120, position: 'left' },
+      style: 'default',
+      backgroundColor: '',
+      navItems: [
+        { id: '1', label: 'Home', link: { type: 'internal', url: '/' }, children: [] },
+        { id: '2', label: 'About', link: { type: 'internal', url: '/about' }, children: [] },
+        { id: '3', label: 'Services', link: { type: 'internal', url: '/services' }, children: [] },
+        { id: '4', label: 'Contact', link: { type: 'internal', url: '/contact' }, children: [] },
+      ],
+      showTopBar: false,
+      topBar: { phone: '+1 (555) 123-4567', email: 'hello@example.com', socialLinks: [] },
+      ctaButton: { show: true, text: 'Get Started', link: { type: 'internal', url: '/signup' }, style: 'solid' },
+      mobileBreakpoint: 'md',
+    } as HeaderSettings,
+  },
+  productCard: {
+    label: 'Product Card',
+    icon: FiGrid,
+    defaultProps: {
+      product: {
+        id: '1',
+        image: 'https://picsum.photos/400/400',
+        title: 'Premium Product',
+        price: 99.99,
+        salePrice: 79.99,
+        rating: 4.5,
+        reviewCount: 128,
+        badge: 'Sale',
+        inStock: true,
+        productUrl: '/products/premium-product',
+        quickViewEnabled: true,
+      } as ProductData,
+      showRating: true,
+      showBadge: true,
+      buttonStyle: 'solid',
+    },
+  },
+  productGrid: {
+    label: 'Product Grid',
+    icon: FiGrid,
+    defaultProps: {
+      products: [
+        { id: '1', image: 'https://picsum.photos/400/400?1', title: 'Product One', price: 49.99, rating: 4.5, reviewCount: 42, inStock: true, productUrl: '/products/product-one', quickViewEnabled: true },
+        { id: '2', image: 'https://picsum.photos/400/400?2', title: 'Product Two', price: 79.99, salePrice: 59.99, rating: 5, reviewCount: 128, badge: 'Sale', inStock: true, productUrl: '/products/product-two', quickViewEnabled: true },
+        { id: '3', image: 'https://picsum.photos/400/400?3', title: 'Product Three', price: 29.99, rating: 4, reviewCount: 18, inStock: true, productUrl: '/products/product-three', quickViewEnabled: true },
+        { id: '4', image: 'https://picsum.photos/400/400?4', title: 'Product Four', price: 149.99, rating: 4.8, reviewCount: 256, badge: 'Best Seller', inStock: true, productUrl: '/products/product-four', quickViewEnabled: true },
+      ] as ProductData[],
+      columns: 4,
+      showRating: true,
+      buttonStyle: 'solid',
+    },
+  },
+  featuredProduct: {
+    label: 'Featured Product',
+    icon: FiGrid,
+    defaultProps: {
+      product: {
+        id: '1',
+        image: 'https://picsum.photos/800/600',
+        title: 'Featured Product Hero',
+        description: 'This is our most popular product with amazing features and quality.',
+        price: 199.99,
+        salePrice: 149.99,
+        rating: 5,
+        reviewCount: 512,
+        badge: 'Featured',
+        inStock: true,
+        productUrl: '/products/featured-product',
+        quickViewEnabled: true,
+      } as ProductData,
+      layout: 'left',
+    },
+  },
+  productCarousel: {
+    label: 'Product Carousel',
+    icon: FiGrid,
+    defaultProps: {
+      products: [
+        { id: '1', image: 'https://picsum.photos/400/400?5', title: 'Carousel Item 1', price: 59.99, rating: 4.5, reviewCount: 32, inStock: true, productUrl: '/products/carousel-1', quickViewEnabled: true },
+        { id: '2', image: 'https://picsum.photos/400/400?6', title: 'Carousel Item 2', price: 89.99, rating: 4.8, reviewCount: 64, inStock: true, productUrl: '/products/carousel-2', quickViewEnabled: true },
+        { id: '3', image: 'https://picsum.photos/400/400?7', title: 'Carousel Item 3', price: 39.99, rating: 4.2, reviewCount: 21, inStock: true, productUrl: '/products/carousel-3', quickViewEnabled: true },
+      ] as ProductData[],
+      autoPlay: false,
+      showArrows: true,
+    },
+  },
 };
+
+// ============ Theme Page Structure ============
+export interface ThemePage {
+  id: string;
+  name: string;
+  slug: string;
+  blocks: ContentBlock[];
+  isHomePage?: boolean;
+}
+
+// ============ Page Template Presets ============
+export interface PageTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  blocks: { type: BlockType; props?: Record<string, any> }[];
+}
+
+export const PAGE_TEMPLATES: PageTemplate[] = [
+  {
+    id: 'blank',
+    name: 'Blank Canvas',
+    description: 'Start from scratch with an empty page',
+    icon: '📄',
+    blocks: [],
+  },
+  {
+    id: 'landing',
+    name: 'Landing Page',
+    description: 'Hero, features, testimonials, and CTA',
+    icon: '🚀',
+    blocks: [
+      { type: 'hero', props: { title: 'Welcome to Our Platform', subtitle: 'Build something amazing with our tools', buttonText: 'Get Started', buttonLink: '#', imageUrl: 'https://picsum.photos/1200/600', style: 'centered' } },
+      { type: 'features', props: { title: 'Why Choose Us', columns: 3, features: [
+        { icon: '⚡', title: 'Lightning Fast', description: 'Optimized for speed and performance' },
+        { icon: '🔒', title: 'Secure', description: 'Enterprise-grade security built in' },
+        { icon: '🎨', title: 'Customizable', description: 'Fully customizable to your brand' },
+        { icon: '📱', title: 'Responsive', description: 'Works perfectly on all devices' },
+        { icon: '💬', title: '24/7 Support', description: 'We\'re here whenever you need us' },
+        { icon: '📈', title: 'Analytics', description: 'Deep insights into your performance' },
+      ]}},
+      { type: 'testimonial', props: { quote: 'This platform transformed our business. The results have been incredible!', author: 'Sarah Johnson', role: 'CEO, TechCorp', avatar: 'https://i.pravatar.cc/100?1', style: 'card' } },
+      { type: 'stats', props: { stats: [
+        { value: '10K+', label: 'Happy Users' },
+        { value: '99.9%', label: 'Uptime' },
+        { value: '24/7', label: 'Support' },
+        { value: '50+', label: 'Countries' },
+      ], style: 'cards' }},
+      { type: 'cta', props: { title: 'Ready to Get Started?', description: 'Join thousands of satisfied customers today.', buttonText: 'Start Free Trial', buttonLink: '#', style: 'gradient' } },
+    ],
+  },
+  {
+    id: 'about',
+    name: 'About Page',
+    description: 'Company story, team, and stats',
+    icon: '👥',
+    blocks: [
+      { type: 'hero', props: { title: 'About Us', subtitle: 'Our story, our mission, our team', buttonText: '', imageUrl: 'https://picsum.photos/1200/500', style: 'minimal' } },
+      { type: 'imageText', props: { title: 'Our Story', text: 'Founded in 2020, we set out to revolutionize the way businesses build their online presence. What started as a small team with a big vision has grown into a platform trusted by thousands of businesses worldwide.', imageUrl: 'https://picsum.photos/600/400?1', imagePosition: 'left' } },
+      { type: 'imageText', props: { title: 'Our Mission', text: 'We believe everyone deserves the tools to build something great. Our mission is to democratize web development and make professional-grade tools accessible to all.', imageUrl: 'https://picsum.photos/600/400?2', imagePosition: 'right' } },
+      { type: 'stats', props: { stats: [
+        { value: '50+', label: 'Team Members' },
+        { value: '2020', label: 'Founded' },
+        { value: '10K+', label: 'Customers' },
+        { value: '25', label: 'Countries' },
+      ], style: 'minimal' }},
+      { type: 'cta', props: { title: 'Want to Join Our Team?', description: 'We\'re always looking for talented people.', buttonText: 'View Careers', buttonLink: '#', style: 'simple' } },
+    ],
+  },
+  {
+    id: 'product',
+    name: 'Product Page',
+    description: 'Featured product showcase with grid',
+    icon: '🛍️',
+    blocks: [
+      { type: 'featuredProduct', props: { product: { id: '1', image: 'https://picsum.photos/800/600', title: 'Premium Product Bundle', price: 299.99, salePrice: 199.99, rating: 4.9, reviewCount: 512, badge: 'Best Value', description: 'Everything you need in one complete package. Limited time offer!', inStock: true }, layout: 'horizontal', showBadge: true } },
+      { type: 'divider', props: { style: 'line' } },
+      { type: 'productGrid', props: { products: [
+        { id: '1', image: 'https://picsum.photos/400/400?10', title: 'Essential Kit', price: 49.99, rating: 4.5, reviewCount: 128, inStock: true },
+        { id: '2', image: 'https://picsum.photos/400/400?11', title: 'Pro Bundle', price: 99.99, salePrice: 79.99, rating: 4.8, reviewCount: 256, badge: 'Sale', inStock: true },
+        { id: '3', image: 'https://picsum.photos/400/400?12', title: 'Starter Pack', price: 29.99, rating: 4.2, reviewCount: 64, inStock: true },
+        { id: '4', image: 'https://picsum.photos/400/400?13', title: 'Ultimate Edition', price: 199.99, rating: 5.0, reviewCount: 89, badge: 'New', inStock: true },
+      ], columns: 4, showRating: true }},
+      { type: 'testimonial', props: { quote: 'The quality is outstanding. Best purchase I\'ve made this year!', author: 'Mike Chen', role: 'Verified Buyer', avatar: 'https://i.pravatar.cc/100?3', style: 'centered' } },
+      { type: 'cta', props: { title: 'Free Shipping on Orders Over $100', description: 'Plus easy returns within 30 days.', buttonText: 'Shop Now', buttonLink: '#', style: 'gradient' } },
+    ],
+  },
+  {
+    id: 'blog',
+    name: 'Blog Layout',
+    description: 'Content-focused blog with sidebar',
+    icon: '📝',
+    blocks: [
+      { type: 'hero', props: { title: 'Our Blog', subtitle: 'Insights, tips, and stories from our team', buttonText: '', imageUrl: '', style: 'minimal' } },
+      { type: 'card', props: { image: 'https://picsum.photos/800/400?20', title: 'Getting Started with Our Platform', description: 'A comprehensive guide to help you hit the ground running with all the tools and features available.', buttonText: 'Read More', buttonLink: '#' } },
+      { type: 'card', props: { image: 'https://picsum.photos/800/400?21', title: '10 Tips for Better Productivity', description: 'Discover the secrets to maximizing your workflow and getting more done in less time.', buttonText: 'Read More', buttonLink: '#' } },
+      { type: 'card', props: { image: 'https://picsum.photos/800/400?22', title: 'The Future of Web Development', description: 'Explore the trends and technologies shaping the future of how we build for the web.', buttonText: 'Read More', buttonLink: '#' } },
+      { type: 'newsletter', props: { title: 'Subscribe to Our Newsletter', description: 'Get the latest articles and updates delivered to your inbox.', buttonText: 'Subscribe', placeholder: 'Enter your email', style: 'inline' } },
+    ],
+  },
+  {
+    id: 'pricing',
+    name: 'Pricing Page',
+    description: 'Pricing tiers with comparison',
+    icon: '💰',
+    blocks: [
+      { type: 'hero', props: { title: 'Simple, Transparent Pricing', subtitle: 'Choose the plan that works for you', buttonText: '', imageUrl: '', style: 'minimal' } },
+      { type: 'pricing', props: { plans: [
+        { name: 'Starter', price: 0, period: 'forever', features: ['5 Projects', '10GB Storage', 'Community Support', 'Basic Analytics'], buttonText: 'Get Started', popular: false },
+        { name: 'Pro', price: 29, period: 'month', features: ['Unlimited Projects', '100GB Storage', 'Priority Support', 'Advanced Analytics', 'Custom Domain', 'API Access'], buttonText: 'Start Free Trial', popular: true },
+        { name: 'Enterprise', price: 99, period: 'month', features: ['Everything in Pro', 'Unlimited Storage', 'Dedicated Support', 'Custom Integrations', 'SLA', 'On-premise Option'], buttonText: 'Contact Sales', popular: false },
+      ]}},
+      { type: 'accordion', props: { title: 'Frequently Asked Questions', items: [
+        { question: 'Can I change plans later?', answer: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.' },
+        { question: 'Is there a free trial?', answer: 'Yes! The Pro plan includes a 14-day free trial. No credit card required.' },
+        { question: 'What payment methods do you accept?', answer: 'We accept all major credit cards, PayPal, and bank transfers for annual plans.' },
+        { question: 'Can I cancel anytime?', answer: 'Absolutely. Cancel anytime with no questions asked. We\'ll even prorate your refund.' },
+      ]}},
+      { type: 'cta', props: { title: 'Still Have Questions?', description: 'Our team is here to help you find the perfect plan.', buttonText: 'Contact Us', buttonLink: '#', style: 'simple' } },
+    ],
+  },
+];
 
 // ============ Block Components ============
 
@@ -838,6 +1206,390 @@ export function DividerBlock({
   );
 }
 
+// Pricing Table Block
+export function PricingBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { plans } = props;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {plans.map((plan: any, i: number) => (
+        <div
+          key={i}
+          className={`relative p-6 rounded-2xl transition-all duration-300 ${plan.highlighted ? 'scale-105 shadow-2xl z-10' : 'hover:shadow-xl'}`}
+          style={{
+            background: plan.highlighted ? `linear-gradient(135deg, ${settings.colors.primary}, ${settings.colors.secondary})` : settings.colors.surface,
+            border: plan.highlighted ? 'none' : `${settings.borders.width}px solid ${settings.colors.border}`,
+            borderRadius: settings.borders.radius * 1.5,
+          }}
+        >
+          {plan.highlighted && (
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">
+              MOST POPULAR
+            </div>
+          )}
+          <h3 style={{ color: plan.highlighted ? 'white' : settings.colors.heading, fontFamily: settings.typography.headingFont }} className="text-xl font-bold mb-2">{plan.name}</h3>
+          <div className="flex items-baseline gap-1 mb-4">
+            <span style={{ color: plan.highlighted ? 'white' : settings.colors.heading }} className="text-4xl font-bold">{plan.price}</span>
+            <span style={{ color: plan.highlighted ? 'rgba(255,255,255,0.8)' : settings.colors.textMuted }} className="text-sm">{plan.period}</span>
+          </div>
+          <ul className="space-y-3 mb-6">
+            {plan.features.map((f: string, j: number) => (
+              <li key={j} className="flex items-center gap-2" style={{ color: plan.highlighted ? 'rgba(255,255,255,0.9)' : settings.colors.text }}>
+                <span className="text-green-400">✓</span> {f}
+              </li>
+            ))}
+          </ul>
+          <button
+            className="w-full py-3 rounded-xl font-semibold transition-all"
+            style={{
+              background: plan.highlighted ? 'white' : settings.colors.primary,
+              color: plan.highlighted ? settings.colors.primary : 'white',
+              borderRadius: settings.borders.radius,
+            }}
+          >
+            {plan.buttonText}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Stats Counter Block
+export function StatsBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { stats, style } = props;
+
+  return (
+    <div className={`grid grid-cols-2 md:grid-cols-4 gap-6`}>
+      {stats.map((stat: any, i: number) => (
+        <div
+          key={i}
+          className="text-center p-6 transition-all hover:scale-105"
+          style={{
+            background: style === 'cards' ? settings.colors.surface : 'transparent',
+            border: style === 'cards' ? `${settings.borders.width}px solid ${settings.colors.border}` : 'none',
+            borderRadius: settings.borders.radius,
+          }}
+        >
+          <div className="text-4xl mb-2">{stat.icon}</div>
+          <div style={{ color: settings.colors.primary, fontFamily: settings.typography.headingFont }} className="text-3xl font-bold mb-1">{stat.value}</div>
+          <div style={{ color: settings.colors.textMuted }} className="text-sm">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Timeline Block
+export function TimelineBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { items } = props;
+
+  return (
+    <div className="relative">
+      <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-full" style={{ background: settings.colors.border }} />
+      <div className="space-y-12">
+        {items.map((item: any, i: number) => (
+          <div key={i} className={`flex items-center gap-8 ${i % 2 === 0 ? '' : 'flex-row-reverse'}`}>
+            <div className={`flex-1 ${i % 2 === 0 ? 'text-right' : 'text-left'}`}>
+              <div style={{ color: settings.colors.primary }} className="text-sm font-semibold mb-1">{item.date}</div>
+              <h4 style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }} className="text-lg font-bold mb-2">{item.title}</h4>
+              <p style={{ color: settings.colors.textMuted }}>{item.description}</p>
+            </div>
+            <div className="relative z-10 w-4 h-4 rounded-full" style={{ background: settings.colors.primary, boxShadow: `0 0 0 4px ${settings.colors.background}` }} />
+            <div className="flex-1" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Accordion Block
+export function AccordionBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { items } = props;
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  return (
+    <div className="space-y-3">
+      {items.map((item: any, i: number) => (
+        <div
+          key={i}
+          className="overflow-hidden transition-all"
+          style={{
+            background: settings.colors.surface,
+            border: `${settings.borders.width}px solid ${settings.colors.border}`,
+            borderRadius: settings.borders.radius,
+          }}
+        >
+          <button
+            className="w-full flex items-center justify-between p-4 text-left"
+            onClick={() => setOpenIndex(openIndex === i ? null : i)}
+          >
+            <span style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }} className="font-semibold">{item.question}</span>
+            <FiChevronRight className={`transition-transform ${openIndex === i ? 'rotate-90' : ''}`} style={{ color: settings.colors.primary }} />
+          </button>
+          {openIndex === i && (
+            <div className="px-4 pb-4" style={{ color: settings.colors.textMuted }}>
+              {item.answer}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Tabs Block
+export function TabsBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { tabs, style } = props;
+  const [activeTab, setActiveTab] = useState(0);
+
+  return (
+    <div>
+      <div className={`flex gap-2 mb-6 ${style === 'pills' ? '' : 'border-b border-gray-200'}`} style={{ borderColor: settings.colors.border }}>
+        {tabs.map((tab: any, i: number) => (
+          <button
+            key={i}
+            onClick={() => setActiveTab(i)}
+            className={`px-4 py-2 font-medium transition-all ${style === 'pills' ? 'rounded-full' : 'rounded-t-lg'}`}
+            style={{
+              background: activeTab === i ? settings.colors.primary : 'transparent',
+              color: activeTab === i ? 'white' : settings.colors.textMuted,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div
+        className="p-6"
+        style={{
+          background: settings.colors.surface,
+          borderRadius: settings.borders.radius,
+          color: settings.colors.text,
+        }}
+      >
+        {tabs[activeTab]?.content}
+      </div>
+    </div>
+  );
+}
+
+// Image + Text Block
+export function ImageTextBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { image, title, description, buttonText, imagePosition } = props;
+
+  return (
+    <div className={`flex flex-col md:flex-row gap-8 items-center ${imagePosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
+      <div className="flex-1">
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-64 object-cover shadow-xl"
+          style={{ borderRadius: settings.borders.radius * 1.5 }}
+        />
+      </div>
+      <div className="flex-1 space-y-4">
+        <h3 style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }} className="text-2xl font-bold">{title}</h3>
+        <p style={{ color: settings.colors.textMuted }} className="text-lg leading-relaxed">{description}</p>
+        <button
+          className="px-6 py-3 font-semibold transition-all hover:opacity-90"
+          style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+        >
+          {buttonText}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Logo Cloud Block
+export function LogoCloudBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { title, logos, style } = props;
+
+  return (
+    <div className="text-center">
+      <p style={{ color: settings.colors.textMuted }} className="text-sm uppercase tracking-wider mb-8">{title}</p>
+      <div className="flex flex-wrap items-center justify-center gap-8">
+        {logos.map((logo: any, i: number) => (
+          <img
+            key={i}
+            src={logo.url}
+            alt={logo.name}
+            className={`h-10 object-contain transition-all hover:opacity-100 ${style === 'grayscale' ? 'opacity-50 grayscale hover:grayscale-0' : ''}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Newsletter Block
+export function NewsletterBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { title, description, buttonText, placeholder, style: layoutStyle } = props;
+
+  return (
+    <div
+      className="p-8 text-center"
+      style={{
+        background: `linear-gradient(135deg, ${settings.colors.primary}15, ${settings.colors.secondary}15)`,
+        borderRadius: settings.borders.radius * 2,
+      }}
+    >
+      <h3 style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }} className="text-2xl font-bold mb-2">{title}</h3>
+      <p style={{ color: settings.colors.textMuted }} className="mb-6">{description}</p>
+      <div className={`flex gap-3 max-w-md mx-auto ${layoutStyle === 'stacked' ? 'flex-col' : ''}`}>
+        <input
+          type="email"
+          placeholder={placeholder}
+          className="flex-1 px-4 py-3 outline-none focus:ring-2"
+          style={{
+            background: settings.colors.surface,
+            border: `${settings.borders.width}px solid ${settings.colors.border}`,
+            borderRadius: settings.borders.radius,
+            color: settings.colors.text,
+          }}
+        />
+        <button
+          className="px-6 py-3 font-semibold whitespace-nowrap transition-all hover:opacity-90"
+          style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+        >
+          {buttonText}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Social Proof Block
+export function SocialProofBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { rating, reviewCount, avatars, text } = props;
+
+  return (
+    <div className="flex flex-col md:flex-row items-center justify-center gap-6 p-6" style={{ background: settings.colors.surface, borderRadius: settings.borders.radius }}>
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map(star => (
+          <FiStar key={star} className={star <= Math.floor(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} size={20} />
+        ))}
+        <span style={{ color: settings.colors.heading }} className="ml-2 font-bold">{rating}</span>
+      </div>
+      <div className="flex -space-x-2">
+        {avatars.slice(0, 4).map((avatar: string, i: number) => (
+          <img key={i} src={avatar} alt="" className="w-10 h-10 rounded-full border-2" style={{ borderColor: settings.colors.background }} />
+        ))}
+        {avatars.length > 4 && (
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: settings.colors.primary, color: 'white' }}>
+            +{avatars.length - 4}
+          </div>
+        )}
+      </div>
+      <div style={{ color: settings.colors.textMuted }}>
+        <span style={{ color: settings.colors.heading }} className="font-semibold">{reviewCount.toLocaleString()}</span> reviews • {text}
+      </div>
+    </div>
+  );
+}
+
+// Countdown Timer Block
+export function CountdownBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { title, targetDate, showLabels } = props;
+  const target = new Date(targetDate);
+  const now = new Date();
+  const diff = target.getTime() - now.getTime();
+
+  const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  const hours = Math.max(0, Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+  const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+  const seconds = Math.max(0, Math.floor((diff % (1000 * 60)) / 1000));
+
+  const timeUnits = [
+    { value: days, label: 'Days' },
+    { value: hours, label: 'Hours' },
+    { value: minutes, label: 'Minutes' },
+    { value: seconds, label: 'Seconds' },
+  ];
+
+  return (
+    <div className="text-center py-8">
+      <h3 style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }} className="text-2xl font-bold mb-8">{title}</h3>
+      <div className="flex justify-center gap-4">
+        {timeUnits.map((unit, i) => (
+          <div key={i} className="text-center">
+            <div
+              className="w-20 h-20 flex items-center justify-center text-3xl font-bold rounded-xl shadow-lg"
+              style={{ background: settings.colors.surface, color: settings.colors.primary, borderRadius: settings.borders.radius }}
+            >
+              {String(unit.value).padStart(2, '0')}
+            </div>
+            {showLabels && (
+              <div style={{ color: settings.colors.textMuted }} className="text-xs mt-2 uppercase tracking-wider">{unit.label}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ============ Block Renderer ============
 export function BlockRenderer({
@@ -848,6 +1600,10 @@ export function BlockRenderer({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onDuplicate,
+  onCopy,
+  onUpdateBlock,
+  previewDevice = 'desktop',
 }: {
   block: ContentBlock;
   settings: CustomThemeSettings;
@@ -856,8 +1612,36 @@ export function BlockRenderer({
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  onDuplicate?: () => void;
+  onCopy?: () => void;
+  onUpdateBlock?: (block: ContentBlock) => void;
   onUpdateProps?: (props: Record<string, any>) => void;
+  previewDevice?: 'desktop' | 'tablet' | 'mobile';
 }) {
+  // Check visibility based on device
+  const isVisible = block.visibility ? block.visibility[previewDevice] : true;
+
+  // Get animation class
+  const getAnimationStyle = (): React.CSSProperties => {
+    if (!block.animation || block.animation.type === 'none') return {};
+    return {
+      animationDuration: `${block.animation.duration}ms`,
+      animationDelay: `${block.animation.delay}ms`,
+      animationFillMode: 'both',
+    };
+  };
+
+  const animationClass = block.animation?.type && block.animation.type !== 'none'
+    ? `animate-${block.animation.type}`
+    : '';
+
+  if (!isVisible) {
+    return (
+      <div className="relative group opacity-30 border border-dashed border-gray-500 rounded p-2">
+        <div className="text-xs text-gray-400 text-center">Hidden on {previewDevice}</div>
+      </div>
+    );
+  }
   const renderBlock = () => {
     switch (block.type) {
       case 'audio':
@@ -880,6 +1664,38 @@ export function BlockRenderer({
         return <FeaturesBlock props={block.props} settings={settings} />;
       case 'divider':
         return <DividerBlock props={block.props} settings={settings} />;
+      case 'pricing':
+        return <PricingBlock props={block.props} settings={settings} />;
+      case 'stats':
+        return <StatsBlock props={block.props} settings={settings} />;
+      case 'timeline':
+        return <TimelineBlock props={block.props} settings={settings} />;
+      case 'accordion':
+        return <AccordionBlock props={block.props} settings={settings} />;
+      case 'tabs':
+        return <TabsBlock props={block.props} settings={settings} />;
+      case 'imageText':
+        return <ImageTextBlock props={block.props} settings={settings} />;
+      case 'logoCloud':
+        return <LogoCloudBlock props={block.props} settings={settings} />;
+      case 'newsletter':
+        return <NewsletterBlock props={block.props} settings={settings} />;
+      case 'socialProof':
+        return <SocialProofBlock props={block.props} settings={settings} />;
+      case 'countdown':
+        return <CountdownBlock props={block.props} settings={settings} />;
+      case 'row':
+        return <RowBlock props={block.props as RowSettings} settings={settings} />;
+      case 'header':
+        return <HeaderBuilderBlock props={block.props as HeaderSettings} settings={settings} />;
+      case 'productCard':
+        return <ProductCardBlock props={block.props as { product: ProductData; showRating?: boolean; showBadge?: boolean; buttonStyle?: 'solid' | 'outline' | 'icon' }} settings={settings} />;
+      case 'productGrid':
+        return <ProductGridBlock props={block.props as { products: ProductData[]; columns: 2 | 3 | 4; showRating?: boolean; buttonStyle?: 'solid' | 'outline' | 'icon' }} settings={settings} />;
+      case 'featuredProduct':
+        return <FeaturedProductBlock props={block.props as { product: ProductData; layout: 'left' | 'right' }} settings={settings} />;
+      case 'productCarousel':
+        return <ProductCarouselBlock props={block.props as { products: ProductData[]; autoPlay?: boolean; showArrows?: boolean }} settings={settings} />;
       default:
         return <div>Unknown block type: {block.type}</div>;
     }
@@ -887,7 +1703,8 @@ export function BlockRenderer({
 
   return (
     <div
-      className={`relative group ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+      className={`relative group ${isSelected ? 'ring-2 ring-blue-500' : ''} ${animationClass}`}
+      style={getAnimationStyle()}
       onClick={onSelect}
     >
       {/* Block Controls */}
@@ -906,6 +1723,35 @@ export function BlockRenderer({
         >
           <FiArrowDown size={14} />
         </button>
+        <div className="w-px h-4 bg-gray-600" />
+        <button
+          onClick={(e) => { e.stopPropagation(); onDuplicate?.(); }}
+          className="p-1.5 hover:bg-blue-600 rounded text-gray-300"
+          title="Duplicate Block"
+        >
+          <FiCopy size={14} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onCopy?.(); }}
+          className="p-1.5 hover:bg-green-600 rounded text-gray-300"
+          title="Copy to Clipboard"
+        >
+          <FiMove size={14} />
+        </button>
+        <div className="w-px h-4 bg-gray-600" />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onUpdateBlock) {
+              const visibility = block.visibility || { desktop: true, tablet: true, mobile: true };
+              onUpdateBlock({ ...block, visibility: { ...visibility, [previewDevice]: !visibility[previewDevice] } });
+            }
+          }}
+          className="p-1.5 hover:bg-gray-700 rounded text-gray-300"
+          title={`Toggle visibility on ${previewDevice}`}
+        >
+          {block.visibility?.[previewDevice] === false ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+        </button>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
           className="p-1.5 hover:bg-red-600 rounded text-gray-300"
@@ -913,6 +1759,11 @@ export function BlockRenderer({
         >
           <FiTrash2 size={14} />
         </button>
+      </div>
+
+      {/* Block Type Label */}
+      <div className={`absolute -top-3 left-2 px-2 py-0.5 bg-gray-700 rounded text-xs text-gray-300 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        {BLOCK_CONFIGS[block.type as BlockType]?.label || block.type}
       </div>
 
       {renderBlock()}
@@ -925,6 +1776,8 @@ export function ContentBlocksPanel({
   blocks,
   onAddBlock,
   onUpdateBlock,
+  onUpdateFullBlock,
+  onLoadTemplate,
   selectedBlockId,
   onSelectBlock,
 }: {
@@ -933,53 +1786,151 @@ export function ContentBlocksPanel({
   onRemoveBlock: (id: string) => void;
   onMoveBlock: (id: string, direction: 'up' | 'down') => void;
   onUpdateBlock: (id: string, props: Record<string, any>) => void;
+  onUpdateFullBlock?: (block: ContentBlock) => void;
+  onLoadTemplate?: (template: PageTemplate) => void;
   selectedBlockId: string | null;
   onSelectBlock: (id: string | null) => void;
 }) {
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const selectedBlock = blocks.find(b => b.id === selectedBlockId);
+
+  // Helper to update a full block (for link, visibility, animation)
+  const handleUpdateFullBlock = (updatedBlock: ContentBlock) => {
+    if (onUpdateFullBlock) {
+      onUpdateFullBlock(updatedBlock);
+    } else {
+      // Fallback: use onUpdateBlock to update props, but we can't update link/visibility/animation this way
+      onUpdateBlock(updatedBlock.id, updatedBlock.props);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <h3 className="font-semibold text-white">Content Blocks</h3>
-        <div className="relative">
+        <div className="flex items-center gap-2">
+          {/* Template Selector Button */}
           <button
-            onClick={() => setShowAddMenu(!showAddMenu)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium"
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium"
+            title="Use a template"
           >
-            <FiPlus size={16} /> Add Block
+            📋
           </button>
 
-          {/* Add Block Menu */}
-          {showAddMenu && (
-            <div className="absolute right-0 top-full mt-2 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
-              {Object.entries(BLOCK_CONFIGS).map(([type, config]) => (
-                <button
-                  key={type}
-                  onClick={() => {
-                    onAddBlock(type as BlockType);
-                    setShowAddMenu(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 text-left"
-                >
-                  <config.icon size={18} className="text-gray-400" />
-                  <span className="text-white">{config.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="relative">
+            <button
+              onClick={() => setShowAddMenu(!showAddMenu)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium"
+            >
+              <FiPlus size={16} /> Add
+            </button>
+
+            {/* Add Block Menu */}
+            {showAddMenu && (
+              <div className="absolute right-0 top-full mt-2 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
+                {Object.entries(BLOCK_CONFIGS).map(([type, config]) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      onAddBlock(type as BlockType);
+                      setShowAddMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 text-left"
+                  >
+                    <config.icon size={18} className="text-gray-400" />
+                    <span className="text-white">{config.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Template Selector Panel */}
+      {showTemplates && (
+        <div className="p-4 border-b border-gray-700 bg-gray-800/50">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-white">📋 Page Templates</h4>
+            <button
+              onClick={() => setShowTemplates(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <FiX size={16} />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">
+            {blocks.length > 0
+              ? 'Warning: Loading a template will replace all current blocks.'
+              : 'Choose a template to get started quickly.'}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {PAGE_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => {
+                  if (onLoadTemplate) {
+                    onLoadTemplate(template);
+                  }
+                  setShowTemplates(false);
+                }}
+                className="flex flex-col items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-center transition-colors"
+              >
+                <span className="text-2xl">{template.icon}</span>
+                <span className="text-xs font-medium text-white">{template.name}</span>
+                <span className="text-[10px] text-gray-400 leading-tight">{template.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Block List */}
       <div className="flex-1 overflow-y-auto p-4">
         {blocks.length === 0 ? (
-          <div className="text-center py-8">
-            <FiGrid className="mx-auto mb-3 text-gray-600" size={32} />
-            <p className="text-gray-400 text-sm">No blocks added yet</p>
-            <p className="text-gray-500 text-xs mt-1">Click "Add Block" to get started</p>
+          <div className="text-center py-6">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+              <FiGrid className="text-blue-400" size={28} />
+            </div>
+            <p className="text-gray-300 font-medium mb-1">Start Building</p>
+            <p className="text-gray-500 text-xs mb-4">Add blocks or use a template</p>
+
+            {/* Quick Template Buttons */}
+            <div className="space-y-2">
+              <button
+                onClick={() => setShowTemplates(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                📋 Use a Template
+              </button>
+              <button
+                onClick={() => setShowAddMenu(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors text-gray-300"
+              >
+                <FiPlus size={16} /> Add First Block
+              </button>
+            </div>
+
+            {/* Template Preview */}
+            <div className="mt-6 pt-4 border-t border-gray-700">
+              <p className="text-xs text-gray-500 mb-3">Popular Templates:</p>
+              <div className="flex justify-center gap-2">
+                {PAGE_TEMPLATES.slice(1, 4).map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => onLoadTemplate?.(t)}
+                    className="flex flex-col items-center gap-1 p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
+                    title={t.description}
+                  >
+                    <span className="text-lg">{t.icon}</span>
+                    <span className="text-[10px] text-gray-400">{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
@@ -1009,12 +1960,102 @@ export function ContentBlocksPanel({
 
       {/* Block Settings Panel */}
       {selectedBlock && (
-        <div className="border-t border-gray-700 p-4 max-h-64 overflow-y-auto">
+        <div className="border-t border-gray-700 p-4 max-h-[400px] overflow-y-auto">
           <h4 className="font-medium text-white mb-3">Block Settings</h4>
           <BlockSettingsForm
             block={selectedBlock}
             onUpdate={(props) => onUpdateBlock(selectedBlock.id, props)}
           />
+
+          {/* Advanced Settings Accordion */}
+          <div className="mt-4 space-y-3">
+            {/* Link Settings */}
+            <details className="group" open>
+              <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-300 hover:text-white py-2 border-b border-gray-700">
+                <span>🔗 Link Settings</span>
+                <span className="text-xs text-blue-400">{selectedBlock.link?.type !== 'none' && selectedBlock.link?.type ? `(${selectedBlock.link.type})` : ''}</span>
+              </summary>
+              <div className="mt-2">
+                <LinkSettingsForm
+                  link={selectedBlock.link || { type: 'none', url: '' }}
+                  onChange={(link) => {
+                    handleUpdateFullBlock({ ...selectedBlock, link });
+                  }}
+                />
+              </div>
+            </details>
+
+            {/* Visibility Settings */}
+            <details className="group">
+              <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-300 hover:text-white py-2 border-b border-gray-700">
+                <span>👁️ Visibility</span>
+                <span className="text-xs text-gray-500">
+                  {selectedBlock.visibility ?
+                    `${selectedBlock.visibility.desktop ? '🖥' : ''}${selectedBlock.visibility.tablet ? '📱' : ''}${selectedBlock.visibility.mobile ? '📲' : ''}`
+                    : '🖥📱📲'}
+                </span>
+              </summary>
+              <div className="mt-2">
+                <VisibilitySettings
+                  visibility={selectedBlock.visibility || { desktop: true, tablet: true, mobile: true }}
+                  onChange={(visibility) => {
+                    handleUpdateFullBlock({ ...selectedBlock, visibility });
+                  }}
+                />
+              </div>
+            </details>
+
+            {/* Animation Settings */}
+            <details className="group">
+              <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-300 hover:text-white py-2 border-b border-gray-700">
+                <span>✨ Animation</span>
+                <span className="text-xs text-purple-400">{selectedBlock.animation?.type !== 'none' ? selectedBlock.animation?.type : ''}</span>
+              </summary>
+              <div className="mt-2">
+                <AnimationSettingsForm
+                  animation={selectedBlock.animation || { type: 'none', duration: 300, delay: 0 }}
+                  onChange={(animation) => {
+                    handleUpdateFullBlock({ ...selectedBlock, animation });
+                  }}
+                />
+              </div>
+            </details>
+
+            {/* Row/Column Preset Layouts (only for row blocks) */}
+            {selectedBlock.type === 'row' && (
+              <details className="group" open>
+                <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-300 hover:text-white py-2 border-b border-gray-700">
+                  <span>📐 Column Presets</span>
+                </summary>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {PRESET_LAYOUTS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        const newColumns = preset.columns.map((width, i) => ({
+                          id: `col-${Date.now()}-${i}`,
+                          width: { desktop: width as 1|2|3|4|5|6|7|8|9|10|11|12, tablet: Math.min(width * 2, 12) as 1|2|3|4|5|6|7|8|9|10|11|12, mobile: 12 as 1|2|3|4|5|6|7|8|9|10|11|12 },
+                          blocks: [],
+                        }));
+                        handleUpdateFullBlock({
+                          ...selectedBlock,
+                          props: { ...selectedBlock.props, columns: newColumns }
+                        });
+                      }}
+                      className="p-2 bg-gray-700 hover:bg-gray-600 rounded text-xs text-white text-center"
+                    >
+                      {preset.name}
+                      <div className="flex gap-0.5 mt-1 justify-center">
+                        {preset.columns.map((w, i) => (
+                          <div key={i} className="h-2 bg-blue-500 rounded" style={{ width: `${(w / 12) * 100}%`, minWidth: 4 }} />
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1225,6 +2266,229 @@ function BlockSettingsForm({
           <RangeInput label="Spacing" propKey="spacing" min={10} max={100} />
         </>
       );
+
+    case 'productCard':
+    case 'featuredProduct': {
+      const product = props.product || {};
+      const updateProduct = (key: string, value: any) => {
+        onUpdate({ ...props, product: { ...product, [key]: value } });
+      };
+      return (
+        <>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Product Title</label>
+            <input
+              type="text"
+              value={product.title || ''}
+              onChange={(e) => updateProduct('title', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Product URL</label>
+            <input
+              type="text"
+              value={product.productUrl || ''}
+              onChange={(e) => updateProduct('productUrl', e.target.value)}
+              placeholder="/products/my-product"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Image URL</label>
+            <input
+              type="text"
+              value={product.image || ''}
+              onChange={(e) => updateProduct('image', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Price ($)</label>
+              <input
+                type="number"
+                value={product.price || 0}
+                onChange={(e) => updateProduct('price', parseFloat(e.target.value))}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Sale Price ($)</label>
+              <input
+                type="number"
+                value={product.salePrice || ''}
+                onChange={(e) => updateProduct('salePrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                placeholder="Optional"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Badge</label>
+            <input
+              type="text"
+              value={product.badge || ''}
+              onChange={(e) => updateProduct('badge', e.target.value)}
+              placeholder="Sale, New, Featured..."
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          {type === 'featuredProduct' && (
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Description</label>
+              <textarea
+                value={product.description || ''}
+                onChange={(e) => updateProduct('description', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              type="checkbox"
+              checked={product.quickViewEnabled !== false}
+              onChange={(e) => updateProduct('quickViewEnabled', e.target.checked)}
+              className="rounded bg-gray-700 border-gray-600"
+            />
+            <label className="text-xs text-gray-400">Enable Quick View</label>
+          </div>
+        </>
+      );
+    }
+
+    case 'productGrid':
+    case 'productCarousel': {
+      const products = props.products || [];
+      const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
+
+      const updateProductAtIndex = (index: number, key: string, value: any) => {
+        const newProducts = [...products];
+        newProducts[index] = { ...newProducts[index], [key]: value };
+        onUpdate({ ...props, products: newProducts });
+      };
+
+      const addProduct = () => {
+        const newProduct: ProductData = {
+          id: `product-${Date.now()}`,
+          image: 'https://picsum.photos/400/400',
+          title: `New Product ${products.length + 1}`,
+          price: 49.99,
+          rating: 4.5,
+          reviewCount: 0,
+          inStock: true,
+          productUrl: `/products/new-product-${products.length + 1}`,
+          quickViewEnabled: true,
+        };
+        onUpdate({ ...props, products: [...products, newProduct] });
+      };
+
+      const removeProduct = (index: number) => {
+        const newProducts = products.filter((_: ProductData, i: number) => i !== index);
+        onUpdate({ ...props, products: newProducts });
+        setEditingIndex(null);
+      };
+
+      return (
+        <>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-2">Products ({products.length})</label>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {products.map((product: ProductData, index: number) => (
+                <div key={product.id} className="bg-gray-700 rounded-lg p-2">
+                  <div
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => setEditingIndex(editingIndex === index ? null : index)}
+                  >
+                    <img src={product.image} alt="" className="w-8 h-8 object-cover rounded" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white truncate">{product.title}</p>
+                      <p className="text-xs text-gray-400">${product.price.toFixed(2)}</p>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeProduct(index); }}
+                      className="p-1 text-red-400 hover:text-red-300"
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </div>
+
+                  {/* Expanded edit form */}
+                  {editingIndex === index && (
+                    <div className="mt-3 pt-3 border-t border-gray-600 space-y-2">
+                      <input
+                        type="text"
+                        value={product.title}
+                        onChange={(e) => updateProductAtIndex(index, 'title', e.target.value)}
+                        placeholder="Product Title"
+                        className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-xs text-white"
+                      />
+                      <input
+                        type="text"
+                        value={product.productUrl || ''}
+                        onChange={(e) => updateProductAtIndex(index, 'productUrl', e.target.value)}
+                        placeholder="Product URL"
+                        className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-xs text-white"
+                      />
+                      <input
+                        type="text"
+                        value={product.image}
+                        onChange={(e) => updateProductAtIndex(index, 'image', e.target.value)}
+                        placeholder="Image URL"
+                        className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-xs text-white"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="number"
+                          value={product.price}
+                          onChange={(e) => updateProductAtIndex(index, 'price', parseFloat(e.target.value))}
+                          placeholder="Price"
+                          className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-xs text-white"
+                        />
+                        <input
+                          type="number"
+                          value={product.salePrice || ''}
+                          onChange={(e) => updateProductAtIndex(index, 'salePrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="Sale Price"
+                          className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-xs text-white"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={product.badge || ''}
+                        onChange={(e) => updateProductAtIndex(index, 'badge', e.target.value)}
+                        placeholder="Badge (Sale, New...)"
+                        className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-xs text-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={addProduct}
+              className="w-full mt-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-white flex items-center justify-center gap-1"
+            >
+              <FiPlus size={14} /> Add Product
+            </button>
+          </div>
+
+          {type === 'productGrid' && (
+            <SelectInput
+              label="Columns"
+              propKey="columns"
+              options={[
+                { value: '2', label: '2 Columns' },
+                { value: '3', label: '3 Columns' },
+                { value: '4', label: '4 Columns' },
+              ]}
+            />
+          )}
+        </>
+      );
+    }
+
     default:
       return <p className="text-gray-400 text-sm">No settings available</p>;
   }

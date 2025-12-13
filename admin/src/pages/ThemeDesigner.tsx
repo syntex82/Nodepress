@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fi';
 import {
   ContentBlock, BlockType, BLOCK_CONFIGS,
-  ContentBlocksPanel, BlockRenderer
+  ContentBlocksPanel, BlockRenderer, PageTemplate, ThemePage
 } from '../components/ThemeDesigner/ContentBlocks';
 
 // Theme presets
@@ -99,7 +99,7 @@ const FONT_OPTIONS = [
   'Raleway', 'Nunito', 'Work Sans', 'Oswald', 'Quicksand',
 ];
 
-type DesignSection = 'colors' | 'typography' | 'layout' | 'spacing' | 'components' | 'css' | 'blocks';
+type DesignSection = 'colors' | 'typography' | 'layout' | 'spacing' | 'components' | 'css' | 'blocks' | 'pages';
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 type PreviewMode = 'light' | 'dark';
 
@@ -141,9 +141,99 @@ export default function ThemeDesigner() {
   const [showThemeList, setShowThemeList] = useState(!editId);
   const [showPresets, setShowPresets] = useState(false);
 
-  // Content Blocks state
-  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
+  // Multi-page state
+  const [pages, setPages] = useState<ThemePage[]>([
+    { id: 'home', name: 'Home', slug: '/', blocks: [], isHomePage: true }
+  ]);
+  const [currentPageId, setCurrentPageId] = useState<string>('home');
+
+  // Get current page's blocks
+  const currentPage = pages.find(p => p.id === currentPageId) || pages[0];
+  const contentBlocks = currentPage?.blocks || [];
+
+  // Update blocks for current page
+  const setContentBlocks = useCallback((updater: ContentBlock[] | ((prev: ContentBlock[]) => ContentBlock[])) => {
+    setPages(prevPages => prevPages.map(page => {
+      if (page.id !== currentPageId) return page;
+      const newBlocks = typeof updater === 'function' ? updater(page.blocks) : updater;
+      return { ...page, blocks: newBlocks };
+    }));
+  }, [currentPageId]);
+
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [copiedBlock, setCopiedBlock] = useState<ContentBlock | null>(null);
+
+  // Page management functions
+  const generatePageId = () => `page-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  const addPage = useCallback((name: string = 'New Page') => {
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const newPage: ThemePage = {
+      id: generatePageId(),
+      name,
+      slug: `/${slug}`,
+      blocks: [],
+      isHomePage: false,
+    };
+    setPages(prev => [...prev, newPage]);
+    setCurrentPageId(newPage.id);
+    setSelectedBlockId(null);
+    toast.success(`Created page "${name}"`);
+  }, []);
+
+  const renamePage = useCallback((pageId: string, newName: string) => {
+    setPages(prev => prev.map(page => {
+      if (page.id !== pageId) return page;
+      const slug = page.isHomePage ? '/' : `/${newName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+      return { ...page, name: newName, slug };
+    }));
+  }, []);
+
+  const duplicatePage = useCallback((pageId: string) => {
+    const page = pages.find(p => p.id === pageId);
+    if (!page) return;
+
+    const newPage: ThemePage = {
+      id: generatePageId(),
+      name: `${page.name} (Copy)`,
+      slug: `${page.slug}-copy`,
+      blocks: page.blocks.map(block => ({ ...block, id: generateBlockId() })),
+      isHomePage: false,
+    };
+    setPages(prev => [...prev, newPage]);
+    setCurrentPageId(newPage.id);
+    toast.success(`Duplicated page "${page.name}"`);
+  }, [pages]);
+
+  const deletePage = useCallback((pageId: string) => {
+    const page = pages.find(p => p.id === pageId);
+    if (!page) return;
+    if (page.isHomePage) {
+      toast.error('Cannot delete the home page');
+      return;
+    }
+    if (pages.length <= 1) {
+      toast.error('Cannot delete the last page');
+      return;
+    }
+
+    setPages(prev => prev.filter(p => p.id !== pageId));
+    if (currentPageId === pageId) {
+      const homePage = pages.find(p => p.isHomePage);
+      setCurrentPageId(homePage?.id || pages[0].id);
+    }
+    setSelectedBlockId(null);
+    toast.success(`Deleted page "${page.name}"`);
+  }, [pages, currentPageId]);
+
+  const setHomePage = useCallback((pageId: string) => {
+    setPages(prev => prev.map(page => ({
+      ...page,
+      isHomePage: page.id === pageId,
+      slug: page.id === pageId ? '/' : (page.slug === '/' ? `/${page.name.toLowerCase().replace(/\s+/g, '-')}` : page.slug),
+    })));
+    toast.success('Home page updated');
+  }, []);
 
   // Block management functions
   const addBlock = useCallback((type: BlockType) => {
@@ -152,6 +242,8 @@ export default function ThemeDesigner() {
       id: generateBlockId(),
       type,
       props: { ...config.defaultProps },
+      visibility: { desktop: true, tablet: true, mobile: true },
+      animation: { type: 'none', duration: 300, delay: 0 },
     };
     setContentBlocks(prev => [...prev, newBlock]);
     setSelectedBlockId(newBlock.id);
@@ -182,6 +274,71 @@ export default function ThemeDesigner() {
     setContentBlocks(prev => prev.map(b =>
       b.id === id ? { ...b, props } : b
     ));
+  }, []);
+
+  const updateBlock = useCallback((updatedBlock: ContentBlock) => {
+    setContentBlocks(prev => prev.map(b =>
+      b.id === updatedBlock.id ? updatedBlock : b
+    ));
+  }, []);
+
+  const duplicateBlock = useCallback((id: string) => {
+    setContentBlocks(prev => {
+      const block = prev.find(b => b.id === id);
+      if (!block) return prev;
+      const newBlock: ContentBlock = {
+        ...block,
+        id: generateBlockId(),
+        props: { ...block.props },
+      };
+      const index = prev.findIndex(b => b.id === id);
+      const newBlocks = [...prev];
+      newBlocks.splice(index + 1, 0, newBlock);
+      return newBlocks;
+    });
+  }, []);
+
+  const copyBlock = useCallback((id: string) => {
+    const block = contentBlocks.find(b => b.id === id);
+    if (block) {
+      setCopiedBlock({ ...block, props: { ...block.props } });
+    }
+  }, [contentBlocks]);
+
+  const pasteBlock = useCallback(() => {
+    if (!copiedBlock) return;
+    const newBlock: ContentBlock = {
+      ...copiedBlock,
+      id: generateBlockId(),
+      props: { ...copiedBlock.props },
+    };
+    setContentBlocks(prev => [...prev, newBlock]);
+    setSelectedBlockId(newBlock.id);
+  }, [copiedBlock]);
+
+  // Load a page template
+  const loadTemplate = useCallback((template: PageTemplate) => {
+    if (template.blocks.length === 0) {
+      // Blank template - clear all blocks
+      setContentBlocks([]);
+      setSelectedBlockId(null);
+      toast.success('Canvas cleared');
+      return;
+    }
+
+    // Convert template blocks to ContentBlocks with IDs
+    const newBlocks: ContentBlock[] = template.blocks.map((templateBlock) => {
+      const config = BLOCK_CONFIGS[templateBlock.type];
+      return {
+        id: generateBlockId(),
+        type: templateBlock.type,
+        props: { ...config.defaultProps, ...templateBlock.props },
+      };
+    });
+
+    setContentBlocks(newBlocks);
+    setSelectedBlockId(null);
+    toast.success(`Loaded "${template.name}" template`);
   }, []);
 
   // Load themes on mount
@@ -218,6 +375,17 @@ export default function ThemeDesigner() {
       setHistory([theme.settings]);
       setHistoryIndex(0);
       setShowThemeList(false);
+
+      // Load pages if available, otherwise create default home page
+      if (theme.pages && theme.pages.length > 0) {
+        setPages(theme.pages as ThemePage[]);
+        setCurrentPageId(theme.pages.find(p => p.isHomePage)?.id || theme.pages[0].id);
+      } else {
+        // Reset to default home page for themes without pages
+        setPages([{ id: 'home', name: 'Home', slug: '/', blocks: [], isHomePage: true }]);
+        setCurrentPageId('home');
+      }
+      setSelectedBlockId(null);
     } catch (error: any) {
       toast.error('Failed to load theme');
     } finally {
@@ -277,26 +445,34 @@ export default function ThemeDesigner() {
     }
     setSaving(true);
     try {
+      console.log('Saving theme:', { themeName, themeDescription, settings, customCSS, pages });
       if (selectedThemeId) {
-        await customThemesApi.update(selectedThemeId, {
+        const res = await customThemesApi.update(selectedThemeId, {
           name: themeName,
           description: themeDescription,
           settings,
           customCSS,
+          pages, // Include pages in save
         });
+        console.log('Theme updated:', res.data);
         toast.success('Theme updated successfully!');
       } else {
+        console.log('Creating new theme...');
         const res = await customThemesApi.create({
           name: themeName,
           description: themeDescription,
           settings,
           customCSS,
+          pages, // Include pages in save
         });
+        console.log('Theme created:', res.data);
         setSelectedThemeId(res.data.id);
         toast.success('Theme created successfully!');
       }
       loadThemes();
     } catch (error: any) {
+      console.error('Save error:', error);
+      console.error('Error response:', error.response?.data);
       toast.error(error.response?.data?.message || 'Failed to save theme');
     } finally {
       setSaving(false);
@@ -386,6 +562,10 @@ export default function ThemeDesigner() {
     setHistory([DEFAULT_SETTINGS]);
     setHistoryIndex(0);
     setShowThemeList(false);
+    // Reset pages to default home page
+    setPages([{ id: 'home', name: 'Home', slug: '/', blocks: [], isHomePage: true }]);
+    setCurrentPageId('home');
+    setSelectedBlockId(null);
   };
 
   const toggleSection = (section: string) => {
@@ -496,20 +676,20 @@ export default function ThemeDesigner() {
             <button onClick={() => setShowThemeList(true)} className="p-2 hover:bg-gray-700 rounded-lg">
               <FiArrowLeft size={20} />
             </button>
-            <div>
+            <div className="flex flex-col gap-1">
               <input
                 type="text"
                 value={themeName}
                 onChange={e => setThemeName(e.target.value)}
-                placeholder="Theme Name"
-                className="bg-transparent text-xl font-bold border-none outline-none focus:ring-0 placeholder-gray-500"
+                placeholder="Enter theme name..."
+                className="bg-gray-700 text-xl font-bold border border-gray-600 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 w-64"
               />
               <input
                 type="text"
                 value={themeDescription}
                 onChange={e => setThemeDescription(e.target.value)}
                 placeholder="Add a description..."
-                className="block bg-transparent text-sm text-gray-400 border-none outline-none focus:ring-0 placeholder-gray-600 w-64"
+                className="bg-gray-700/50 text-sm text-gray-300 border border-gray-600/50 rounded-lg px-3 py-1 outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-500 w-64"
               />
             </div>
           </div>
@@ -581,10 +761,11 @@ export default function ThemeDesigner() {
           {/* Section Tabs */}
           <div className="flex border-b border-gray-700 flex-shrink-0">
             {[
+              { id: 'pages', icon: FiGrid, label: 'Pages' },
+              { id: 'blocks', icon: FiBox, label: 'Blocks' },
               { id: 'colors', icon: FiDroplet, label: 'Colors' },
               { id: 'typography', icon: FiType, label: 'Type' },
               { id: 'layout', icon: FiLayout, label: 'Layout' },
-              { id: 'blocks', icon: FiBox, label: 'Blocks' },
               { id: 'css', icon: FiCode, label: 'CSS' },
             ].map(tab => (
               <button
@@ -601,20 +782,176 @@ export default function ThemeDesigner() {
           </div>
 
           {/* Section Content */}
-          <div className={`flex-1 overflow-y-auto ${activeSection === 'blocks' ? '' : 'p-4'}`}>
+          <div className={`flex-1 overflow-y-auto ${activeSection === 'blocks' || activeSection === 'pages' ? '' : 'p-4'}`}>
+            {/* Pages Section */}
+            {activeSection === 'pages' && (
+              <div className="h-full flex flex-col">
+                {/* Page Selector Header */}
+                <div className="p-4 border-b border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-white">Theme Pages</h3>
+                    <button
+                      onClick={() => {
+                        const name = prompt('Enter page name:');
+                        if (name?.trim()) addPage(name.trim());
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs font-medium"
+                    >
+                      <FiPlus size={12} /> Add Page
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Create multiple pages for your theme. Each page has its own blocks.
+                  </p>
+                </div>
+
+                {/* Page List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                  {pages.map((page) => (
+                    <div
+                      key={page.id}
+                      className={`group relative p-3 rounded-lg border transition-all cursor-pointer ${
+                        currentPageId === page.id
+                          ? 'bg-blue-600/20 border-blue-500'
+                          : 'bg-gray-700/50 border-gray-600 hover:border-gray-500'
+                      }`}
+                      onClick={() => {
+                        setCurrentPageId(page.id);
+                        setSelectedBlockId(null);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{page.isHomePage ? '🏠' : '📄'}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-white truncate">{page.name}</span>
+                            {page.isHomePage && (
+                              <span className="px-1.5 py-0.5 bg-green-600/30 text-green-400 text-xs rounded">Home</span>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-400">{page.slug}</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{page.blocks.length} blocks</span>
+                      </div>
+
+                      {/* Page Actions (shown on hover) */}
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newName = prompt('Rename page:', page.name);
+                            if (newName?.trim()) renamePage(page.id, newName.trim());
+                          }}
+                          className="p-1 text-gray-400 hover:text-white rounded"
+                          title="Rename"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            duplicatePage(page.id);
+                          }}
+                          className="p-1 text-gray-400 hover:text-white rounded"
+                          title="Duplicate"
+                        >
+                          <FiCopy size={14} />
+                        </button>
+                        {!page.isHomePage && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Set "${page.name}" as home page?`)) {
+                                  setHomePage(page.id);
+                                }
+                              }}
+                              className="p-1 text-gray-400 hover:text-green-400 rounded"
+                              title="Set as Home"
+                            >
+                              🏠
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Delete "${page.name}"?`)) {
+                                  deletePage(page.id);
+                                }
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-400 rounded"
+                              title="Delete"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Current Page Info */}
+                <div className="p-4 border-t border-gray-700 bg-gray-800/50">
+                  <div className="text-xs text-gray-400 mb-2">Currently Editing:</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{currentPage?.isHomePage ? '🏠' : '📄'}</span>
+                    <div>
+                      <div className="text-sm font-medium text-white">{currentPage?.name}</div>
+                      <div className="text-xs text-gray-500">{currentPage?.blocks.length} blocks</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActiveSection('blocks')}
+                    className="w-full mt-3 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <FiBox size={14} /> Edit Page Blocks
+                  </button>
+                </div>
+              </div>
+            )}
+
             {activeSection === 'colors' && renderColorsSection()}
             {activeSection === 'typography' && renderTypographySection()}
             {activeSection === 'layout' && renderLayoutSection()}
             {activeSection === 'blocks' && (
-              <ContentBlocksPanel
-                blocks={contentBlocks}
-                onAddBlock={addBlock}
-                onRemoveBlock={removeBlock}
-                onMoveBlock={moveBlock}
-                onUpdateBlock={updateBlockProps}
-                selectedBlockId={selectedBlockId}
-                onSelectBlock={setSelectedBlockId}
-              />
+              <div className="h-full flex flex-col">
+                {/* Current Page Indicator */}
+                <div className="p-3 border-b border-gray-700 bg-gray-800/50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span>{currentPage?.isHomePage ? '🏠' : '📄'}</span>
+                    <span className="text-sm font-medium text-white">{currentPage?.name}</span>
+                    <span className="text-xs text-gray-500">({currentPage?.blocks.length} blocks)</span>
+                  </div>
+                  <button
+                    onClick={() => setActiveSection('pages')}
+                    className="text-xs text-blue-400 hover:text-blue-300"
+                  >
+                    Switch Page
+                  </button>
+                </div>
+
+                <ContentBlocksPanel
+                  blocks={contentBlocks}
+                  onAddBlock={addBlock}
+                  onRemoveBlock={removeBlock}
+                  onMoveBlock={moveBlock}
+                  onUpdateBlock={updateBlockProps}
+                  onUpdateFullBlock={updateBlock}
+                  onLoadTemplate={loadTemplate}
+                  selectedBlockId={selectedBlockId}
+                  onSelectBlock={setSelectedBlockId}
+                />
+                {copiedBlock && (
+                  <div className="p-4 border-t border-gray-700">
+                    <button
+                      onClick={pasteBlock}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium"
+                    >
+                      <FiBox size={16} /> Paste Block ({BLOCK_CONFIGS[copiedBlock.type]?.label})
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             {activeSection === 'css' && renderCSSSection()}
           </div>
@@ -638,6 +975,10 @@ export default function ThemeDesigner() {
               onDeleteBlock={removeBlock}
               onMoveBlock={moveBlock}
               onUpdateBlockProps={updateBlockProps}
+              onDuplicateBlock={duplicateBlock}
+              onCopyBlock={copyBlock}
+              onUpdateBlock={updateBlock}
+              previewDevice={previewDevice}
             />
           </div>
         </main>
@@ -871,6 +1212,10 @@ function ThemePreview({
   onDeleteBlock,
   onMoveBlock,
   onUpdateBlockProps,
+  onDuplicateBlock,
+  onCopyBlock,
+  onUpdateBlock,
+  previewDevice = 'desktop',
 }: {
   settings: CustomThemeSettings;
   previewMode: 'light' | 'dark';
@@ -880,10 +1225,12 @@ function ThemePreview({
   onDeleteBlock?: (id: string) => void;
   onMoveBlock?: (id: string, direction: 'up' | 'down') => void;
   onUpdateBlockProps?: (id: string, props: Record<string, any>) => void;
+  onDuplicateBlock?: (id: string) => void;
+  onCopyBlock?: (id: string) => void;
+  onUpdateBlock?: (block: ContentBlock) => void;
+  previewDevice?: 'desktop' | 'tablet' | 'mobile';
 }) {
-  const { colors, typography, layout, spacing, borders } = settings;
-  const hasSidebar = layout.sidebarPosition !== 'none';
-  const headerClass = layout.headerStyle === 'centered' ? 'text-center' : '';
+  const { colors, typography, borders } = settings;
 
   // Use dark mode colors if available and in dark mode
   const activeColors = previewMode === 'dark' && settings.darkMode
@@ -896,35 +1243,92 @@ function ThemePreview({
     lineHeight: typography.lineHeight,
     color: activeColors.text,
     background: activeColors.background,
+    minHeight: '100%',
   };
+
+  // Device-specific padding
+  const devicePadding = previewDevice === 'mobile' ? 12 : previewDevice === 'tablet' ? 20 : 24;
 
   return (
     <div style={containerStyle} className="min-h-full">
-      {/* Header */}
-      <header
-        style={{
-          background: activeColors.surface,
-          borderBottom: `${borders.width}px solid ${activeColors.border}`,
-          padding: `${spacing.sectionPadding * (layout.headerStyle === 'minimal' ? 0.5 : 1)}px ${spacing.containerPadding}px`,
-        }}
-        className={headerClass}
-      >
-        <div style={{ maxWidth: layout.contentWidth, margin: '0 auto' }}>
-          <h1 style={{ fontFamily: `${typography.headingFont}, system-ui`, fontWeight: typography.headingWeight, color: activeColors.heading, fontSize: '1.5rem', margin: 0 }}>
-            My Website
-          </h1>
-          <nav style={{ display: 'flex', gap: 16, marginTop: 12, justifyContent: layout.headerStyle === 'centered' ? 'center' : 'flex-start' }}>
-            {['Home', 'About', 'Blog', 'Shop', 'Contact'].map(item => (
-              <a key={item} href="#" style={{ color: activeColors.text, fontWeight: 500, textDecoration: 'none' }}>{item}</a>
-            ))}
-          </nav>
-        </div>
-      </header>
+      {/* Blank Canvas - Only show blocks or empty state */}
+      {blocks.length === 0 ? (
+        /* Empty State - Clean blank canvas with helpful message */
+        <div
+          className="flex flex-col items-center justify-center min-h-[500px] p-8"
+          style={{
+            background: `linear-gradient(135deg, ${activeColors.background} 0%, ${activeColors.surface} 100%)`,
+            borderRadius: borders.radius,
+          }}
+        >
+          <div className="text-center max-w-md">
+            {/* Canvas Icon */}
+            <div
+              className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center"
+              style={{
+                background: `${activeColors.primary}15`,
+                border: `2px dashed ${activeColors.primary}40`
+              }}
+            >
+              <FiGrid size={36} style={{ color: activeColors.primary }} />
+            </div>
 
-      {/* Content Blocks Section */}
-      {blocks.length > 0 && (
-        <section style={{ padding: `${spacing.sectionPadding}px ${spacing.containerPadding}px`, maxWidth: layout.contentWidth, margin: '0 auto' }}>
-          <div className="space-y-6">
+            {/* Title */}
+            <h2
+              style={{
+                fontFamily: `${typography.headingFont}, system-ui`,
+                fontWeight: typography.headingWeight,
+                color: activeColors.heading,
+                fontSize: '1.5rem',
+                marginBottom: '0.75rem'
+              }}
+            >
+              Start Building Your Page
+            </h2>
+
+            {/* Description */}
+            <p style={{ color: activeColors.textMuted, marginBottom: '1.5rem', lineHeight: 1.6 }}>
+              Add blocks from the sidebar to start creating your page.
+              You can also use a preset template to get started quickly.
+            </p>
+
+            {/* Visual hints */}
+            <div className="flex items-center justify-center gap-4 text-sm" style={{ color: activeColors.textMuted }}>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: activeColors.primary }} />
+                <span>Click "Blocks" tab</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: activeColors.secondary || activeColors.primary }} />
+                <span>Add blocks</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: activeColors.accent || activeColors.primary }} />
+                <span>Customize</span>
+              </div>
+            </div>
+
+            {/* Drop zone indicator */}
+            <div
+              className="mt-8 py-4 px-6 rounded-lg border-2 border-dashed"
+              style={{
+                borderColor: `${activeColors.primary}30`,
+                background: `${activeColors.primary}05`
+              }}
+            >
+              <p className="text-sm" style={{ color: activeColors.textMuted }}>
+                ↑ Blocks will appear here ↑
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Blocks Container - Clean canvas with blocks */
+        <div
+          className="min-h-[500px]"
+          style={{ padding: devicePadding }}
+        >
+          <div className="space-y-4">
             {blocks.map((block) => (
               <BlockRenderer
                 key={block.id}
@@ -936,134 +1340,26 @@ function ThemePreview({
                 onMoveUp={() => onMoveBlock?.(block.id, 'up')}
                 onMoveDown={() => onMoveBlock?.(block.id, 'down')}
                 onUpdateProps={(props) => onUpdateBlockProps?.(block.id, props)}
+                onDuplicate={() => onDuplicateBlock?.(block.id)}
+                onCopy={() => onCopyBlock?.(block.id)}
+                onUpdateBlock={onUpdateBlock}
+                previewDevice={previewDevice}
               />
             ))}
           </div>
-        </section>
-      )}
 
-      {/* Main */}
-      <main style={{ padding: `${spacing.sectionPadding}px ${spacing.containerPadding}px`, maxWidth: layout.contentWidth, margin: '0 auto' }}>
-        <div style={{
-          display: hasSidebar ? 'grid' : 'block',
-          gridTemplateColumns: hasSidebar ? (layout.sidebarPosition === 'left' ? '200px 1fr' : '1fr 200px') : undefined,
-          gap: spacing.sectionPadding * 1.5
-        }}>
-          <div style={{ order: layout.sidebarPosition === 'left' ? 1 : 0 }}>
-            {/* Post Card */}
-            <article style={{
-              background: activeColors.surface,
-              border: `${borders.width}px solid ${activeColors.border}`,
-              borderRadius: borders.radius,
-              padding: spacing.sectionPadding,
-              marginBottom: spacing.elementSpacing
-            }}>
-              <h2 style={{ fontFamily: `${typography.headingFont}, system-ui`, fontWeight: typography.headingWeight, color: activeColors.heading, fontSize: '1.5rem', marginBottom: spacing.elementSpacing / 2 }}>
-                Welcome to Your Theme
-              </h2>
-              <p style={{ color: activeColors.textMuted, fontSize: '0.875rem', marginBottom: spacing.elementSpacing }}>
-                By Author • December 13, 2025
-              </p>
-              <p style={{ marginBottom: spacing.elementSpacing }}>
-                This is a preview of how your content will appear with the current theme settings. The colors, typography, and layout you've chosen are reflected here in real-time.
-              </p>
-              <a href="#" style={{
-                display: 'inline-block',
-                background: activeColors.primary,
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: borders.radius,
-                fontWeight: 500,
-                textDecoration: 'none'
-              }}>
-                Read More
-              </a>
-            </article>
-
-            {/* Second Card */}
-            <article style={{
-              background: activeColors.surface,
-              border: `${borders.width}px solid ${activeColors.border}`,
-              borderRadius: borders.radius,
-              padding: spacing.sectionPadding,
-            }}>
-              <h2 style={{ fontFamily: `${typography.headingFont}, system-ui`, fontWeight: typography.headingWeight, color: activeColors.heading, fontSize: '1.25rem', marginBottom: spacing.elementSpacing / 2 }}>
-                Another Post Title
-              </h2>
-              <p style={{ color: activeColors.textMuted, fontSize: '0.875rem', marginBottom: spacing.elementSpacing }}>
-                By Author • December 12, 2025
-              </p>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p>
-            </article>
+          {/* Add more blocks hint at bottom */}
+          <div
+            className="mt-6 py-3 text-center rounded-lg border-2 border-dashed opacity-50 hover:opacity-100 transition-opacity"
+            style={{
+              borderColor: `${activeColors.border}`,
+              color: activeColors.textMuted
+            }}
+          >
+            <p className="text-sm">+ Add more blocks from the sidebar</p>
           </div>
-
-          {hasSidebar && (
-            <aside style={{ order: layout.sidebarPosition === 'left' ? 0 : 1 }}>
-              <div style={{
-                background: activeColors.surface,
-                border: `${borders.width}px solid ${activeColors.border}`,
-                borderRadius: borders.radius,
-                padding: spacing.sectionPadding,
-                marginBottom: spacing.elementSpacing
-              }}>
-                <h3 style={{
-                  fontFamily: `${typography.headingFont}, system-ui`,
-                  fontWeight: typography.headingWeight,
-                  color: activeColors.heading,
-                  fontSize: '1rem',
-                  marginBottom: spacing.elementSpacing * 0.75,
-                  paddingBottom: spacing.elementSpacing * 0.5,
-                  borderBottom: `${borders.width}px solid ${activeColors.border}`
-                }}>
-                  About
-                </h3>
-                <p style={{ color: activeColors.textMuted, fontSize: '0.875rem' }}>
-                  Your site description goes here.
-                </p>
-              </div>
-              <div style={{
-                background: activeColors.surface,
-                border: `${borders.width}px solid ${activeColors.border}`,
-                borderRadius: borders.radius,
-                padding: spacing.sectionPadding,
-              }}>
-                <h3 style={{
-                  fontFamily: `${typography.headingFont}, system-ui`,
-                  fontWeight: typography.headingWeight,
-                  color: activeColors.heading,
-                  fontSize: '1rem',
-                  marginBottom: spacing.elementSpacing * 0.75,
-                  paddingBottom: spacing.elementSpacing * 0.5,
-                  borderBottom: `${borders.width}px solid ${activeColors.border}`
-                }}>
-                  Categories
-                </h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.875rem' }}>
-                  {['Technology', 'Design', 'Business'].map(c => (
-                    <li key={c} style={{ marginBottom: 8 }}>
-                      <a href="#" style={{ color: activeColors.link, textDecoration: 'none' }}>{c}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </aside>
-          )}
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer style={{
-        background: activeColors.surface,
-        borderTop: `${borders.width}px solid ${activeColors.border}`,
-        padding: `${spacing.sectionPadding}px ${spacing.containerPadding}px`,
-        textAlign: 'center',
-        color: activeColors.textMuted,
-        fontSize: '0.875rem'
-      }}>
-        © 2025 My Website. All rights reserved.
-      </footer>
+      )}
     </div>
   );
 }
