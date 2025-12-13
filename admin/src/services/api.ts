@@ -126,6 +126,108 @@ export const themesApi = {
   generate: (config: ThemeDesignConfig) => api.post('/themes/generate', config),
 };
 
+// Custom Themes API (for Theme Designer)
+export interface CustomThemeSettings {
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    surface: string;
+    text: string;
+    textMuted: string;
+    heading: string;
+    link: string;
+    linkHover: string;
+    border: string;
+    accent: string;
+    success?: string;
+    warning?: string;
+    error?: string;
+  };
+  typography: {
+    headingFont: string;
+    bodyFont: string;
+    baseFontSize: number;
+    lineHeight: number;
+    headingWeight: number;
+    h1Size?: number;
+    h2Size?: number;
+    h3Size?: number;
+    h4Size?: number;
+    h5Size?: number;
+    h6Size?: number;
+  };
+  layout: {
+    sidebarPosition: 'left' | 'right' | 'none';
+    contentWidth: number;
+    headerStyle: 'default' | 'centered' | 'minimal' | 'sticky';
+    footerStyle: 'default' | 'centered' | 'minimal';
+  };
+  spacing: {
+    sectionPadding: number;
+    elementSpacing: number;
+    containerPadding: number;
+  };
+  borders: {
+    radius: number;
+    width: number;
+  };
+  components?: {
+    buttons?: {
+      borderRadius?: number;
+      padding?: string;
+      fontWeight?: number;
+    };
+    cards?: {
+      borderRadius?: number;
+      shadow?: string;
+      padding?: number;
+    };
+    forms?: {
+      borderRadius?: number;
+      borderWidth?: number;
+      focusColor?: string;
+    };
+  };
+  responsive?: {
+    tablet?: Partial<CustomThemeSettings>;
+    mobile?: Partial<CustomThemeSettings>;
+  };
+  darkMode?: Partial<CustomThemeSettings['colors']>;
+}
+
+export interface CustomTheme {
+  id: string;
+  name: string;
+  description?: string;
+  settings: CustomThemeSettings;
+  customCSS?: string;
+  isActive: boolean;
+  isDefault: boolean;
+  previewUrl?: string;
+  createdById: string;
+  createdBy?: { id: string; name: string; email: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const customThemesApi = {
+  getAll: () => api.get<CustomTheme[]>('/custom-themes'),
+  getById: (id: string) => api.get<CustomTheme>(`/custom-themes/${id}`),
+  getActive: () => api.get<CustomTheme | null>('/custom-themes/active'),
+  create: (data: { name: string; description?: string; settings: CustomThemeSettings; customCSS?: string; isDefault?: boolean }) =>
+    api.post<CustomTheme>('/custom-themes', data),
+  update: (id: string, data: { name?: string; description?: string; settings?: CustomThemeSettings; customCSS?: string; isDefault?: boolean }) =>
+    api.put<CustomTheme>(`/custom-themes/${id}`, data),
+  delete: (id: string) => api.delete(`/custom-themes/${id}`),
+  duplicate: (id: string, name?: string) => api.post<CustomTheme>(`/custom-themes/${id}/duplicate`, { name }),
+  activate: (id: string) => api.post<CustomTheme>(`/custom-themes/${id}/activate`),
+  export: (id: string) => api.get(`/custom-themes/${id}/export`),
+  import: (data: any) => api.post<CustomTheme>('/custom-themes/import', data),
+  generateCSS: (settings: CustomThemeSettings, customCSS?: string) =>
+    api.post<{ css: string }>('/custom-themes/generate-css', { settings, customCSS }),
+};
+
 // Media block for WYSIWYG editor
 export interface ThemeMediaBlock {
   id: string;
