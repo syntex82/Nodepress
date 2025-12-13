@@ -7,7 +7,9 @@ import {
   FiMusic, FiVideo, FiImage, FiSquare, FiStar, FiMessageSquare,
   FiGrid, FiMinus, FiPlay, FiPause, FiVolume2, FiVolumeX,
   FiMaximize, FiX, FiChevronLeft, FiChevronRight, FiTrash2,
-  FiMove, FiPlus, FiArrowUp, FiArrowDown, FiCopy, FiEye, FiEyeOff
+  FiMove, FiPlus, FiArrowUp, FiArrowDown, FiCopy, FiEye, FiEyeOff,
+  FiBook, FiList, FiTrendingUp, FiUser, FiFolder, FiShoppingCart,
+  FiFilter, FiCreditCard, FiPercent
 } from 'react-icons/fi';
 import { CustomThemeSettings } from '../../services/api';
 
@@ -15,7 +17,15 @@ import {
   LinkSettings, BlockVisibility, AnimationSettings, RowSettings, HeaderSettings, ProductData,
   LinkSettingsForm, VisibilitySettings, AnimationSettingsForm,
   RowBlock, ProductCardBlock, ProductGridBlock, FeaturedProductBlock, ProductCarouselBlock,
-  HeaderBuilderBlock, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS
+  HeaderBuilderBlock, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS,
+  // Course/LMS types and components
+  CourseData, CourseCategoryData, CourseProgressData, InstructorData, ModuleData,
+  CourseCardBlock, CourseGridBlock, CourseCurriculumBlock, CourseProgressBlock,
+  CourseInstructorBlock, CourseCategoriesBlock,
+  // Shop/E-commerce types and components
+  CartData, ProductCategory,
+  ShoppingCartBlock, ProductCategoriesBlock, ProductFilterBlock,
+  CheckoutSummaryBlock, SaleBannerBlock
 } from './AdvancedBlocks';
 
 // ============ Block Type Definitions ============
@@ -24,7 +34,11 @@ export type BlockType =
   | 'card' | 'testimonial' | 'cta' | 'features' | 'divider'
   | 'pricing' | 'stats' | 'timeline' | 'accordion' | 'tabs'
   | 'imageText' | 'logoCloud' | 'newsletter' | 'socialProof' | 'countdown'
-  | 'row' | 'header' | 'productCard' | 'productGrid' | 'featuredProduct' | 'productCarousel';
+  | 'row' | 'header' | 'productCard' | 'productGrid' | 'featuredProduct' | 'productCarousel'
+  // Course/LMS blocks
+  | 'courseCard' | 'courseGrid' | 'courseCurriculum' | 'courseProgress' | 'courseInstructor' | 'courseCategories'
+  // Shop/E-commerce blocks
+  | 'shoppingCart' | 'productCategories' | 'productFilter' | 'checkoutSummary' | 'saleBanner';
 
 export interface ContentBlock {
   id: string;
@@ -37,6 +51,7 @@ export interface ContentBlock {
 
 // Re-export advanced block types for use elsewhere
 export type { LinkSettings, BlockVisibility, AnimationSettings, RowSettings, HeaderSettings, ProductData };
+export type { CourseData, CourseCategoryData, CourseProgressData, InstructorData, ModuleData, CartData, ProductCategory };
 export { LinkSettingsForm, VisibilitySettings, AnimationSettingsForm, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS };
 
 // Block configurations with defaults
@@ -380,6 +395,206 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       ] as ProductData[],
       autoPlay: false,
       showArrows: true,
+    },
+  },
+  // ============ Course/LMS Blocks ============
+  courseCard: {
+    label: 'Course Card',
+    icon: FiBook,
+    defaultProps: {
+      course: {
+        id: '1',
+        title: 'Complete Web Development Bootcamp',
+        description: 'Learn HTML, CSS, JavaScript, React, Node.js and more in this comprehensive course.',
+        image: 'https://picsum.photos/600/400?course1',
+        instructor: 'John Doe',
+        instructorImage: 'https://i.pravatar.cc/150?u=instructor1',
+        duration: '42 hours',
+        lessonCount: 156,
+        price: 99.99,
+        salePrice: 49.99,
+        rating: 4.8,
+        reviewCount: 2450,
+        enrollmentCount: 15000,
+        level: 'beginner' as const,
+        category: 'Web Development',
+        courseUrl: '/courses/web-development-bootcamp',
+      } as CourseData,
+      showInstructor: true,
+      showPrice: true,
+      showRating: true,
+    },
+  },
+  courseGrid: {
+    label: 'Course Grid',
+    icon: FiGrid,
+    defaultProps: {
+      courses: [
+        { id: '1', title: 'Web Development Bootcamp', image: 'https://picsum.photos/600/400?c1', instructor: 'John Doe', instructorImage: 'https://i.pravatar.cc/150?u=i1', duration: '42h', lessonCount: 156, price: 99.99, salePrice: 49.99, rating: 4.8, reviewCount: 2450, enrollmentCount: 15000, level: 'beginner' as const, courseUrl: '/courses/1' },
+        { id: '2', title: 'React Masterclass', image: 'https://picsum.photos/600/400?c2', instructor: 'Jane Smith', instructorImage: 'https://i.pravatar.cc/150?u=i2', duration: '28h', lessonCount: 98, price: 79.99, rating: 4.9, reviewCount: 1820, enrollmentCount: 8500, level: 'intermediate' as const, courseUrl: '/courses/2' },
+        { id: '3', title: 'Node.js Backend', image: 'https://picsum.photos/600/400?c3', instructor: 'Mike Johnson', instructorImage: 'https://i.pravatar.cc/150?u=i3', duration: '35h', lessonCount: 120, price: 89.99, rating: 4.7, reviewCount: 980, enrollmentCount: 5200, level: 'intermediate' as const, courseUrl: '/courses/3' },
+      ] as CourseData[],
+      columns: 3,
+      showFilters: false,
+    },
+  },
+  courseCurriculum: {
+    label: 'Course Curriculum',
+    icon: FiList,
+    defaultProps: {
+      modules: [
+        { id: '1', title: 'Getting Started', duration: '30:00', lessons: [
+          { id: '1-1', title: 'Welcome to the Course', type: 'video' as const, duration: '5:00', isFree: true },
+          { id: '1-2', title: 'Course Overview', type: 'video' as const, duration: '10:00', isFree: true },
+          { id: '1-3', title: 'Setting Up Your Environment', type: 'video' as const, duration: '15:00' },
+        ]},
+        { id: '2', title: 'Core Concepts', duration: '55:00', lessons: [
+          { id: '2-1', title: 'Understanding the Basics', type: 'video' as const, duration: '20:00' },
+          { id: '2-2', title: 'Hands-on Practice', type: 'video' as const, duration: '25:00' },
+          { id: '2-3', title: 'Module Quiz', type: 'quiz' as const, duration: '10:00' },
+        ]},
+      ] as ModuleData[],
+      showDuration: true,
+      showLessonCount: true,
+      expandedByDefault: false,
+    },
+  },
+  courseProgress: {
+    label: 'Course Progress',
+    icon: FiTrendingUp,
+    defaultProps: {
+      progress: {
+        courseId: '1',
+        courseTitle: 'Complete Web Development Bootcamp',
+        courseImage: 'https://picsum.photos/600/400?progress',
+        progress: 65,
+        completedLessons: 101,
+        totalLessons: 156,
+        lastAccessedLesson: 'Building REST APIs',
+      } as CourseProgressData,
+      showContinueButton: true,
+    },
+  },
+  courseInstructor: {
+    label: 'Course Instructor',
+    icon: FiUser,
+    defaultProps: {
+      instructor: {
+        id: '1',
+        name: 'Dr. Sarah Johnson',
+        photo: 'https://i.pravatar.cc/300?u=instructor',
+        title: 'Senior Software Engineer & Educator',
+        bio: 'With over 15 years of experience in software development and 8 years of teaching, I\'ve helped over 100,000 students master programming.',
+        rating: 4.9,
+        reviewCount: 12500,
+        courseCount: 12,
+        studentCount: 150000,
+        credentials: ['PhD Computer Science', 'AWS Certified', 'Google Developer Expert'],
+        socialLinks: [
+          { platform: 'twitter', url: 'https://twitter.com/sarahjohnson' },
+          { platform: 'linkedin', url: 'https://linkedin.com/in/sarahjohnson' },
+          { platform: 'youtube', url: 'https://youtube.com/@sarahjohnson' },
+        ],
+      } as InstructorData,
+      showStats: true,
+      showSocial: true,
+    },
+  },
+  courseCategories: {
+    label: 'Course Categories',
+    icon: FiFolder,
+    defaultProps: {
+      categories: [
+        { id: '1', name: 'Web Development', slug: 'web-dev', icon: '💻', courseCount: 245, color: '#3B82F6' },
+        { id: '2', name: 'Mobile Development', slug: 'mobile', icon: '📱', courseCount: 128, color: '#10B981' },
+        { id: '3', name: 'Data Science', slug: 'data-science', icon: '📊', courseCount: 89, color: '#8B5CF6' },
+        { id: '4', name: 'Design', slug: 'design', icon: '🎨', courseCount: 156, color: '#F59E0B' },
+      ] as CourseCategoryData[],
+      columns: 4,
+      style: 'cards',
+    },
+  },
+  // ============ Shop/E-commerce Blocks ============
+  shoppingCart: {
+    label: 'Shopping Cart',
+    icon: FiShoppingCart,
+    defaultProps: {
+      cart: {
+        items: [
+          { id: '1', productId: 'p1', title: 'Wireless Headphones', image: 'https://picsum.photos/200/200?cart1', price: 149.99, quantity: 1, variant: 'Black' },
+          { id: '2', productId: 'p2', title: 'Smart Watch', image: 'https://picsum.photos/200/200?cart2', price: 299.99, quantity: 2, variant: 'Silver' },
+        ],
+        subtotal: 749.97,
+        tax: 67.50,
+        shipping: 0,
+        discount: 50,
+        total: 767.47,
+        currency: '$',
+      } as CartData,
+      style: 'full',
+      showCheckoutButton: true,
+    },
+  },
+  productCategories: {
+    label: 'Product Categories',
+    icon: FiFolder,
+    defaultProps: {
+      categories: [
+        { id: '1', name: 'Electronics', slug: 'electronics', image: 'https://picsum.photos/400/400?cat1', productCount: 156 },
+        { id: '2', name: 'Clothing', slug: 'clothing', image: 'https://picsum.photos/400/400?cat2', productCount: 324 },
+        { id: '3', name: 'Home & Garden', slug: 'home-garden', image: 'https://picsum.photos/400/400?cat3', productCount: 89 },
+        { id: '4', name: 'Sports', slug: 'sports', image: 'https://picsum.photos/400/400?cat4', productCount: 112 },
+      ] as ProductCategory[],
+      columns: 4,
+      style: 'overlay',
+    },
+  },
+  productFilter: {
+    label: 'Product Filter',
+    icon: FiFilter,
+    defaultProps: {
+      showPriceRange: true,
+      showCategories: true,
+      showRating: true,
+      showSort: true,
+      categories: ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books'],
+      priceMin: 0,
+      priceMax: 500,
+    },
+  },
+  checkoutSummary: {
+    label: 'Checkout Summary',
+    icon: FiCreditCard,
+    defaultProps: {
+      cart: {
+        items: [
+          { id: '1', productId: 'p1', title: 'Premium Headphones', image: 'https://picsum.photos/200/200?checkout1', price: 199.99, quantity: 1 },
+          { id: '2', productId: 'p2', title: 'Laptop Stand', image: 'https://picsum.photos/200/200?checkout2', price: 79.99, quantity: 1 },
+        ],
+        subtotal: 279.98,
+        tax: 25.20,
+        shipping: 0,
+        discount: 20,
+        total: 285.18,
+        currency: '$',
+      } as CartData,
+      showItems: true,
+      showCoupon: true,
+    },
+  },
+  saleBanner: {
+    label: 'Sale Banner',
+    icon: FiPercent,
+    defaultProps: {
+      title: '🔥 Black Friday Sale!',
+      subtitle: 'Up to 70% off on all products',
+      discountCode: 'BLACKFRIDAY',
+      discountText: 'SAVE 50%',
+      ctaText: 'Shop Now',
+      ctaUrl: '/sale',
+      endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+      style: 'full',
+      backgroundColor: '#DC2626',
     },
   },
 };
@@ -1696,6 +1911,30 @@ export function BlockRenderer({
         return <FeaturedProductBlock props={block.props as { product: ProductData; layout: 'left' | 'right' }} settings={settings} />;
       case 'productCarousel':
         return <ProductCarouselBlock props={block.props as { products: ProductData[]; autoPlay?: boolean; showArrows?: boolean }} settings={settings} />;
+      // Course/LMS Blocks
+      case 'courseCard':
+        return <CourseCardBlock props={block.props as { course: CourseData; showInstructor?: boolean; showPrice?: boolean; showRating?: boolean }} settings={settings} />;
+      case 'courseGrid':
+        return <CourseGridBlock props={block.props as { courses: CourseData[]; columns: 2 | 3 | 4; showFilters?: boolean }} settings={settings} />;
+      case 'courseCurriculum':
+        return <CourseCurriculumBlock props={block.props as { modules: ModuleData[]; showDuration?: boolean; showLessonCount?: boolean; expandedByDefault?: boolean }} settings={settings} />;
+      case 'courseProgress':
+        return <CourseProgressBlock props={block.props as { progress: CourseProgressData; showContinueButton?: boolean }} settings={settings} />;
+      case 'courseInstructor':
+        return <CourseInstructorBlock props={block.props as { instructor: InstructorData; showStats?: boolean; showSocial?: boolean }} settings={settings} />;
+      case 'courseCategories':
+        return <CourseCategoriesBlock props={block.props as { categories: CourseCategoryData[]; columns: 2 | 3 | 4 | 6; style: 'cards' | 'minimal' | 'icons' }} settings={settings} />;
+      // Shop/E-commerce Blocks
+      case 'shoppingCart':
+        return <ShoppingCartBlock props={block.props as { cart: CartData; style: 'mini' | 'full' | 'sidebar'; showCheckoutButton?: boolean }} settings={settings} />;
+      case 'productCategories':
+        return <ProductCategoriesBlock props={block.props as { categories: ProductCategory[]; columns: 2 | 3 | 4 | 5; style: 'cards' | 'overlay' | 'minimal' }} settings={settings} />;
+      case 'productFilter':
+        return <ProductFilterBlock props={block.props as { showPriceRange?: boolean; showCategories?: boolean; showRating?: boolean; showSort?: boolean; categories?: string[]; priceMin?: number; priceMax?: number }} settings={settings} />;
+      case 'checkoutSummary':
+        return <CheckoutSummaryBlock props={block.props as { cart: CartData; showItems?: boolean; showCoupon?: boolean }} settings={settings} />;
+      case 'saleBanner':
+        return <SaleBannerBlock props={block.props as { title: string; subtitle?: string; discountCode?: string; discountText?: string; ctaText?: string; ctaUrl?: string; endDate?: string; style: 'full' | 'compact' | 'floating'; backgroundColor?: string }} settings={settings} />;
       default:
         return <div>Unknown block type: {block.type}</div>;
     }
@@ -2119,6 +2358,30 @@ function BlockSettingsForm({
     </div>
   );
 
+  const NumberInput = ({ label, propKey }: { label: string; propKey: string }) => (
+    <div className="mb-3">
+      <label className="block text-xs text-gray-400 mb-1">{label}</label>
+      <input
+        type="number"
+        value={props[propKey] || 0}
+        onChange={(e) => updateProp(propKey, Number(e.target.value))}
+        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+      />
+    </div>
+  );
+
+  const CheckboxInput = ({ label, propKey }: { label: string; propKey: string }) => (
+    <div className="mb-3 flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={props[propKey] || false}
+        onChange={(e) => updateProp(propKey, e.target.checked)}
+        className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+      />
+      <label className="text-xs text-gray-400">{label}</label>
+    </div>
+  );
+
   switch (type) {
     case 'audio':
       return (
@@ -2485,6 +2748,277 @@ function BlockSettingsForm({
               ]}
             />
           )}
+        </>
+      );
+    }
+
+    // ============ Course/LMS Block Settings ============
+    case 'courseCard': {
+      const course = props.course || {};
+      const updateCourse = (key: string, value: any) => {
+        updateProp('course', { ...course, [key]: value });
+      };
+      return (
+        <>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Course Title</label>
+            <input type="text" value={course.title || ''} onChange={(e) => updateCourse('title', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Description</label>
+            <textarea value={course.description || ''} onChange={(e) => updateCourse('description', e.target.value)} rows={3} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white resize-none" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Image URL</label>
+            <input type="text" value={course.image || ''} onChange={(e) => updateCourse('image', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Course URL</label>
+            <input type="text" value={course.courseUrl || ''} onChange={(e) => updateCourse('courseUrl', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Price</label>
+              <input type="number" value={course.price || 0} onChange={(e) => updateCourse('price', Number(e.target.value))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Sale Price</label>
+              <input type="number" value={course.salePrice || 0} onChange={(e) => updateCourse('salePrice', Number(e.target.value))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+            </div>
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Instructor Name</label>
+            <input type="text" value={course.instructor || ''} onChange={(e) => updateCourse('instructor', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Duration</label>
+            <input type="text" value={course.duration || ''} onChange={(e) => updateCourse('duration', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <CheckboxInput label="Show Instructor" propKey="showInstructor" />
+          <CheckboxInput label="Show Price" propKey="showPrice" />
+          <CheckboxInput label="Show Rating" propKey="showRating" />
+        </>
+      );
+    }
+
+    case 'courseGrid': {
+      return (
+        <>
+          <SelectInput
+            label="Columns"
+            propKey="columns"
+            options={[
+              { value: '2', label: '2 Columns' },
+              { value: '3', label: '3 Columns' },
+              { value: '4', label: '4 Columns' },
+            ]}
+          />
+          <CheckboxInput label="Show Filters" propKey="showFilters" />
+          <p className="text-xs text-gray-400 mt-2">Courses can be edited in the course management section.</p>
+        </>
+      );
+    }
+
+    case 'courseCurriculum': {
+      return (
+        <>
+          <CheckboxInput label="Show Duration" propKey="showDuration" />
+          <CheckboxInput label="Show Lesson Count" propKey="showLessonCount" />
+          <CheckboxInput label="Expanded by Default" propKey="expandedByDefault" />
+          <p className="text-xs text-gray-400 mt-2">Curriculum modules can be edited in the course management section.</p>
+        </>
+      );
+    }
+
+    case 'courseProgress': {
+      const progress = props.progress || {};
+      const updateProgress = (key: string, value: any) => {
+        updateProp('progress', { ...progress, [key]: value });
+      };
+      return (
+        <>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Course Title</label>
+            <input type="text" value={progress.courseTitle || ''} onChange={(e) => updateProgress('courseTitle', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Course Image URL</label>
+            <input type="text" value={progress.courseImage || ''} onChange={(e) => updateProgress('courseImage', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Progress %</label>
+            <input type="number" min={0} max={100} value={progress.progress || 0} onChange={(e) => updateProgress('progress', Math.min(100, Math.max(0, Number(e.target.value))))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Completed</label>
+              <input type="number" value={progress.completedLessons || 0} onChange={(e) => updateProgress('completedLessons', Number(e.target.value))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Total</label>
+              <input type="number" value={progress.totalLessons || 0} onChange={(e) => updateProgress('totalLessons', Number(e.target.value))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+            </div>
+          </div>
+          <CheckboxInput label="Show Continue Button" propKey="showContinueButton" />
+        </>
+      );
+    }
+
+    case 'courseInstructor': {
+      const instructor = props.instructor || {};
+      const updateInstructor = (key: string, value: any) => {
+        updateProp('instructor', { ...instructor, [key]: value });
+      };
+      return (
+        <>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Name</label>
+            <input type="text" value={instructor.name || ''} onChange={(e) => updateInstructor('name', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Title</label>
+            <input type="text" value={instructor.title || ''} onChange={(e) => updateInstructor('title', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Photo URL</label>
+            <input type="text" value={instructor.photo || ''} onChange={(e) => updateInstructor('photo', e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs text-gray-400 mb-1">Bio</label>
+            <textarea value={instructor.bio || ''} onChange={(e) => updateInstructor('bio', e.target.value)} rows={3} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white resize-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Courses</label>
+              <input type="number" value={instructor.courseCount || 0} onChange={(e) => updateInstructor('courseCount', Number(e.target.value))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs text-gray-400 mb-1">Students</label>
+              <input type="number" value={instructor.studentCount || 0} onChange={(e) => updateInstructor('studentCount', Number(e.target.value))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white" />
+            </div>
+          </div>
+          <CheckboxInput label="Show Stats" propKey="showStats" />
+          <CheckboxInput label="Show Social Links" propKey="showSocial" />
+        </>
+      );
+    }
+
+    case 'courseCategories': {
+      return (
+        <>
+          <SelectInput
+            label="Columns"
+            propKey="columns"
+            options={[
+              { value: '2', label: '2 Columns' },
+              { value: '3', label: '3 Columns' },
+              { value: '4', label: '4 Columns' },
+              { value: '6', label: '6 Columns' },
+            ]}
+          />
+          <SelectInput
+            label="Style"
+            propKey="style"
+            options={[
+              { value: 'cards', label: 'Cards' },
+              { value: 'minimal', label: 'Minimal' },
+              { value: 'icons', label: 'Icons' },
+            ]}
+          />
+          <p className="text-xs text-gray-400 mt-2">Categories can be managed in the course settings.</p>
+        </>
+      );
+    }
+
+    // ============ Shop/E-commerce Block Settings ============
+    case 'shoppingCart': {
+      return (
+        <>
+          <SelectInput
+            label="Cart Style"
+            propKey="style"
+            options={[
+              { value: 'mini', label: 'Mini Cart' },
+              { value: 'full', label: 'Full Cart' },
+              { value: 'sidebar', label: 'Sidebar Cart' },
+            ]}
+          />
+          <CheckboxInput label="Show Checkout Button" propKey="showCheckoutButton" />
+          <p className="text-xs text-gray-400 mt-2">Cart items are populated dynamically from the shop.</p>
+        </>
+      );
+    }
+
+    case 'productCategories': {
+      return (
+        <>
+          <SelectInput
+            label="Columns"
+            propKey="columns"
+            options={[
+              { value: '2', label: '2 Columns' },
+              { value: '3', label: '3 Columns' },
+              { value: '4', label: '4 Columns' },
+              { value: '5', label: '5 Columns' },
+            ]}
+          />
+          <SelectInput
+            label="Style"
+            propKey="style"
+            options={[
+              { value: 'cards', label: 'Cards' },
+              { value: 'overlay', label: 'Image Overlay' },
+              { value: 'minimal', label: 'Minimal' },
+            ]}
+          />
+          <p className="text-xs text-gray-400 mt-2">Categories are managed in the shop settings.</p>
+        </>
+      );
+    }
+
+    case 'productFilter': {
+      return (
+        <>
+          <CheckboxInput label="Show Price Range" propKey="showPriceRange" />
+          <CheckboxInput label="Show Categories" propKey="showCategories" />
+          <CheckboxInput label="Show Rating Filter" propKey="showRating" />
+          <CheckboxInput label="Show Sort Options" propKey="showSort" />
+          <NumberInput label="Min Price" propKey="priceMin" />
+          <NumberInput label="Max Price" propKey="priceMax" />
+        </>
+      );
+    }
+
+    case 'checkoutSummary': {
+      return (
+        <>
+          <CheckboxInput label="Show Items" propKey="showItems" />
+          <CheckboxInput label="Show Coupon Field" propKey="showCoupon" />
+          <p className="text-xs text-gray-400 mt-2">Order details are populated from the cart.</p>
+        </>
+      );
+    }
+
+    case 'saleBanner': {
+      return (
+        <>
+          <TextInput label="Title" propKey="title" />
+          <TextInput label="Subtitle" propKey="subtitle" />
+          <TextInput label="Discount Text" propKey="discountText" />
+          <TextInput label="Discount Code" propKey="discountCode" />
+          <TextInput label="CTA Text" propKey="ctaText" />
+          <TextInput label="CTA URL" propKey="ctaUrl" />
+          <TextInput label="End Date (ISO)" propKey="endDate" />
+          <SelectInput
+            label="Style"
+            propKey="style"
+            options={[
+              { value: 'full', label: 'Full Width' },
+              { value: 'compact', label: 'Compact Bar' },
+              { value: 'floating', label: 'Floating Card' },
+            ]}
+          />
+          <TextInput label="Background Color" propKey="backgroundColor" />
         </>
       );
     }

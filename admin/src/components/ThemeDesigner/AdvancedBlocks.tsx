@@ -93,6 +93,109 @@ export interface ProductData {
   quickViewEnabled?: boolean; // Enable quick view modal
 }
 
+// Product Category for shop
+export interface ProductCategory {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  productCount: number;
+  description?: string;
+}
+
+// Cart Item for shopping cart
+export interface CartItem {
+  id: string;
+  productId: string;
+  title: string;
+  image: string;
+  price: number;
+  quantity: number;
+  variant?: string;
+}
+
+// Cart Data for shopping cart block
+export interface CartData {
+  items: CartItem[];
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discount?: number;
+  total: number;
+  currency?: string;
+}
+
+// ============ Course/LMS Types ============
+export interface InstructorData {
+  id: string;
+  name: string;
+  photo: string;
+  title: string;
+  bio: string;
+  credentials?: string[];
+  rating?: number;
+  reviewCount?: number;
+  courseCount?: number;
+  studentCount?: number;
+  socialLinks?: { platform: string; url: string }[];
+}
+
+export interface LessonData {
+  id: string;
+  title: string;
+  duration: string;
+  type: 'video' | 'text' | 'quiz' | 'assignment';
+  isPreview?: boolean;
+  isCompleted?: boolean;
+}
+
+export interface ModuleData {
+  id: string;
+  title: string;
+  lessons: LessonData[];
+  duration: string;
+}
+
+export interface CourseData {
+  id: string;
+  image: string;
+  title: string;
+  instructor: string;
+  instructorImage?: string;
+  duration: string;
+  lessonCount: number;
+  price: number;
+  salePrice?: number;
+  rating: number;
+  reviewCount: number;
+  enrollmentCount: number;
+  badge?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced' | 'all-levels';
+  category?: string;
+  description?: string;
+  courseUrl?: string;
+}
+
+export interface CourseCategoryData {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  courseCount: number;
+  color?: string;
+}
+
+export interface CourseProgressData {
+  courseId: string;
+  courseTitle: string;
+  courseImage: string;
+  progress: number;
+  completedLessons: number;
+  totalLessons: number;
+  lastAccessedLesson?: string;
+  continueUrl?: string;
+}
+
 // Re-export ContentBlock for this file
 export interface ContentBlock {
   id: string;
@@ -1088,6 +1191,953 @@ export function HeaderSettingsPanel({
             </select>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ============ Course/LMS Blocks ============
+
+// Course Card Block
+export function CourseCardBlock({
+  props,
+  settings,
+}: {
+  props: {
+    course: CourseData;
+    showInstructor?: boolean;
+    showRating?: boolean;
+    buttonStyle?: 'solid' | 'outline';
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { course, showInstructor = true, showRating = true, buttonStyle = 'solid' } = props;
+  const hasDiscount = course.salePrice && course.salePrice < course.price;
+
+  const levelColors = {
+    beginner: 'bg-green-100 text-green-800',
+    intermediate: 'bg-blue-100 text-blue-800',
+    advanced: 'bg-purple-100 text-purple-800',
+    'all-levels': 'bg-gray-100 text-gray-800',
+  };
+
+  return (
+    <div
+      className="group overflow-hidden transition-all duration-300 hover:shadow-xl"
+      style={{
+        background: settings.colors.surface,
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      {/* Course Image */}
+      <div className="relative aspect-video overflow-hidden">
+        <img src={course.image} alt={course.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        {course.badge && (
+          <span className="absolute top-3 left-3 px-2 py-1 text-xs font-bold rounded-full" style={{ background: settings.colors.primary, color: 'white' }}>
+            {course.badge}
+          </span>
+        )}
+        {course.level && (
+          <span className={`absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-full ${levelColors[course.level]}`}>
+            {course.level.replace('-', ' ')}
+          </span>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+          <div className="flex items-center gap-4 text-white text-xs">
+            <span>⏱️ {course.duration}</span>
+            <span>📚 {course.lessonCount} lessons</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Course Info */}
+      <div className="p-4">
+        <h3 className="font-semibold mb-2 line-clamp-2" style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }}>
+          {course.title}
+        </h3>
+
+        {showInstructor && (
+          <div className="flex items-center gap-2 mb-3">
+            <img src={course.instructorImage || 'https://i.pravatar.cc/40'} alt={course.instructor} className="w-6 h-6 rounded-full" />
+            <span className="text-sm" style={{ color: settings.colors.textMuted }}>{course.instructor}</span>
+          </div>
+        )}
+
+        {showRating && (
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map(star => (
+                <FiStar key={star} size={14} className={star <= course.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+              ))}
+            </div>
+            <span className="text-xs" style={{ color: settings.colors.textMuted }}>({course.reviewCount}) • {course.enrollmentCount} students</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {hasDiscount ? (
+              <>
+                <span className="text-lg font-bold" style={{ color: settings.colors.primary }}>${course.salePrice?.toFixed(2)}</span>
+                <span className="text-sm line-through" style={{ color: settings.colors.textMuted }}>${course.price.toFixed(2)}</span>
+              </>
+            ) : (
+              <span className="text-lg font-bold" style={{ color: settings.colors.heading }}>${course.price.toFixed(2)}</span>
+            )}
+          </div>
+          <button
+            className="px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
+            style={{
+              background: buttonStyle === 'solid' ? settings.colors.primary : 'transparent',
+              color: buttonStyle === 'solid' ? 'white' : settings.colors.primary,
+              border: buttonStyle === 'outline' ? `2px solid ${settings.colors.primary}` : 'none',
+              borderRadius: settings.borders.radius,
+            }}
+          >
+            Enroll Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Course Grid Block
+export function CourseGridBlock({
+  props,
+  settings,
+}: {
+  props: {
+    courses: CourseData[];
+    columns: 2 | 3 | 4;
+    showInstructor?: boolean;
+    showRating?: boolean;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { courses, columns, showInstructor = true, showRating = true } = props;
+
+  return (
+    <div className="p-6">
+      <div className={`grid gap-6 ${columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+        {courses.map(course => (
+          <CourseCardBlock key={course.id} props={{ course, showInstructor, showRating }} settings={settings} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Course Curriculum Block
+export function CourseCurriculumBlock({
+  props,
+  settings,
+}: {
+  props: {
+    modules: ModuleData[];
+    courseTitle?: string;
+    showDuration?: boolean;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { modules, courseTitle, showDuration = true } = props;
+  const [expandedModules, setExpandedModules] = useState<string[]>([modules[0]?.id || '']);
+
+  const toggleModule = (moduleId: string) => {
+    setExpandedModules(prev =>
+      prev.includes(moduleId) ? prev.filter(id => id !== moduleId) : [...prev, moduleId]
+    );
+  };
+
+  const lessonIcons = { video: '🎥', text: '📖', quiz: '❓', assignment: '📝' };
+
+  return (
+    <div className="p-6" style={{ background: settings.colors.background }}>
+      {courseTitle && (
+        <h3 className="text-xl font-bold mb-4" style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }}>
+          {courseTitle}
+        </h3>
+      )}
+      <div className="space-y-2">
+        {modules.map(module => (
+          <div key={module.id} style={{ background: settings.colors.surface, borderRadius: settings.borders.radius, border: `${settings.borders.width}px solid ${settings.colors.border}` }}>
+            <button
+              onClick={() => toggleModule(module.id)}
+              className="w-full flex items-center justify-between p-4 text-left"
+            >
+              <div className="flex items-center gap-3">
+                <FiChevronDown className={`transition-transform ${expandedModules.includes(module.id) ? 'rotate-180' : ''}`} style={{ color: settings.colors.primary }} />
+                <span className="font-medium" style={{ color: settings.colors.heading }}>{module.title}</span>
+              </div>
+              <div className="flex items-center gap-4 text-sm" style={{ color: settings.colors.textMuted }}>
+                <span>{module.lessons.length} lessons</span>
+                {showDuration && <span>{module.duration}</span>}
+              </div>
+            </button>
+            {expandedModules.includes(module.id) && (
+              <div className="border-t" style={{ borderColor: settings.colors.border }}>
+                {module.lessons.map(lesson => (
+                  <div key={lesson.id} className="flex items-center justify-between p-4 hover:bg-gray-50/5">
+                    <div className="flex items-center gap-3">
+                      <span>{lessonIcons[lesson.type]}</span>
+                      <span style={{ color: lesson.isCompleted ? settings.colors.textMuted : settings.colors.text }}>{lesson.title}</span>
+                      {lesson.isPreview && (
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">Preview</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm" style={{ color: settings.colors.textMuted }}>{lesson.duration}</span>
+                      {lesson.isCompleted && <span className="text-green-500">✓</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+// Course Progress Block
+export function CourseProgressBlock({
+  props,
+  settings,
+}: {
+  props: {
+    progress: CourseProgressData;
+    showContinueButton?: boolean;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { progress, showContinueButton = true } = props;
+
+  return (
+    <div
+      className="p-6"
+      style={{
+        background: settings.colors.surface,
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      <div className="flex items-center gap-4">
+        <img src={progress.courseImage} alt={progress.courseTitle} className="w-20 h-14 rounded-lg object-cover" />
+        <div className="flex-1">
+          <h4 className="font-semibold mb-1" style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }}>
+            {progress.courseTitle}
+          </h4>
+          <div className="flex items-center gap-4 text-sm" style={{ color: settings.colors.textMuted }}>
+            <span>{progress.completedLessons} / {progress.totalLessons} lessons completed</span>
+            <span>{progress.progress}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="mt-4 mb-3">
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: settings.colors.border }}>
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${progress.progress}%`, background: settings.colors.primary }}
+          />
+        </div>
+      </div>
+
+      {showContinueButton && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm" style={{ color: settings.colors.textMuted }}>
+            Next: {progress.lastAccessedLesson || 'Start learning'}
+          </span>
+          <button
+            className="px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
+            style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+          >
+            Continue Learning →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Course Instructor Block
+export function CourseInstructorBlock({
+  props,
+  settings,
+}: {
+  props: {
+    instructor: InstructorData;
+    showStats?: boolean;
+    showSocial?: boolean;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { instructor, showStats = true, showSocial = true } = props;
+
+  return (
+    <div
+      className="p-6"
+      style={{
+        background: settings.colors.surface,
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      <div className="flex items-start gap-6">
+        <img src={instructor.photo} alt={instructor.name} className="w-24 h-24 rounded-full object-cover" />
+        <div className="flex-1">
+          <h3 className="text-xl font-bold mb-1" style={{ color: settings.colors.heading, fontFamily: settings.typography.headingFont }}>
+            {instructor.name}
+          </h3>
+          <p className="text-sm mb-2" style={{ color: settings.colors.primary }}>{instructor.title}</p>
+
+          {instructor.rating && (
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <FiStar key={star} size={14} className={star <= instructor.rating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+                ))}
+              </div>
+              <span className="text-sm" style={{ color: settings.colors.textMuted }}>({instructor.reviewCount} reviews)</span>
+            </div>
+          )}
+
+          {showStats && (
+            <div className="flex items-center gap-6 mb-4">
+              {instructor.courseCount && (
+                <div className="text-center">
+                  <div className="text-lg font-bold" style={{ color: settings.colors.heading }}>{instructor.courseCount}</div>
+                  <div className="text-xs" style={{ color: settings.colors.textMuted }}>Courses</div>
+                </div>
+              )}
+              {instructor.studentCount && (
+                <div className="text-center">
+                  <div className="text-lg font-bold" style={{ color: settings.colors.heading }}>{instructor.studentCount.toLocaleString()}</div>
+                  <div className="text-xs" style={{ color: settings.colors.textMuted }}>Students</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <p className="text-sm mb-4" style={{ color: settings.colors.text }}>{instructor.bio}</p>
+
+          {instructor.credentials && instructor.credentials.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {instructor.credentials.map((cred, i) => (
+                <span key={i} className="px-2 py-1 text-xs rounded-full" style={{ background: settings.colors.background, color: settings.colors.text }}>
+                  {cred}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {showSocial && instructor.socialLinks && instructor.socialLinks.length > 0 && (
+            <div className="flex items-center gap-3">
+              {instructor.socialLinks.map((link, i) => (
+                <a key={i} href={link.url} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  {link.platform === 'twitter' && '𝕏'}
+                  {link.platform === 'linkedin' && 'in'}
+                  {link.platform === 'youtube' && '▶'}
+                  {link.platform === 'website' && '🌐'}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Course Categories Block
+export function CourseCategoriesBlock({
+  props,
+  settings,
+}: {
+  props: {
+    categories: CourseCategoryData[];
+    columns: 2 | 3 | 4 | 6;
+    style: 'cards' | 'minimal' | 'icons';
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { categories, columns, style } = props;
+
+  return (
+    <div className="p-6" style={{ background: settings.colors.background }}>
+      <div className={`grid gap-4 ${
+        columns === 2 ? 'grid-cols-2' :
+        columns === 3 ? 'grid-cols-3' :
+        columns === 4 ? 'grid-cols-4' : 'grid-cols-6'
+      }`}>
+        {categories.map(category => (
+          <div
+            key={category.id}
+            className={`flex ${style === 'icons' ? 'flex-col items-center text-center' : 'items-center gap-4'} p-4 transition-all hover:shadow-lg cursor-pointer`}
+            style={{
+              background: style === 'minimal' ? 'transparent' : settings.colors.surface,
+              borderRadius: settings.borders.radius,
+              border: style === 'minimal' ? 'none' : `${settings.borders.width}px solid ${settings.colors.border}`,
+            }}
+          >
+            <div
+              className={`${style === 'icons' ? 'w-16 h-16 text-3xl mb-3' : 'w-12 h-12 text-2xl'} rounded-xl flex items-center justify-center`}
+              style={{ background: category.color || settings.colors.primary + '20' }}
+            >
+              {category.icon}
+            </div>
+            <div>
+              <h4 className="font-semibold" style={{ color: settings.colors.heading }}>{category.name}</h4>
+              <p className="text-sm" style={{ color: settings.colors.textMuted }}>{category.courseCount} courses</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+// ============ Shop/E-commerce Blocks ============
+
+// Shopping Cart Block
+export function ShoppingCartBlock({
+  props,
+  settings,
+}: {
+  props: {
+    cart: CartData;
+    style: 'mini' | 'full' | 'sidebar';
+    showCheckoutButton?: boolean;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { cart, style, showCheckoutButton = true } = props;
+  const currency = cart.currency || '$';
+
+  if (style === 'mini') {
+    return (
+      <div
+        className="relative inline-flex items-center gap-2 p-3 cursor-pointer"
+        style={{
+          background: settings.colors.surface,
+          borderRadius: settings.borders.radius,
+          border: `${settings.borders.width}px solid ${settings.colors.border}`,
+        }}
+      >
+        <FiShoppingCart size={24} style={{ color: settings.colors.heading }} />
+        {cart.items.length > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center text-xs font-bold rounded-full text-white" style={{ background: settings.colors.primary }}>
+            {cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+          </span>
+        )}
+        <span className="font-semibold" style={{ color: settings.colors.heading }}>{currency}{cart.total.toFixed(2)}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="p-6"
+      style={{
+        background: settings.colors.surface,
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: settings.colors.heading }}>
+        <FiShoppingCart size={20} /> Your Cart ({cart.items.length} items)
+      </h3>
+
+      {cart.items.length === 0 ? (
+        <p className="text-center py-8" style={{ color: settings.colors.textMuted }}>Your cart is empty</p>
+      ) : (
+        <>
+          <div className="space-y-4 mb-6">
+            {cart.items.map(item => (
+              <div key={item.id} className="flex items-center gap-4 pb-4 border-b" style={{ borderColor: settings.colors.border }}>
+                <img src={item.image} alt={item.title} className="w-16 h-16 rounded-lg object-cover" />
+                <div className="flex-1">
+                  <h4 className="font-medium" style={{ color: settings.colors.heading }}>{item.title}</h4>
+                  {item.variant && <p className="text-xs" style={{ color: settings.colors.textMuted }}>{item.variant}</p>}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm" style={{ color: settings.colors.textMuted }}>Qty: {item.quantity}</span>
+                    <span className="font-semibold" style={{ color: settings.colors.primary }}>{currency}{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                </div>
+                <button className="text-red-500 hover:text-red-600"><FiTrash2 size={16} /></button>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm" style={{ color: settings.colors.text }}>
+              <span>Subtotal</span>
+              <span>{currency}{cart.subtotal.toFixed(2)}</span>
+            </div>
+            {cart.discount && cart.discount > 0 && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Discount</span>
+                <span>-{currency}{cart.discount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm" style={{ color: settings.colors.text }}>
+              <span>Shipping</span>
+              <span>{cart.shipping === 0 ? 'Free' : `${currency}${cart.shipping.toFixed(2)}`}</span>
+            </div>
+            <div className="flex justify-between text-sm" style={{ color: settings.colors.text }}>
+              <span>Tax</span>
+              <span>{currency}{cart.tax.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg pt-2 border-t" style={{ borderColor: settings.colors.border, color: settings.colors.heading }}>
+              <span>Total</span>
+              <span>{currency}{cart.total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {showCheckoutButton && (
+            <button
+              className="w-full py-3 font-semibold transition-all hover:opacity-90"
+              style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+            >
+              Proceed to Checkout
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// Product Categories Block
+export function ProductCategoriesBlock({
+  props,
+  settings,
+}: {
+  props: {
+    categories: ProductCategory[];
+    columns: 2 | 3 | 4 | 5;
+    style: 'cards' | 'overlay' | 'minimal';
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { categories, columns, style } = props;
+
+  return (
+    <div className="p-6" style={{ background: settings.colors.background }}>
+      <div className={`grid gap-4 ${
+        columns === 2 ? 'grid-cols-2' :
+        columns === 3 ? 'grid-cols-3' :
+        columns === 4 ? 'grid-cols-4' : 'grid-cols-5'
+      }`}>
+        {categories.map(category => (
+          <div
+            key={category.id}
+            className="group relative overflow-hidden cursor-pointer transition-all hover:shadow-xl"
+            style={{
+              borderRadius: settings.borders.radius,
+              border: style === 'minimal' ? 'none' : `${settings.borders.width}px solid ${settings.colors.border}`,
+            }}
+          >
+            {style === 'overlay' && category.image ? (
+              <>
+                <div className="aspect-square overflow-hidden">
+                  <img src={category.image} alt={category.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4">
+                  <h4 className="font-bold text-white text-lg">{category.name}</h4>
+                  <p className="text-white/80 text-sm">{category.productCount} products</p>
+                </div>
+              </>
+            ) : (
+              <div className="p-4 flex flex-col items-center text-center" style={{ background: settings.colors.surface }}>
+                {category.image && (
+                  <img src={category.image} alt={category.name} className="w-20 h-20 rounded-full object-cover mb-3" />
+                )}
+                <h4 className="font-semibold" style={{ color: settings.colors.heading }}>{category.name}</h4>
+                <p className="text-sm" style={{ color: settings.colors.textMuted }}>{category.productCount} products</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Product Filter Block
+export function ProductFilterBlock({
+  props,
+  settings,
+}: {
+  props: {
+    showPriceRange?: boolean;
+    showCategories?: boolean;
+    showRating?: boolean;
+    showSort?: boolean;
+    categories?: string[];
+    priceMin?: number;
+    priceMax?: number;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const {
+    showPriceRange = true,
+    showCategories = true,
+    showRating = true,
+    showSort = true,
+    categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports'],
+    priceMin = 0,
+    priceMax = 500,
+  } = props;
+
+  const [priceRange, setPriceRange] = useState([priceMin, priceMax]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedRating, setSelectedRating] = useState(0);
+
+  return (
+    <div
+      className="p-6 space-y-6"
+      style={{
+        background: settings.colors.surface,
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      {showSort && (
+        <div>
+          <h4 className="font-semibold mb-3" style={{ color: settings.colors.heading }}>Sort By</h4>
+          <select
+            className="w-full p-2 rounded-lg"
+            style={{ background: settings.colors.background, color: settings.colors.text, border: `1px solid ${settings.colors.border}` }}
+          >
+            <option>Most Popular</option>
+            <option>Price: Low to High</option>
+            <option>Price: High to Low</option>
+            <option>Newest First</option>
+            <option>Best Rated</option>
+          </select>
+        </div>
+      )}
+
+      {showPriceRange && (
+        <div>
+          <h4 className="font-semibold mb-3" style={{ color: settings.colors.heading }}>Price Range</h4>
+          <div className="flex items-center gap-4 mb-2">
+            <input
+              type="number"
+              value={priceRange[0]}
+              onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+              className="w-24 p-2 rounded-lg text-center"
+              style={{ background: settings.colors.background, color: settings.colors.text, border: `1px solid ${settings.colors.border}` }}
+            />
+            <span style={{ color: settings.colors.textMuted }}>to</span>
+            <input
+              type="number"
+              value={priceRange[1]}
+              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
+              className="w-24 p-2 rounded-lg text-center"
+              style={{ background: settings.colors.background, color: settings.colors.text, border: `1px solid ${settings.colors.border}` }}
+            />
+          </div>
+          <input
+            type="range"
+            min={priceMin}
+            max={priceMax}
+            value={priceRange[1]}
+            onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {showCategories && (
+        <div>
+          <h4 className="font-semibold mb-3" style={{ color: settings.colors.heading }}>Categories</h4>
+          <div className="space-y-2">
+            {categories.map(cat => (
+              <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(cat)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedCategories([...selectedCategories, cat]);
+                    } else {
+                      setSelectedCategories(selectedCategories.filter(c => c !== cat));
+                    }
+                  }}
+                  className="rounded"
+                  style={{ accentColor: settings.colors.primary }}
+                />
+                <span style={{ color: settings.colors.text }}>{cat}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showRating && (
+        <div>
+          <h4 className="font-semibold mb-3" style={{ color: settings.colors.heading }}>Rating</h4>
+          <div className="space-y-2">
+            {[4, 3, 2, 1].map(rating => (
+              <label key={rating} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="rating"
+                  checked={selectedRating === rating}
+                  onChange={() => setSelectedRating(rating)}
+                  style={{ accentColor: settings.colors.primary }}
+                />
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <FiStar key={star} size={14} className={star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+                  ))}
+                </div>
+                <span className="text-sm" style={{ color: settings.colors.textMuted }}>& up</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button
+        className="w-full py-2 font-medium transition-all hover:opacity-90"
+        style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+      >
+        Apply Filters
+      </button>
+    </div>
+  );
+}
+
+
+// Checkout Summary Block
+export function CheckoutSummaryBlock({
+  props,
+  settings,
+}: {
+  props: {
+    cart: CartData;
+    showItems?: boolean;
+    showCoupon?: boolean;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const { cart, showItems = true, showCoupon = true } = props;
+  const currency = cart.currency || '$';
+
+  return (
+    <div
+      className="p-6"
+      style={{
+        background: settings.colors.surface,
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      <h3 className="text-lg font-bold mb-4" style={{ color: settings.colors.heading }}>Order Summary</h3>
+
+      {showItems && cart.items.length > 0 && (
+        <div className="space-y-3 mb-4 pb-4 border-b" style={{ borderColor: settings.colors.border }}>
+          {cart.items.map(item => (
+            <div key={item.id} className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src={item.image} alt={item.title} className="w-12 h-12 rounded object-cover" />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: settings.colors.heading }}>{item.title}</p>
+                  <p className="text-xs" style={{ color: settings.colors.textMuted }}>Qty: {item.quantity}</p>
+                </div>
+              </div>
+              <span className="font-medium" style={{ color: settings.colors.text }}>{currency}{(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showCoupon && (
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="Coupon code"
+            className="flex-1 px-3 py-2 rounded-lg text-sm"
+            style={{ background: settings.colors.background, color: settings.colors.text, border: `1px solid ${settings.colors.border}` }}
+          />
+          <button
+            className="px-4 py-2 text-sm font-medium"
+            style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+          >
+            Apply
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <div className="flex justify-between" style={{ color: settings.colors.text }}>
+          <span>Subtotal</span>
+          <span>{currency}{cart.subtotal.toFixed(2)}</span>
+        </div>
+        {cart.discount && cart.discount > 0 && (
+          <div className="flex justify-between text-green-600">
+            <span>Discount</span>
+            <span>-{currency}{cart.discount.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="flex justify-between" style={{ color: settings.colors.text }}>
+          <span>Shipping</span>
+          <span>{cart.shipping === 0 ? 'Free' : `${currency}${cart.shipping.toFixed(2)}`}</span>
+        </div>
+        <div className="flex justify-between" style={{ color: settings.colors.text }}>
+          <span>Tax</span>
+          <span>{currency}{cart.tax.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-xl font-bold pt-4 border-t" style={{ borderColor: settings.colors.border, color: settings.colors.heading }}>
+          <span>Total</span>
+          <span>{currency}{cart.total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <button
+        className="w-full mt-6 py-3 font-semibold text-lg transition-all hover:opacity-90"
+        style={{ background: settings.colors.primary, color: 'white', borderRadius: settings.borders.radius }}
+      >
+        Place Order
+      </button>
+
+      <p className="text-xs text-center mt-4" style={{ color: settings.colors.textMuted }}>
+        🔒 Secure checkout powered by Stripe
+      </p>
+    </div>
+  );
+}
+
+// Sale Banner Block
+export function SaleBannerBlock({
+  props,
+  settings,
+}: {
+  props: {
+    title: string;
+    subtitle?: string;
+    discountCode?: string;
+    discountText?: string;
+    ctaText?: string;
+    ctaUrl?: string;
+    endDate?: string;
+    style: 'full' | 'compact' | 'floating';
+    backgroundColor?: string;
+  };
+  settings: CustomThemeSettings;
+}) {
+  const {
+    title,
+    subtitle,
+    discountCode,
+    discountText,
+    ctaText = 'Shop Now',
+    endDate,
+    style,
+    backgroundColor,
+  } = props;
+
+  // Calculate countdown
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  React.useEffect(() => {
+    if (!endDate) return;
+
+    const calculateTimeLeft = () => {
+      const difference = new Date(endDate).getTime() - new Date().getTime();
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [endDate]);
+
+  const bgColor = backgroundColor || settings.colors.primary;
+
+  if (style === 'compact') {
+    return (
+      <div
+        className="flex items-center justify-center gap-4 py-3 px-6"
+        style={{ background: bgColor }}
+      >
+        <span className="font-bold text-white">{title}</span>
+        {discountCode && (
+          <span className="px-3 py-1 bg-white/20 rounded-full text-white text-sm font-mono">{discountCode}</span>
+        )}
+        {endDate && (
+          <span className="text-white/80 text-sm">
+            Ends in: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="p-8 text-center"
+      style={{
+        background: style === 'floating' ? 'transparent' : bgColor,
+      }}
+    >
+      <div
+        className={style === 'floating' ? 'p-8 rounded-2xl shadow-2xl' : ''}
+        style={style === 'floating' ? { background: bgColor } : {}}
+      >
+        <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
+        {subtitle && <p className="text-white/90 text-lg mb-4">{subtitle}</p>}
+
+        {discountText && (
+          <div className="inline-block px-6 py-2 bg-white/20 rounded-full mb-4">
+            <span className="text-white font-bold text-xl">{discountText}</span>
+          </div>
+        )}
+
+        {discountCode && (
+          <div className="mb-4">
+            <span className="text-white/80 text-sm">Use code:</span>
+            <span className="ml-2 px-4 py-2 bg-white text-gray-900 font-mono font-bold rounded-lg">{discountCode}</span>
+          </div>
+        )}
+
+        {endDate && (
+          <div className="flex justify-center gap-4 mb-6">
+            {[
+              { value: timeLeft.days, label: 'Days' },
+              { value: timeLeft.hours, label: 'Hours' },
+              { value: timeLeft.minutes, label: 'Mins' },
+              { value: timeLeft.seconds, label: 'Secs' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white/20 rounded-lg p-3 min-w-[60px]">
+                <div className="text-2xl font-bold text-white">{String(item.value).padStart(2, '0')}</div>
+                <div className="text-xs text-white/80">{item.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          className="px-8 py-3 bg-white font-bold rounded-full transition-transform hover:scale-105"
+          style={{ color: bgColor }}
+        >
+          {ctaText}
+        </button>
       </div>
     </div>
   );

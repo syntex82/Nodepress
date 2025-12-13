@@ -40,7 +40,8 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       const response = await usersApi.getAll();
-      setUsers(response.data.data);
+      // Backend returns { users, meta }
+      setUsers(response.data.users || []);
     } catch (error) {
       toast.error('Failed to load users');
     } finally {
