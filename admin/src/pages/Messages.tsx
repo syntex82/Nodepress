@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { FiSend, FiSearch, FiMessageSquare, FiCheck, FiCheckCircle, FiPlus, FiX } from 'react-icons/fi';
+import { FiSend, FiSearch, FiMessageSquare, FiCheck, FiCheckCircle, FiPlus, FiX, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
 import { messagesApi, usersApi } from '../services/api';
@@ -75,7 +75,7 @@ export default function Messages() {
 
   useEffect(() => {
     if (token) {
-      const newSocket = io('/messages', { auth: { token } });
+      const newSocket = io('http://localhost:3000/messages', { auth: { token }, transports: ['websocket', 'polling'] });
 
       newSocket.on('connect', () => console.log('Connected to messages gateway'));
       newSocket.on('user:online', (data: { userId: string }) => setOnlineUsers((prev) => [...new Set([...prev, data.userId])]));
@@ -97,6 +97,10 @@ export default function Messages() {
       });
 
       newSocket.on('dm:read', () => loadConversations());
+
+      newSocket.on('dm:message:deleted', (data: { messageId: string }) => {
+        setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
+      });
 
       setSocket(newSocket);
       return () => { newSocket.disconnect(); };
@@ -156,6 +160,13 @@ export default function Messages() {
   const handleStopTyping = () => {
     if (!socket || !activeConversation) return;
     socket.emit('dm:typing:stop', { conversationId: activeConversation.id });
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    if (!socket || !activeConversation) return;
+    if (confirm('Delete this message?')) {
+      socket.emit('dm:delete', { messageId, conversationId: activeConversation.id });
+    }
   };
 
   const searchForUsers = async (query: string) => {
@@ -321,19 +332,24 @@ export default function Messages() {
                           const isOwn = message.senderId === user?.id;
                           const showAvatar = idx === 0 || group.messages[idx - 1].senderId !== message.senderId;
                           return (
-                            <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? (isOwn ? 'pr-12' : 'pl-12') : ''}`}>
+                            <div key={message.id} className={`group/msg flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? (isOwn ? 'pr-12' : 'pl-12') : ''}`}>
                               {!isOwn && showAvatar && (
                                 <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(message.sender.name)} flex items-center justify-center text-white text-sm font-semibold mr-3 flex-shrink-0 shadow-sm`}>
                                   {message.sender.avatar ? <img src={message.sender.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : message.sender.name.charAt(0).toUpperCase()}
                                 </div>
                               )}
-                              <div className="max-w-[65%]">
+                              <div className="max-w-[65%] relative">
                                 <div className={`px-4 py-2.5 rounded-2xl ${isOwn ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-br-md' : 'bg-white text-gray-800 shadow-sm border rounded-bl-md'}`}>
                                   <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
                                 </div>
                                 <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                                   <span className="text-[11px] text-gray-400">{formatTime(message.createdAt)}</span>
                                   {isOwn && (message.isRead ? <FiCheckCircle className="text-indigo-500" size={12} /> : <FiCheck className="text-gray-400" size={12} />)}
+                                  {isOwn && (
+                                    <button onClick={() => handleDeleteMessage(message.id)} className="ml-1 opacity-0 group-hover/msg:opacity-100 text-gray-400 hover:text-red-500 transition-all" title="Delete message">
+                                      <FiTrash2 size={12} />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                               {isOwn && showAvatar && (

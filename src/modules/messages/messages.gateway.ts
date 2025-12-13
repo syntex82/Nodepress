@@ -169,6 +169,41 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
+  @SubscribeMessage('dm:delete')
+  async handleDeleteMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { messageId: string; conversationId: string },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    // Verify user owns the message
+    const message = await this.prisma.directMessage.findUnique({
+      where: { id: data.messageId },
+    });
+
+    if (!message || message.senderId !== user.id) {
+      return { error: 'Cannot delete this message' };
+    }
+
+    // Delete the message
+    await this.prisma.directMessage.delete({ where: { id: data.messageId } });
+
+    // Notify both users
+    client.emit('dm:message:deleted', { messageId: data.messageId, conversationId: data.conversationId });
+
+    const conversation = await this.prisma.conversation.findUnique({ where: { id: data.conversationId } });
+    if (conversation) {
+      const recipientId = conversation.participant1Id === user.id ? conversation.participant2Id : conversation.participant1Id;
+      const recipientSocketId = this.userSockets.get(recipientId);
+      if (recipientSocketId) {
+        this.server.to(recipientSocketId).emit('dm:message:deleted', { messageId: data.messageId, conversationId: data.conversationId });
+      }
+    }
+
+    return { success: true };
+  }
+
   // Get list of online users
   getOnlineUsers(): string[] {
     return Array.from(this.userSockets.keys());

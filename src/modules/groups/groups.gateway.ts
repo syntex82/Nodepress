@@ -278,6 +278,54 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
+   * Delete a message
+   */
+  @SubscribeMessage('group:message:delete')
+  async handleDeleteMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { groupId: string; messageId: string },
+  ) {
+    const user = this.socketUsers.get(client.id);
+
+    if (!user) {
+      return { error: 'Unauthorized' };
+    }
+
+    const { groupId, messageId } = data;
+
+    // Get the message
+    const message = await this.prisma.groupMessage.findUnique({
+      where: { id: messageId },
+      include: { group: true },
+    });
+
+    if (!message) {
+      return { error: 'Message not found' };
+    }
+
+    // Check if user owns the message or is group owner/moderator
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: user.id } },
+    });
+
+    const canDelete = message.senderId === user.id ||
+                      message.group.ownerId === user.id ||
+                      membership?.role === 'MODERATOR';
+
+    if (!canDelete) {
+      return { error: 'You cannot delete this message' };
+    }
+
+    // Delete the message
+    await this.prisma.groupMessage.delete({ where: { id: messageId } });
+
+    // Broadcast deletion to all group members
+    this.server.to(`group:${groupId}`).emit('group:message:deleted', { messageId, groupId });
+
+    return { success: true };
+  }
+
+  /**
    * Emit event when a new member joins the group (called from service)
    */
   emitMemberJoined(groupId: string, member: any) {

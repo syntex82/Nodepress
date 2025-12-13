@@ -43,10 +43,15 @@ export class UsersController {
    */
   @Get()
   @Roles(UserRole.ADMIN, UserRole.EDITOR)
-  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
     return this.usersService.findAll(
       page ? parseInt(page) : 1,
       limit ? parseInt(limit) : 10,
+      search,
     );
   }
 

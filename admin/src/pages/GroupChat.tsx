@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiSend, FiArrowLeft, FiUsers, FiLogOut, FiSearch, FiCheck, FiShield, FiStar, FiHash, FiMessageSquare } from 'react-icons/fi';
+import { FiSend, FiArrowLeft, FiUsers, FiLogOut, FiSearch, FiCheck, FiShield, FiStar, FiHash, FiMessageSquare, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
 import { groupsApi } from '../services/api';
@@ -105,7 +105,7 @@ export default function GroupChat() {
 
   useEffect(() => {
     if (group?.isMember && token) {
-      const newSocket = io('/groups', { auth: { token } });
+      const newSocket = io('http://localhost:3000/groups', { auth: { token }, transports: ['websocket', 'polling'] });
 
       newSocket.on('connect', () => {
         console.log('Connected to groups gateway');
@@ -133,6 +133,10 @@ export default function GroupChat() {
         } else {
           setTypingUsers((prev) => prev.filter((name) => name !== data.userName));
         }
+      });
+
+      newSocket.on('group:message:deleted', (data: { messageId: string }) => {
+        setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
       });
 
       setSocket(newSocket);
@@ -200,6 +204,13 @@ export default function GroupChat() {
   const handleStopTyping = () => {
     if (!socket) return;
     socket.emit('group:typing:stop', { groupId: id });
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    if (!socket) return;
+    if (confirm('Delete this message?')) {
+      socket.emit('group:message:delete', { groupId: id, messageId });
+    }
   };
 
   const handleJoinGroup = async () => {
@@ -345,21 +356,22 @@ export default function GroupChat() {
             </div>
           ) : (
             <div className="space-y-6">
-              {groupedMessages.map((group, groupIdx) => (
+              {groupedMessages.map((msgGroup, groupIdx) => (
                 <div key={groupIdx}>
                   {/* Date Divider */}
                   <div className="flex items-center justify-center my-6">
                     <div className="px-4 py-1.5 bg-white rounded-full shadow-sm border text-xs font-medium text-gray-500">
-                      {formatMessageDate(group.messages[0].createdAt)}
+                      {formatMessageDate(msgGroup.messages[0].createdAt)}
                     </div>
                   </div>
                   {/* Messages */}
                   <div className="space-y-3">
-                    {group.messages.map((message, idx) => {
+                    {msgGroup.messages.map((message, idx) => {
                       const isOwn = message.sender.id === user?.id;
-                      const showAvatar = idx === 0 || group.messages[idx - 1].sender.id !== message.sender.id;
+                      const showAvatar = idx === 0 || msgGroup.messages[idx - 1].sender.id !== message.sender.id;
+                      const canDelete = isOwn || group?.owner?.id === user?.id;
                       return (
-                        <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? (isOwn ? 'pr-12' : 'pl-12') : ''}`}>
+                        <div key={message.id} className={`group/msg flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? (isOwn ? 'pr-12' : 'pl-12') : ''}`}>
                           {!isOwn && showAvatar && (
                             <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(message.sender.name)} flex items-center justify-center text-white text-sm font-semibold mr-3 flex-shrink-0 shadow-sm`}>
                               {message.sender.avatar ? <img src={message.sender.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : message.sender.name.charAt(0).toUpperCase()}
@@ -373,6 +385,11 @@ export default function GroupChat() {
                             <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                               <span className={`text-[11px] ${isOwn ? 'text-gray-400' : 'text-gray-400'}`}>{formatTime(message.createdAt)}</span>
                               {isOwn && <FiCheck className="text-gray-400" size={12} />}
+                              {canDelete && (
+                                <button onClick={() => handleDeleteMessage(message.id)} className="ml-1 opacity-0 group-hover/msg:opacity-100 text-gray-400 hover:text-red-500 transition-all" title="Delete message">
+                                  <FiTrash2 size={12} />
+                                </button>
+                              )}
                             </div>
                           </div>
                           {isOwn && showAvatar && (
