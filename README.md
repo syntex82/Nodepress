@@ -428,28 +428,32 @@ wordpress-node/
 ### Theme Designer
 > *Visual drag-and-drop page builder with live preview*
 
-![Theme Designer](https://via.placeholder.com/800x450/1a1a2e/eaeaea?text=Theme+Designer)
+<img width="1880" height="881" alt="Screenshot 2025-12-14 044837" src="https://github.com/user-attachments/assets/45ef602a-8ff2-48ac-aa96-100dded7a848" />
+
 
 <br />
 
 ### Shop Management
 > *Complete e-commerce product and order management*
 
-![Shop](https://via.placeholder.com/800x450/1a1a2e/eaeaea?text=Shop+Management)
+<img width="1896" height="868" alt="Screenshot 2025-12-14 045003" src="https://github.com/user-attachments/assets/8a96ea9d-cc1d-4148-85a4-fdc4a3c0e932" />
+
 
 <br />
 
 ### LMS Course Builder
 > *Create courses with lessons, quizzes, and curriculum*
 
-![LMS](https://via.placeholder.com/800x450/1a1a2e/eaeaea?text=LMS+Course+Builder)
+<img width="1886" height="958" alt="Screenshot 2025-12-14 045048" src="https://github.com/user-attachments/assets/8bdb0129-8b58-4ada-b0fd-beb431ae0088" />
+
 
 <br />
 
 ### Media Library
 > *Upload and organize media with preview and metadata*
 
-![Media](https://via.placeholder.com/800x450/1a1a2e/eaeaea?text=Media+Library)
+<img width="1886" height="898" alt="Screenshot 2025-12-14 045141" src="https://github.com/user-attachments/assets/a4a2b802-a7da-431f-ab95-f6bff7ecc3d4" />
+
 
 </details>
 
