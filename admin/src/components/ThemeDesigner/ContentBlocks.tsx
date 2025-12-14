@@ -9,13 +9,15 @@ import {
   FiMaximize, FiX, FiChevronLeft, FiChevronRight, FiTrash2,
   FiMove, FiPlus, FiArrowUp, FiArrowDown, FiCopy, FiEye, FiEyeOff,
   FiBook, FiList, FiTrendingUp, FiUser, FiFolder, FiShoppingCart,
-  FiFilter, FiCreditCard, FiPercent, FiUpload, FiLock, FiMail, FiLogIn
+  FiFilter, FiCreditCard, FiPercent, FiUpload, FiLock, FiMail, FiLogIn,
+  FiNavigation, FiAlignCenter, FiSidebar, FiMenu, FiSearch, FiHome,
+  FiSettings, FiHelpCircle, FiBell, FiChevronDown, FiExternalLink
 } from 'react-icons/fi';
 import { CustomThemeSettings } from '../../services/api';
 import MediaPickerModal from '../MediaPickerModal';
 
 import {
-  LinkSettings, BlockVisibility, AnimationSettings, RowSettings, HeaderSettings, ProductData,
+  LinkSettings, BlockVisibility, AnimationSettings, RowSettings as RowSettingsType, HeaderSettings as HeaderSettingsType, ProductData,
   LinkSettingsForm, VisibilitySettings, AnimationSettingsForm,
   RowBlock, ProductCardBlock, ProductGridBlock, FeaturedProductBlock, ProductCarouselBlock,
   HeaderBuilderBlock, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS,
@@ -42,7 +44,9 @@ export type BlockType =
   // Shop/E-commerce blocks
   | 'shoppingCart' | 'productCategories' | 'productFilter' | 'checkoutSummary' | 'saleBanner'
   // Auth blocks
-  | 'loginForm';
+  | 'loginForm'
+  // Navigation blocks
+  | 'navGlass' | 'navMinimal' | 'navMega' | 'navCentered' | 'navSidebar';
 
 export interface ContentBlock {
   id: string;
@@ -54,7 +58,7 @@ export interface ContentBlock {
 }
 
 // Re-export advanced block types for use elsewhere
-export type { LinkSettings, BlockVisibility, AnimationSettings, RowSettings, HeaderSettings, ProductData };
+export type { LinkSettings, BlockVisibility, AnimationSettings, RowSettingsType as RowSettings, HeaderSettingsType as HeaderSettings, ProductData };
 export type { CourseData, CourseCategoryData, CourseProgressData, InstructorData, ModuleData, CartData, ProductCategory };
 export { LinkSettingsForm, VisibilitySettings, AnimationSettingsForm, HeaderSettingsPanel, PRESET_LAYOUTS, ANIMATION_PRESETS };
 
@@ -309,7 +313,7 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       gap: 24,
       verticalAlign: 'top',
       horizontalAlign: 'left',
-    } as RowSettings,
+    } as RowSettingsType,
   },
   header: {
     label: 'Header',
@@ -328,7 +332,7 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       topBar: { phone: '+1 (555) 123-4567', email: 'hello@example.com', socialLinks: [] },
       ctaButton: { show: true, text: 'Get Started', link: { type: 'internal', url: '/signup' }, style: 'solid' },
       mobileBreakpoint: 'md',
-    } as HeaderSettings,
+    } as HeaderSettingsType,
   },
   productCard: {
     label: 'Product Card',
@@ -669,6 +673,177 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       trustDeviceText: 'Trust this device for 30 days',
     },
   },
+  // ============ Navigation Blocks ============
+  navGlass: {
+    label: 'Glass Navigation',
+    icon: FiNavigation,
+    defaultProps: {
+      logoUrl: '',
+      logoText: 'Brand',
+      navItems: [
+        { id: '1', label: 'Home', url: '/', active: true },
+        { id: '2', label: 'Features', url: '/features', active: false },
+        { id: '3', label: 'Pricing', url: '/pricing', active: false },
+        { id: '4', label: 'About', url: '/about', active: false },
+      ],
+      showCta: true,
+      ctaText: 'Get Started',
+      ctaUrl: '/signup',
+      ctaStyle: 'gradient',
+      showSearch: false,
+      showUserMenu: false,
+      position: 'sticky', // fixed, sticky, static
+      blur: 16,
+      opacity: 0.8,
+      borderBottom: true,
+      backgroundColor: '#0F172A',
+      textColor: '#F8FAFC',
+      accentColor: '#6366F1',
+      height: 72,
+      maxWidth: 1280,
+      paddingX: 24,
+      animateOnScroll: true,
+    },
+  },
+  navMinimal: {
+    label: 'Minimal Navigation',
+    icon: FiMinus,
+    defaultProps: {
+      logoUrl: '',
+      logoText: 'Brand',
+      navItems: [
+        { id: '1', label: 'Work', url: '/work', active: false },
+        { id: '2', label: 'About', url: '/about', active: false },
+        { id: '3', label: 'Contact', url: '/contact', active: false },
+      ],
+      showCta: true,
+      ctaText: 'Let\'s Talk',
+      ctaUrl: '/contact',
+      ctaStyle: 'outline',
+      alignment: 'spread', // spread, center, left, right
+      backgroundColor: 'transparent',
+      textColor: '#111827',
+      accentColor: '#000000',
+      height: 80,
+      borderBottom: false,
+      uppercase: true,
+      letterSpacing: 2,
+      fontSize: 12,
+    },
+  },
+  navMega: {
+    label: 'Mega Menu Navigation',
+    icon: FiGrid,
+    defaultProps: {
+      logoUrl: '',
+      logoText: 'Enterprise',
+      topBarEnabled: true,
+      topBarItems: [
+        { label: 'Support', url: '/support', icon: 'help' },
+        { label: 'Documentation', url: '/docs', icon: 'book' },
+        { label: '+1 (555) 123-4567', url: 'tel:+15551234567', icon: 'phone' },
+      ],
+      navItems: [
+        {
+          id: '1',
+          label: 'Products',
+          url: '#',
+          hasMegaMenu: true,
+          megaMenuColumns: [
+            {
+              title: 'Platform',
+              items: [
+                { label: 'Analytics', description: 'Get insights into your data', url: '/analytics', icon: '📊' },
+                { label: 'Automation', description: 'Automate your workflows', url: '/automation', icon: '⚡' },
+              ],
+            },
+            {
+              title: 'Solutions',
+              items: [
+                { label: 'For Startups', description: 'Scale your business', url: '/startups', icon: '🚀' },
+                { label: 'Enterprise', description: 'For large teams', url: '/enterprise', icon: '🏢' },
+              ],
+            },
+          ],
+        },
+        { id: '2', label: 'Pricing', url: '/pricing', hasMegaMenu: false },
+        { id: '3', label: 'Resources', url: '/resources', hasMegaMenu: false },
+        { id: '4', label: 'Company', url: '/company', hasMegaMenu: false },
+      ],
+      showCta: true,
+      ctaText: 'Start Free Trial',
+      ctaUrl: '/signup',
+      ctaStyle: 'solid',
+      showSearch: true,
+      backgroundColor: '#FFFFFF',
+      textColor: '#374151',
+      accentColor: '#4F46E5',
+      megaMenuBg: '#F9FAFB',
+      height: 64,
+      topBarBg: '#1F2937',
+      topBarTextColor: '#D1D5DB',
+    },
+  },
+  navCentered: {
+    label: 'Centered Navigation',
+    icon: FiAlignCenter,
+    defaultProps: {
+      logoUrl: '',
+      logoText: 'Studio',
+      leftItems: [
+        { id: '1', label: 'Work', url: '/work' },
+        { id: '2', label: 'Services', url: '/services' },
+      ],
+      rightItems: [
+        { id: '3', label: 'About', url: '/about' },
+        { id: '4', label: 'Contact', url: '/contact' },
+      ],
+      showCta: false,
+      backgroundColor: '#FAFAFA',
+      textColor: '#18181B',
+      accentColor: '#A855F7',
+      height: 88,
+      borderBottom: true,
+      borderColor: '#E4E4E7',
+      logoSize: 'large', // small, medium, large
+      fontWeight: 500,
+      hoverStyle: 'underline', // underline, color, background
+    },
+  },
+  navSidebar: {
+    label: 'Sidebar Navigation',
+    icon: FiSidebar,
+    defaultProps: {
+      logoUrl: '',
+      logoText: 'Dashboard',
+      navItems: [
+        { id: '1', label: 'Dashboard', url: '/dashboard', icon: 'home', badge: '' },
+        { id: '2', label: 'Analytics', url: '/analytics', icon: 'chart', badge: '' },
+        { id: '3', label: 'Projects', url: '/projects', icon: 'folder', badge: '12' },
+        { id: '4', label: 'Team', url: '/team', icon: 'users', badge: '' },
+        { id: '5', label: 'Settings', url: '/settings', icon: 'settings', badge: '' },
+      ],
+      footerItems: [
+        { id: 'f1', label: 'Help & Support', url: '/help', icon: 'help' },
+        { id: 'f2', label: 'Logout', url: '/logout', icon: 'logout' },
+      ],
+      showUserProfile: true,
+      userAvatar: 'https://i.pravatar.cc/100?img=8',
+      userName: 'John Doe',
+      userEmail: 'john@example.com',
+      width: 260,
+      collapsed: false,
+      collapsedWidth: 72,
+      backgroundColor: '#111827',
+      textColor: '#9CA3AF',
+      activeTextColor: '#FFFFFF',
+      accentColor: '#6366F1',
+      hoverBg: 'rgba(255,255,255,0.05)',
+      activeBg: 'rgba(99,102,241,0.2)',
+      showLogout: true,
+      position: 'left', // left, right
+    },
+  },
 };
 
 // ============ Theme Page Structure ============
@@ -790,6 +965,255 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
         { question: 'Can I cancel anytime?', answer: 'Absolutely. Cancel anytime with no questions asked. We\'ll even prorate your refund.' },
       ]}},
       { type: 'cta', props: { title: 'Still Have Questions?', description: 'Our team is here to help you find the perfect plan.', buttonText: 'Contact Us', buttonLink: '#', style: 'simple' } },
+    ],
+  },
+  {
+    id: 'login-showcase',
+    name: 'Login Showcase',
+    description: 'Beautiful dark landing page with login form and 2FA',
+    icon: '🔐',
+    blocks: [
+      // Hero with Login Form Split Layout
+      {
+        type: 'hero',
+        props: {
+          title: 'Welcome to the Future',
+          subtitle: 'Experience the next generation of secure, seamless authentication. Built for developers who demand excellence.',
+          ctaText: '',
+          ctaUrl: '',
+          backgroundImage: '',
+          overlay: 0,
+          alignment: 'left',
+        },
+      },
+      // Login Form Block - The Star of the Show
+      {
+        type: 'loginForm',
+        props: {
+          title: 'Sign In',
+          subtitle: 'Welcome back! Please enter your credentials',
+          logoUrl: '',
+          usernameLabel: 'Email address',
+          usernamePlaceholder: 'you@example.com',
+          passwordLabel: 'Password',
+          passwordPlaceholder: '••••••••',
+          showRememberMe: true,
+          rememberMeLabel: 'Keep me signed in',
+          showForgotPassword: true,
+          forgotPasswordText: 'Forgot your password?',
+          forgotPasswordUrl: '/forgot-password',
+          showRegisterLink: true,
+          registerText: 'New to our platform?',
+          registerLinkText: 'Create an account',
+          registerUrl: '/register',
+          buttonText: 'Sign In',
+          buttonStyle: 'gradient',
+          buttonColor: '#6366F1',
+          redirectUrl: '/dashboard',
+          showSocialLogin: true,
+          showGoogleLogin: true,
+          showGithubLogin: true,
+          showAppleLogin: true,
+          socialLoginText: 'Or continue with',
+          formStyle: 'card',
+          cardBackground: '#1E1E2E',
+          textColor: '#FFFFFF',
+          inputBackground: '#2A2A3C',
+          inputBorderColor: '#3F3F5A',
+          inputTextColor: '#FFFFFF',
+          borderRadius: 16,
+          showLabels: true,
+          showPasswordToggle: true,
+          animateOnLoad: true,
+          enable2FA: true,
+          twoFactorMethod: 'app',
+          twoFactorTitle: 'Verify Your Identity',
+          twoFactorSubtitle: 'Enter the 6-digit code from your authenticator app',
+          twoFactorCodeLength: 6,
+          showBackupCodeOption: true,
+          backupCodeText: 'Use a backup code',
+          showResendCode: true,
+          resendCodeText: 'Resend verification code',
+          resendCooldown: 60,
+          twoFactorButtonText: 'Verify & Continue',
+          showTrustDevice: true,
+          trustDeviceText: 'Trust this device for 30 days',
+        },
+      },
+      // Features Section - Security Benefits
+      {
+        type: 'features',
+        props: {
+          title: 'Enterprise-Grade Security',
+          subtitle: 'Built with the latest security standards to protect your data',
+          columns: 3,
+          features: [
+            { icon: '🔐', title: 'Two-Factor Authentication', description: 'Add an extra layer of security with TOTP, SMS, or email verification' },
+            { icon: '🛡️', title: 'OAuth 2.0 & OpenID', description: 'Industry-standard protocols for secure, seamless authentication' },
+            { icon: '🔑', title: 'Passwordless Options', description: 'Support for magic links, biometrics, and passkeys' },
+            { icon: '📱', title: 'Social Login', description: 'Connect with Google, GitHub, Apple, and more providers' },
+            { icon: '🔒', title: 'JWT Tokens', description: 'Stateless authentication with secure, signed tokens' },
+            { icon: '👁️', title: 'Session Management', description: 'View and revoke active sessions from any device' },
+          ],
+        },
+      },
+      // Social Proof / Testimonial
+      {
+        type: 'testimonial',
+        props: {
+          quote: 'The authentication system is incredibly smooth. 2FA setup took seconds, and the social login options made onboarding a breeze for our users.',
+          author: 'Alex Rivera',
+          role: 'CTO, TechFlow Inc.',
+          avatar: 'https://i.pravatar.cc/100?img=12',
+          style: 'card',
+        },
+      },
+      // Stats Section
+      {
+        type: 'stats',
+        props: {
+          stats: [
+            { value: '99.99%', label: 'Uptime SLA' },
+            { value: '<50ms', label: 'Auth Response' },
+            { value: '10M+', label: 'Users Protected' },
+            { value: 'SOC 2', label: 'Certified' },
+          ],
+          style: 'cards',
+        },
+      },
+      // Logo Cloud - Trust Badges
+      {
+        type: 'logoCloud',
+        props: {
+          title: 'Trusted by Industry Leaders',
+          logos: [
+            { name: 'Company 1', imageUrl: 'https://via.placeholder.com/120x40/1F2937/6366F1?text=TechCorp' },
+            { name: 'Company 2', imageUrl: 'https://via.placeholder.com/120x40/1F2937/8B5CF6?text=DataFlow' },
+            { name: 'Company 3', imageUrl: 'https://via.placeholder.com/120x40/1F2937/EC4899?text=CloudSec' },
+            { name: 'Company 4', imageUrl: 'https://via.placeholder.com/120x40/1F2937/10B981?text=SecureNet' },
+            { name: 'Company 5', imageUrl: 'https://via.placeholder.com/120x40/1F2937/F59E0B?text=AuthPro' },
+          ],
+          style: 'grid',
+        },
+      },
+      // CTA Section
+      {
+        type: 'cta',
+        props: {
+          title: 'Ready to Secure Your Application?',
+          description: 'Get started in minutes with our developer-friendly authentication platform.',
+          buttonText: 'Start Building Free',
+          buttonLink: '/register',
+          style: 'gradient',
+        },
+      },
+    ],
+  },
+  {
+    id: 'saas-login',
+    name: 'SaaS Login Portal',
+    description: 'Clean SaaS-style login page with feature highlights',
+    icon: '💼',
+    blocks: [
+      // Minimal Hero
+      {
+        type: 'hero',
+        props: {
+          title: 'Your Workspace Awaits',
+          subtitle: 'Sign in to access your dashboard, projects, and team collaboration tools.',
+          ctaText: '',
+          ctaUrl: '',
+          backgroundImage: '',
+          overlay: 0,
+          alignment: 'center',
+        },
+      },
+      // Login Form - Clean Style
+      {
+        type: 'loginForm',
+        props: {
+          title: 'Welcome Back',
+          subtitle: 'Enter your credentials to continue',
+          logoUrl: '',
+          usernameLabel: 'Work Email',
+          usernamePlaceholder: 'name@company.com',
+          passwordLabel: 'Password',
+          passwordPlaceholder: 'Enter your password',
+          showRememberMe: true,
+          rememberMeLabel: 'Stay signed in',
+          showForgotPassword: true,
+          forgotPasswordText: 'Reset password',
+          forgotPasswordUrl: '/reset-password',
+          showRegisterLink: true,
+          registerText: 'Need an account?',
+          registerLinkText: 'Start free trial',
+          registerUrl: '/signup',
+          buttonText: 'Continue',
+          buttonStyle: 'solid',
+          buttonColor: '#3B82F6',
+          redirectUrl: '/dashboard',
+          showSocialLogin: true,
+          showGoogleLogin: true,
+          showGithubLogin: true,
+          showAppleLogin: false,
+          socialLoginText: 'Or sign in with',
+          formStyle: 'card',
+          cardBackground: '#111827',
+          textColor: '#F9FAFB',
+          inputBackground: '#1F2937',
+          inputBorderColor: '#374151',
+          inputTextColor: '#F9FAFB',
+          borderRadius: 12,
+          showLabels: true,
+          showPasswordToggle: true,
+          animateOnLoad: true,
+          enable2FA: true,
+          twoFactorMethod: 'email',
+          twoFactorTitle: 'Check Your Email',
+          twoFactorSubtitle: 'We sent a 6-digit code to your email address',
+          twoFactorCodeLength: 6,
+          showBackupCodeOption: true,
+          backupCodeText: 'Use recovery code',
+          showResendCode: true,
+          resendCodeText: 'Send new code',
+          resendCooldown: 45,
+          twoFactorButtonText: 'Verify',
+          showTrustDevice: true,
+          trustDeviceText: "Don't ask again on this device",
+        },
+      },
+      // Divider
+      { type: 'divider', props: { style: 'gradient', height: 2 } },
+      // Features
+      {
+        type: 'features',
+        props: {
+          title: 'Why Teams Love Us',
+          columns: 4,
+          features: [
+            { icon: '⚡', title: 'Instant Setup', description: 'Get started in under 5 minutes' },
+            { icon: '👥', title: 'Team Collaboration', description: 'Work together seamlessly' },
+            { icon: '📊', title: 'Real-time Analytics', description: 'Track everything that matters' },
+            { icon: '🔐', title: 'Bank-grade Security', description: 'Your data is always safe' },
+          ],
+        },
+      },
+      // Social Proof
+      {
+        type: 'socialProof',
+        props: {
+          rating: 4.9,
+          reviewCount: 2847,
+          avatars: [
+            'https://i.pravatar.cc/40?img=1',
+            'https://i.pravatar.cc/40?img=2',
+            'https://i.pravatar.cc/40?img=3',
+            'https://i.pravatar.cc/40?img=4',
+            'https://i.pravatar.cc/40?img=5',
+          ],
+          text: 'from verified users',
+        },
+      },
     ],
   },
 ];
@@ -2743,6 +3167,612 @@ export function LoginFormBlock({
   );
 }
 
+// ============ Glass Navigation Block ============
+export function NavGlassBlock({ props, settings: _settings }: { props: Record<string, any>; settings: CustomThemeSettings }) {
+  const {
+    logoUrl, logoText = 'Brand', navItems = [], showCta, ctaText, ctaUrl, ctaStyle = 'gradient',
+    showSearch, showUserMenu, position = 'sticky', blur = 16, opacity = 0.8, borderBottom = true,
+    backgroundColor = '#0F172A', textColor = '#F8FAFC', accentColor = '#6366F1',
+    height = 72, maxWidth = 1280, paddingX = 24,
+  } = props;
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const bgWithOpacity = backgroundColor + Math.round(opacity * 255).toString(16).padStart(2, '0');
+
+  const getCtaStyles = () => {
+    switch (ctaStyle) {
+      case 'gradient':
+        return { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`, color: '#fff', border: 'none' };
+      case 'outline':
+        return { background: 'transparent', color: accentColor, border: `2px solid ${accentColor}` };
+      default:
+        return { background: accentColor, color: '#fff', border: 'none' };
+    }
+  };
+
+  return (
+    <nav
+      className={`w-full z-50 transition-all duration-300 ${position === 'sticky' ? 'sticky top-0' : position === 'fixed' ? 'fixed top-0 left-0 right-0' : ''}`}
+      style={{
+        background: bgWithOpacity,
+        backdropFilter: `blur(${blur}px)`,
+        WebkitBackdropFilter: `blur(${blur}px)`,
+        borderBottom: borderBottom ? `1px solid rgba(255,255,255,0.1)` : 'none',
+        height,
+      }}
+    >
+      <div className="flex items-center justify-between h-full mx-auto" style={{ maxWidth, paddingLeft: paddingX, paddingRight: paddingX }}>
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          {logoUrl ? (
+            <img src={logoUrl} alt={logoText} className="h-8 w-auto" />
+          ) : (
+            <span className="text-xl font-bold" style={{ color: textColor }}>{logoText}</span>
+          )}
+        </div>
+
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-1">
+          {navItems.map((item: any) => (
+            <a
+              key={item.id}
+              href={item.url || '#'}
+              className="relative px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg group"
+              style={{ color: item.active ? accentColor : textColor }}
+            >
+              {item.label}
+              <span
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-3/4"
+                style={{ background: accentColor }}
+              />
+              {item.active && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full" style={{ background: accentColor }} />
+              )}
+            </a>
+          ))}
+        </div>
+
+        {/* Right Side */}
+        <div className="flex items-center gap-3">
+          {showSearch && (
+            <button
+              onClick={() => setSearchOpen(!searchOpen)}
+              className="p-2 rounded-lg transition-all hover:bg-white/10"
+              style={{ color: textColor }}
+            >
+              <FiSearch size={20} />
+            </button>
+          )}
+
+          {showUserMenu && (
+            <button className="p-2 rounded-lg transition-all hover:bg-white/10" style={{ color: textColor }}>
+              <FiUser size={20} />
+            </button>
+          )}
+
+          {showCta && (
+            <a
+              href={ctaUrl || '#'}
+              className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              style={{ ...getCtaStyles(), boxShadow: `0 4px 14px ${accentColor}40` }}
+            >
+              {ctaText || 'Get Started'}
+            </a>
+          )}
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden p-2 rounded-lg transition-all hover:bg-white/10"
+            style={{ color: textColor }}
+          >
+            {mobileOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Search Overlay */}
+      {searchOpen && (
+        <div className="absolute top-full left-0 right-0 p-4" style={{ background: bgWithOpacity, backdropFilter: `blur(${blur}px)` }}>
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <FiSearch size={20} style={{ color: textColor }} />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="flex-1 bg-transparent border-none outline-none text-sm"
+                style={{ color: textColor }}
+                autoFocus
+              />
+              <button onClick={() => setSearchOpen(false)} style={{ color: textColor }}><FiX size={18} /></button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div
+          className="md:hidden absolute top-full left-0 right-0 py-4 px-6 space-y-2"
+          style={{ background: bgWithOpacity, backdropFilter: `blur(${blur}px)`, borderTop: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          {navItems.map((item: any) => (
+            <a
+              key={item.id}
+              href={item.url || '#'}
+              className="block py-3 px-4 rounded-lg text-sm font-medium transition-all"
+              style={{ color: item.active ? accentColor : textColor, background: item.active ? `${accentColor}15` : 'transparent' }}
+            >
+              {item.label}
+            </a>
+          ))}
+          {showCta && (
+            <a
+              href={ctaUrl || '#'}
+              className="block text-center py-3 px-4 rounded-xl text-sm font-semibold mt-4"
+              style={getCtaStyles()}
+            >
+              {ctaText || 'Get Started'}
+            </a>
+          )}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// ============ Minimal Navigation Block ============
+export function NavMinimalBlock({ props, settings: _settings }: { props: Record<string, any>; settings: CustomThemeSettings }) {
+  const {
+    logoUrl, logoText = 'Brand', navItems = [], showCta, ctaText, ctaUrl,
+    alignment = 'spread', backgroundColor = 'transparent', textColor = '#111827', accentColor = '#000000',
+    height = 80, borderBottom = false, uppercase = true, letterSpacing = 2, fontSize = 12,
+  } = props;
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navStyle: React.CSSProperties = {
+    textTransform: uppercase ? 'uppercase' : 'none',
+    letterSpacing: `${letterSpacing}px`,
+    fontSize: `${fontSize}px`,
+  };
+
+  return (
+    <nav
+      className="w-full"
+      style={{
+        background: backgroundColor,
+        height,
+        borderBottom: borderBottom ? `1px solid ${textColor}20` : 'none',
+      }}
+    >
+      <div className="flex items-center justify-between h-full max-w-7xl mx-auto px-6">
+        {alignment === 'center' ? (
+          <>
+            {/* Left Nav */}
+            <div className="hidden md:flex items-center gap-8">
+              {navItems.slice(0, Math.ceil(navItems.length / 2)).map((item: any) => (
+                <a key={item.id} href={item.url || '#'} className="font-medium tracking-wide transition-all hover:opacity-60" style={{ ...navStyle, color: textColor }}>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+
+            {/* Center Logo */}
+            <div className="flex items-center">
+              {logoUrl ? (
+                <img src={logoUrl} alt={logoText} className="h-10 w-auto" />
+              ) : (
+                <span className="text-2xl font-light tracking-widest" style={{ color: textColor }}>{logoText}</span>
+              )}
+            </div>
+
+            {/* Right Nav */}
+            <div className="hidden md:flex items-center gap-8">
+              {navItems.slice(Math.ceil(navItems.length / 2)).map((item: any) => (
+                <a key={item.id} href={item.url || '#'} className="font-medium tracking-wide transition-all hover:opacity-60" style={{ ...navStyle, color: textColor }}>
+                  {item.label}
+                </a>
+              ))}
+              {showCta && (
+                <a href={ctaUrl || '#'} className="font-medium px-5 py-2 border-2 transition-all hover:bg-black hover:text-white" style={{ ...navStyle, color: accentColor, borderColor: accentColor }}>
+                  {ctaText}
+                </a>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Logo */}
+            <div className="flex items-center">
+              {logoUrl ? (
+                <img src={logoUrl} alt={logoText} className="h-10 w-auto" />
+              ) : (
+                <span className="text-2xl font-light tracking-widest" style={{ color: textColor }}>{logoText}</span>
+              )}
+            </div>
+
+            {/* Nav Items */}
+            <div className="hidden md:flex items-center gap-8">
+              {navItems.map((item: any) => (
+                <a key={item.id} href={item.url || '#'} className="relative font-medium tracking-wide transition-all group" style={{ ...navStyle, color: textColor }}>
+                  {item.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-px bg-current transition-all duration-300 group-hover:w-full" />
+                </a>
+              ))}
+              {showCta && (
+                <a href={ctaUrl || '#'} className="font-medium px-5 py-2 border-2 transition-all hover:bg-black hover:text-white" style={{ ...navStyle, color: accentColor, borderColor: accentColor }}>
+                  {ctaText}
+                </a>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Mobile Menu Button */}
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2" style={{ color: textColor }}>
+          {mobileOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="md:hidden py-8 px-6 space-y-4" style={{ background: backgroundColor || '#fff' }}>
+          {navItems.map((item: any) => (
+            <a key={item.id} href={item.url || '#'} className="block py-2 font-medium transition-all" style={{ ...navStyle, color: textColor }}>
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// ============ Mega Menu Navigation Block ============
+export function NavMegaBlock({ props, settings: _settings }: { props: Record<string, any>; settings: CustomThemeSettings }) {
+  const {
+    logoUrl, logoText = 'Enterprise', topBarEnabled, topBarItems = [], navItems = [],
+    showCta, ctaText, ctaUrl, ctaStyle = 'solid', showSearch,
+    backgroundColor = '#FFFFFF', textColor = '#374151', accentColor = '#4F46E5',
+    megaMenuBg = '#F9FAFB', height = 64, topBarBg = '#1F2937', topBarTextColor = '#D1D5DB',
+  } = props;
+
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const getIcon = (iconName: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      help: <FiHelpCircle size={14} />, book: <FiBook size={14} />, phone: <FiMail size={14} />,
+    };
+    return icons[iconName] || null;
+  };
+
+  return (
+    <div className="w-full">
+      {/* Top Bar */}
+      {topBarEnabled && (
+        <div className="py-2 px-4" style={{ background: topBarBg }}>
+          <div className="max-w-7xl mx-auto flex items-center justify-end gap-6">
+            {topBarItems.map((item: any, i: number) => (
+              <a key={i} href={item.url || '#'} className="flex items-center gap-1.5 text-xs font-medium transition-all hover:opacity-80" style={{ color: topBarTextColor }}>
+                {getIcon(item.icon)} {item.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main Nav */}
+      <nav className="border-b" style={{ background: backgroundColor, borderColor: `${textColor}15`, height }}>
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+          {/* Logo */}
+          <div className="flex items-center">
+            {logoUrl ? (
+              <img src={logoUrl} alt={logoText} className="h-8 w-auto" />
+            ) : (
+              <span className="text-xl font-bold" style={{ color: textColor }}>{logoText}</span>
+            )}
+          </div>
+
+          {/* Nav Items */}
+          <div className="hidden lg:flex items-center h-full">
+            {navItems.map((item: any) => (
+              <div
+                key={item.id}
+                className="relative h-full"
+                onMouseEnter={() => item.hasMegaMenu && setActiveMenu(item.id)}
+                onMouseLeave={() => setActiveMenu(null)}
+              >
+                <a
+                  href={item.url || '#'}
+                  className="h-full flex items-center gap-1 px-4 text-sm font-medium transition-all hover:text-opacity-70"
+                  style={{ color: activeMenu === item.id ? accentColor : textColor }}
+                >
+                  {item.label}
+                  {item.hasMegaMenu && <FiChevronDown size={14} className={`transition-transform ${activeMenu === item.id ? 'rotate-180' : ''}`} />}
+                </a>
+
+                {/* Mega Menu Dropdown */}
+                {item.hasMegaMenu && activeMenu === item.id && (
+                  <div
+                    className="absolute top-full left-0 w-[600px] p-6 rounded-b-xl shadow-2xl grid grid-cols-2 gap-8 z-50"
+                    style={{ background: megaMenuBg, borderTop: `3px solid ${accentColor}` }}
+                  >
+                    {item.megaMenuColumns?.map((col: any, ci: number) => (
+                      <div key={ci}>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: `${textColor}80` }}>
+                          {col.title}
+                        </h4>
+                        <div className="space-y-3">
+                          {col.items?.map((subItem: any, si: number) => (
+                            <a key={si} href={subItem.url || '#'} className="flex items-start gap-3 p-2 rounded-lg transition-all hover:bg-white group">
+                              <span className="text-2xl">{subItem.icon}</span>
+                              <div>
+                                <div className="font-medium text-sm group-hover:text-opacity-80" style={{ color: textColor }}>{subItem.label}</div>
+                                <div className="text-xs mt-0.5" style={{ color: `${textColor}70` }}>{subItem.description}</div>
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Right Side */}
+          <div className="flex items-center gap-4">
+            {showSearch && (
+              <button className="p-2 rounded-lg transition-all hover:bg-gray-100" style={{ color: textColor }}>
+                <FiSearch size={20} />
+              </button>
+            )}
+            {showCta && (
+              <a
+                href={ctaUrl || '#'}
+                className="hidden md:flex px-5 py-2.5 rounded-lg text-sm font-semibold transition-all hover:shadow-lg"
+                style={{
+                  background: ctaStyle === 'solid' ? accentColor : 'transparent',
+                  color: ctaStyle === 'solid' ? '#fff' : accentColor,
+                  border: ctaStyle === 'outline' ? `2px solid ${accentColor}` : 'none',
+                }}
+              >
+                {ctaText}
+              </a>
+            )}
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2" style={{ color: textColor }}>
+              {mobileOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="lg:hidden py-4 px-6 space-y-2" style={{ background: backgroundColor }}>
+          {navItems.map((item: any) => (
+            <a key={item.id} href={item.url || '#'} className="block py-3 px-4 rounded-lg text-sm font-medium" style={{ color: textColor }}>
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============ Centered Navigation Block ============
+export function NavCenteredBlock({ props, settings: _settings }: { props: Record<string, any>; settings: CustomThemeSettings }) {
+  const {
+    logoUrl, logoText = 'Studio', leftItems = [], rightItems = [], showCta,
+    backgroundColor = '#FAFAFA', textColor = '#18181B', accentColor = '#A855F7',
+    height = 88, borderBottom = true, borderColor = '#E4E4E7', logoSize = 'large',
+    fontWeight = 500, hoverStyle = 'underline',
+  } = props;
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const logoSizes = { small: 'text-lg', medium: 'text-2xl', large: 'text-3xl' };
+  const allItems = [...leftItems, ...rightItems];
+
+  const getHoverClass = () => {
+    switch (hoverStyle) {
+      case 'underline': return 'hover:after:w-full after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:transition-all after:duration-300';
+      case 'color': return 'hover:opacity-60';
+      case 'background': return 'hover:bg-black/5 px-3 py-1 rounded';
+      default: return '';
+    }
+  };
+
+  return (
+    <nav
+      className="w-full"
+      style={{ background: backgroundColor, height, borderBottom: borderBottom ? `1px solid ${borderColor}` : 'none' }}
+    >
+      <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+        {/* Left Items */}
+        <div className="hidden md:flex items-center gap-8">
+          {leftItems.map((item: any) => (
+            <a
+              key={item.id}
+              href={item.url || '#'}
+              className={`relative text-sm transition-all ${getHoverClass()}`}
+              style={{ color: textColor, fontWeight, ['--tw-text-opacity' as any]: 1 } as React.CSSProperties}
+            >
+              {item.label}
+              {hoverStyle === 'underline' && <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full" style={{ background: accentColor }} />}
+            </a>
+          ))}
+        </div>
+
+        {/* Center Logo */}
+        <div className="flex items-center justify-center">
+          {logoUrl ? (
+            <img src={logoUrl} alt={logoText} className="h-12 w-auto" />
+          ) : (
+            <span className={`font-bold tracking-tight ${logoSizes[logoSize as keyof typeof logoSizes] || logoSizes.large}`} style={{ color: textColor }}>
+              {logoText}
+            </span>
+          )}
+        </div>
+
+        {/* Right Items */}
+        <div className="hidden md:flex items-center gap-8">
+          {rightItems.map((item: any) => (
+            <a
+              key={item.id}
+              href={item.url || '#'}
+              className={`relative text-sm transition-all ${getHoverClass()}`}
+              style={{ color: textColor, fontWeight }}
+            >
+              {item.label}
+            </a>
+          ))}
+          {showCta && (
+            <a href="#" className="px-4 py-2 rounded-full text-sm font-medium transition-all" style={{ background: accentColor, color: '#fff' }}>
+              Contact
+            </a>
+          )}
+        </div>
+
+        {/* Mobile Menu */}
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2" style={{ color: textColor }}>
+          {mobileOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+      </div>
+
+      {mobileOpen && (
+        <div className="md:hidden py-6 px-6 space-y-4" style={{ background: backgroundColor }}>
+          {allItems.map((item: any) => (
+            <a key={item.id} href={item.url || '#'} className="block py-2 text-sm font-medium" style={{ color: textColor }}>
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// ============ Sidebar Navigation Block ============
+export function NavSidebarBlock({ props, settings: _settings }: { props: Record<string, any>; settings: CustomThemeSettings }) {
+  const {
+    logoUrl, logoText = 'Dashboard', navItems = [], footerItems = [],
+    showUserProfile, userAvatar, userName, userEmail,
+    width = 260, collapsed = false, collapsedWidth = 72,
+    backgroundColor = '#111827', textColor = '#9CA3AF', activeTextColor = '#FFFFFF',
+    accentColor = '#6366F1', hoverBg = 'rgba(255,255,255,0.05)', activeBg = 'rgba(99,102,241,0.2)',
+    position = 'left',
+  } = props;
+
+  const [isCollapsed, setIsCollapsed] = useState(collapsed);
+  const [activeItem, setActiveItem] = useState(navItems[0]?.id);
+
+  const sidebarWidth = isCollapsed ? collapsedWidth : width;
+
+  const getIcon = (iconName: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      home: <FiHome size={20} />, chart: <FiTrendingUp size={20} />, folder: <FiFolder size={20} />,
+      users: <FiUser size={20} />, settings: <FiSettings size={20} />, help: <FiHelpCircle size={20} />,
+      logout: <FiExternalLink size={20} />, bell: <FiBell size={20} />,
+    };
+    return icons[iconName] || <FiFolder size={20} />;
+  };
+
+  return (
+    <aside
+      className={`h-screen flex flex-col transition-all duration-300 ${position === 'right' ? 'order-last' : ''}`}
+      style={{ width: sidebarWidth, background: backgroundColor, borderRight: position === 'left' ? `1px solid ${textColor}20` : 'none', borderLeft: position === 'right' ? `1px solid ${textColor}20` : 'none' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: `${textColor}20` }}>
+        {!isCollapsed && (
+          <div className="flex items-center gap-3">
+            {logoUrl ? (
+              <img src={logoUrl} alt={logoText} className="h-8 w-8 rounded" />
+            ) : (
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold" style={{ background: accentColor }}>
+                {logoText.charAt(0)}
+              </div>
+            )}
+            <span className="font-semibold" style={{ color: activeTextColor }}>{logoText}</span>
+          </div>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-2 rounded-lg transition-all"
+          style={{ color: textColor, background: hoverBg }}
+        >
+          <FiMenu size={18} />
+        </button>
+      </div>
+
+      {/* Nav Items */}
+      <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        {navItems.map((item: any) => (
+          <a
+            key={item.id}
+            href={item.url || '#'}
+            onClick={() => setActiveItem(item.id)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isCollapsed ? 'justify-center' : ''}`}
+            style={{
+              color: activeItem === item.id ? activeTextColor : textColor,
+              background: activeItem === item.id ? activeBg : 'transparent',
+            }}
+            onMouseEnter={(e) => { if (activeItem !== item.id) e.currentTarget.style.background = hoverBg; }}
+            onMouseLeave={(e) => { if (activeItem !== item.id) e.currentTarget.style.background = 'transparent'; }}
+          >
+            <span style={{ color: activeItem === item.id ? accentColor : textColor }}>{getIcon(item.icon)}</span>
+            {!isCollapsed && (
+              <>
+                <span className="flex-1 text-sm font-medium">{item.label}</span>
+                {item.badge && (
+                  <span className="px-2 py-0.5 text-xs font-semibold rounded-full" style={{ background: accentColor, color: '#fff' }}>
+                    {item.badge}
+                  </span>
+                )}
+              </>
+            )}
+          </a>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t py-4 px-3 space-y-1" style={{ borderColor: `${textColor}20` }}>
+        {footerItems.map((item: any) => (
+          <a
+            key={item.id}
+            href={item.url || '#'}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/5 ${isCollapsed ? 'justify-center' : ''}`}
+            style={{ color: textColor }}
+          >
+            {getIcon(item.icon)}
+            {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+          </a>
+        ))}
+      </div>
+
+      {/* User Profile */}
+      {showUserProfile && !isCollapsed && (
+        <div className="p-4 border-t" style={{ borderColor: `${textColor}20` }}>
+          <div className="flex items-center gap-3">
+            <img src={userAvatar || 'https://i.pravatar.cc/40'} alt={userName} className="w-10 h-10 rounded-full" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium truncate" style={{ color: activeTextColor }}>{userName}</div>
+              <div className="text-xs truncate" style={{ color: textColor }}>{userEmail}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+}
+
 // ============ Block Renderer ============
 export function BlockRenderer({
   block,
@@ -2837,9 +3867,9 @@ export function BlockRenderer({
       case 'countdown':
         return <CountdownBlock props={block.props} settings={settings} />;
       case 'row':
-        return <RowBlock props={block.props as RowSettings} settings={settings} />;
+        return <RowBlock props={block.props as RowSettingsType} settings={settings} />;
       case 'header':
-        return <HeaderBuilderBlock props={block.props as HeaderSettings} settings={settings} />;
+        return <HeaderBuilderBlock props={block.props as HeaderSettingsType} settings={settings} />;
       case 'productCard':
         return <ProductCardBlock props={block.props as { product: ProductData; showRating?: boolean; showBadge?: boolean; buttonStyle?: 'solid' | 'outline' | 'icon' }} settings={settings} />;
       case 'productGrid':
@@ -2875,6 +3905,17 @@ export function BlockRenderer({
       // Auth Blocks
       case 'loginForm':
         return <LoginFormBlock props={block.props} settings={settings} />;
+      // Navigation Blocks
+      case 'navGlass':
+        return <NavGlassBlock props={block.props} settings={settings} />;
+      case 'navMinimal':
+        return <NavMinimalBlock props={block.props} settings={settings} />;
+      case 'navMega':
+        return <NavMegaBlock props={block.props} settings={settings} />;
+      case 'navCentered':
+        return <NavCenteredBlock props={block.props} settings={settings} />;
+      case 'navSidebar':
+        return <NavSidebarBlock props={block.props} settings={settings} />;
       default:
         return <div>Unknown block type: {block.type}</div>;
     }
@@ -3432,8 +4473,45 @@ function BlockSettingsForm({
             ]}
           />
           <RangeInput label="Spacing" propKey="spacing" min={10} max={100} />
+          <RangeInput label="Height" propKey="height" min={1} max={10} />
         </>
       );
+
+    case 'pricing':
+      return <PricingSettings props={props} onUpdate={onUpdate} />;
+
+    case 'stats':
+      return <StatsSettings props={props} onUpdate={onUpdate} />;
+
+    case 'timeline':
+      return <TimelineSettings props={props} onUpdate={onUpdate} />;
+
+    case 'accordion':
+      return <AccordionSettings props={props} onUpdate={onUpdate} />;
+
+    case 'tabs':
+      return <TabsSettings props={props} onUpdate={onUpdate} />;
+
+    case 'imageText':
+      return <ImageTextSettings props={props} onUpdate={onUpdate} />;
+
+    case 'logoCloud':
+      return <LogoCloudSettings props={props} onUpdate={onUpdate} />;
+
+    case 'newsletter':
+      return <NewsletterSettings props={props} onUpdate={onUpdate} />;
+
+    case 'socialProof':
+      return <SocialProofSettings props={props} onUpdate={onUpdate} />;
+
+    case 'countdown':
+      return <CountdownSettings props={props} onUpdate={onUpdate} />;
+
+    case 'row':
+      return <RowBlockSettings props={props} onUpdate={onUpdate} />;
+
+    case 'header':
+      return <HeaderBlockSettings props={props} onUpdate={onUpdate} />;
 
     case 'productCard':
       return <ProductCardSettings props={props} onUpdate={onUpdate} />;
@@ -3491,6 +4569,18 @@ function BlockSettingsForm({
     // ============ Auth Block Settings ============
     case 'loginForm':
       return <LoginFormSettings props={props} onUpdate={onUpdate} />;
+
+    // ============ Navigation Block Settings ============
+    case 'navGlass':
+      return <NavGlassSettings props={props} onUpdate={onUpdate} />;
+    case 'navMinimal':
+      return <NavMinimalSettings props={props} onUpdate={onUpdate} />;
+    case 'navMega':
+      return <NavMegaSettings props={props} onUpdate={onUpdate} />;
+    case 'navCentered':
+      return <NavCenteredSettings props={props} onUpdate={onUpdate} />;
+    case 'navSidebar':
+      return <NavSidebarSettings props={props} onUpdate={onUpdate} />;
 
     default:
       return <p className="text-gray-400 text-sm">No settings available</p>;
@@ -7960,6 +9050,947 @@ function LoginFormSettings({ props, onUpdate }: { props: Record<string, any>; on
           }}
         />
       )}
+    </div>
+  );
+}
+
+// ============ Pricing Settings ============
+function PricingSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const plans = props.plans || [];
+
+  const updatePlan = (index: number, key: string, value: any) => {
+    const newPlans = [...plans];
+    newPlans[index] = { ...newPlans[index], [key]: value };
+    onUpdate({ ...props, plans: newPlans });
+  };
+
+  const addPlan = () => {
+    onUpdate({
+      ...props,
+      plans: [...plans, { name: 'New Plan', price: 0, period: 'month', features: ['Feature 1'], buttonText: 'Get Started', popular: false }],
+    });
+  };
+
+  const removePlan = (index: number) => {
+    onUpdate({ ...props, plans: plans.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-300">Pricing Plans</label>
+        <button onClick={addPlan} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white">+ Add Plan</button>
+      </div>
+      {plans.map((plan: any, index: number) => (
+        <details key={index} className="bg-gray-800 rounded-lg p-3">
+          <summary className="cursor-pointer text-sm font-medium text-gray-300 flex justify-between">
+            <span>{plan.name || `Plan ${index + 1}`}</span>
+            <button onClick={() => removePlan(index)} className="text-red-400 hover:text-red-300 text-xs">Remove</button>
+          </summary>
+          <div className="mt-3 space-y-2">
+            <input type="text" value={plan.name || ''} onChange={(e) => updatePlan(index, 'name', e.target.value)} placeholder="Plan name" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <div className="flex gap-2">
+              <input type="number" value={plan.price || 0} onChange={(e) => updatePlan(index, 'price', parseFloat(e.target.value))} placeholder="Price" className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+              <select value={plan.period || 'month'} onChange={(e) => updatePlan(index, 'period', e.target.value)} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+                <option value="month">/ month</option>
+                <option value="year">/ year</option>
+                <option value="forever">forever</option>
+              </select>
+            </div>
+            <input type="text" value={plan.buttonText || ''} onChange={(e) => updatePlan(index, 'buttonText', e.target.value)} placeholder="Button text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <label className="flex items-center gap-2 text-xs text-gray-400">
+              <input type="checkbox" checked={plan.popular || false} onChange={(e) => updatePlan(index, 'popular', e.target.checked)} className="rounded" />
+              Mark as Popular
+            </label>
+            <div>
+              <label className="text-xs text-gray-400">Features (one per line)</label>
+              <textarea value={(plan.features || []).join('\n')} onChange={(e) => updatePlan(index, 'features', e.target.value.split('\n').filter(Boolean))} rows={4} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            </div>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+// ============ Stats Settings ============
+function StatsSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const stats = props.stats || [];
+
+  const updateStat = (index: number, key: string, value: any) => {
+    const newStats = [...stats];
+    newStats[index] = { ...newStats[index], [key]: value };
+    onUpdate({ ...props, stats: newStats });
+  };
+
+  const addStat = () => {
+    onUpdate({ ...props, stats: [...stats, { value: '0', label: 'New Stat' }] });
+  };
+
+  const removeStat = (index: number) => {
+    onUpdate({ ...props, stats: stats.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Style</label>
+        <select value={props.style || 'cards'} onChange={(e) => onUpdate({ ...props, style: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="cards">Cards</option>
+          <option value="minimal">Minimal</option>
+          <option value="bordered">Bordered</option>
+        </select>
+      </div>
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-300">Stats</label>
+        <button onClick={addStat} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white">+ Add Stat</button>
+      </div>
+      {stats.map((stat: any, index: number) => (
+        <div key={index} className="flex gap-2 items-center">
+          <input type="text" value={stat.value || ''} onChange={(e) => updateStat(index, 'value', e.target.value)} placeholder="Value" className="w-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+          <input type="text" value={stat.label || ''} onChange={(e) => updateStat(index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+          <button onClick={() => removeStat(index)} className="text-red-400 hover:text-red-300 p-2"><FiTrash2 size={14} /></button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============ Timeline Settings ============
+function TimelineSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const items = props.items || [];
+
+  const updateItem = (index: number, key: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [key]: value };
+    onUpdate({ ...props, items: newItems });
+  };
+
+  const addItem = () => {
+    onUpdate({ ...props, items: [...items, { title: 'New Event', description: 'Description', date: '2024' }] });
+  };
+
+  const removeItem = (index: number) => {
+    onUpdate({ ...props, items: items.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.title || ''} onChange={(e) => onUpdate({ ...props, title: e.target.value })} placeholder="Timeline Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-300">Timeline Items</label>
+        <button onClick={addItem} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white">+ Add Item</button>
+      </div>
+      {items.map((item: any, index: number) => (
+        <details key={index} className="bg-gray-800 rounded-lg p-3">
+          <summary className="cursor-pointer text-sm font-medium text-gray-300">{item.title || `Item ${index + 1}`}</summary>
+          <div className="mt-3 space-y-2">
+            <input type="text" value={item.date || ''} onChange={(e) => updateItem(index, 'date', e.target.value)} placeholder="Date/Year" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <input type="text" value={item.title || ''} onChange={(e) => updateItem(index, 'title', e.target.value)} placeholder="Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <textarea value={item.description || ''} onChange={(e) => updateItem(index, 'description', e.target.value)} placeholder="Description" rows={2} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <button onClick={() => removeItem(index)} className="text-red-400 hover:text-red-300 text-xs">Remove Item</button>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+// ============ Accordion Settings ============
+function AccordionSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const items = props.items || [];
+
+  const updateItem = (index: number, key: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [key]: value };
+    onUpdate({ ...props, items: newItems });
+  };
+
+  const addItem = () => {
+    onUpdate({ ...props, items: [...items, { question: 'New Question?', answer: 'Answer here...' }] });
+  };
+
+  const removeItem = (index: number) => {
+    onUpdate({ ...props, items: items.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.title || ''} onChange={(e) => onUpdate({ ...props, title: e.target.value })} placeholder="Accordion Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-300">FAQ Items</label>
+        <button onClick={addItem} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white">+ Add Item</button>
+      </div>
+      {items.map((item: any, index: number) => (
+        <details key={index} className="bg-gray-800 rounded-lg p-3">
+          <summary className="cursor-pointer text-sm font-medium text-gray-300">{item.question?.slice(0, 30) || `Item ${index + 1}`}...</summary>
+          <div className="mt-3 space-y-2">
+            <input type="text" value={item.question || ''} onChange={(e) => updateItem(index, 'question', e.target.value)} placeholder="Question" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <textarea value={item.answer || ''} onChange={(e) => updateItem(index, 'answer', e.target.value)} placeholder="Answer" rows={3} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <button onClick={() => removeItem(index)} className="text-red-400 hover:text-red-300 text-xs">Remove Item</button>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+// ============ Tabs Settings ============
+function TabsSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const tabs = props.tabs || [];
+
+  const updateTab = (index: number, key: string, value: any) => {
+    const newTabs = [...tabs];
+    newTabs[index] = { ...newTabs[index], [key]: value };
+    onUpdate({ ...props, tabs: newTabs });
+  };
+
+  const addTab = () => {
+    onUpdate({ ...props, tabs: [...tabs, { title: 'New Tab', content: 'Tab content here...' }] });
+  };
+
+  const removeTab = (index: number) => {
+    onUpdate({ ...props, tabs: tabs.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Tab Style</label>
+        <select value={props.style || 'default'} onChange={(e) => onUpdate({ ...props, style: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="default">Default</option>
+          <option value="pills">Pills</option>
+          <option value="underline">Underline</option>
+        </select>
+      </div>
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-300">Tabs</label>
+        <button onClick={addTab} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white">+ Add Tab</button>
+      </div>
+      {tabs.map((tab: any, index: number) => (
+        <details key={index} className="bg-gray-800 rounded-lg p-3">
+          <summary className="cursor-pointer text-sm font-medium text-gray-300">{tab.title || `Tab ${index + 1}`}</summary>
+          <div className="mt-3 space-y-2">
+            <input type="text" value={tab.title || ''} onChange={(e) => updateTab(index, 'title', e.target.value)} placeholder="Tab Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <textarea value={tab.content || ''} onChange={(e) => updateTab(index, 'content', e.target.value)} placeholder="Tab Content" rows={4} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <button onClick={() => removeTab(index)} className="text-red-400 hover:text-red-300 text-xs">Remove Tab</button>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+// ============ Image Text Settings ============
+function ImageTextSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const [showImagePicker, setShowImagePicker] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.title || ''} onChange={(e) => onUpdate({ ...props, title: e.target.value })} placeholder="Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <textarea value={props.text || ''} onChange={(e) => onUpdate({ ...props, text: e.target.value })} placeholder="Text content" rows={4} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Image URL</label>
+        <div className="flex gap-2">
+          <input type="text" value={props.imageUrl || ''} onChange={(e) => onUpdate({ ...props, imageUrl: e.target.value })} placeholder="Image URL" className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+          <button onClick={() => setShowImagePicker(true)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"><FiUpload size={14} /></button>
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Image Position</label>
+        <select value={props.imagePosition || 'left'} onChange={(e) => onUpdate({ ...props, imagePosition: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Button Text (optional)</label>
+        <input type="text" value={props.buttonText || ''} onChange={(e) => onUpdate({ ...props, buttonText: e.target.value })} placeholder="Learn More" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Button URL</label>
+        <input type="text" value={props.buttonUrl || ''} onChange={(e) => onUpdate({ ...props, buttonUrl: e.target.value })} placeholder="#" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      </div>
+      {showImagePicker && (
+        <MediaPickerModal type="image" onClose={() => setShowImagePicker(false)} onSelect={(media) => { onUpdate({ ...props, imageUrl: media.path || media.url }); setShowImagePicker(false); }} />
+      )}
+    </div>
+  );
+}
+
+// ============ Logo Cloud Settings ============
+function LogoCloudSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const logos = props.logos || [];
+
+  const updateLogo = (index: number, key: string, value: any) => {
+    const newLogos = [...logos];
+    newLogos[index] = { ...newLogos[index], [key]: value };
+    onUpdate({ ...props, logos: newLogos });
+  };
+
+  const addLogo = () => {
+    onUpdate({ ...props, logos: [...logos, { name: 'Company', imageUrl: 'https://via.placeholder.com/120x40' }] });
+  };
+
+  const removeLogo = (index: number) => {
+    onUpdate({ ...props, logos: logos.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.title || ''} onChange={(e) => onUpdate({ ...props, title: e.target.value })} placeholder="Section Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Style</label>
+        <select value={props.style || 'grid'} onChange={(e) => onUpdate({ ...props, style: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="grid">Grid</option>
+          <option value="carousel">Carousel</option>
+          <option value="inline">Inline</option>
+        </select>
+      </div>
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-300">Logos</label>
+        <button onClick={addLogo} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white">+ Add Logo</button>
+      </div>
+      {logos.map((logo: any, index: number) => (
+        <div key={index} className="flex gap-2 items-center bg-gray-800 p-2 rounded">
+          <input type="text" value={logo.name || ''} onChange={(e) => updateLogo(index, 'name', e.target.value)} placeholder="Company Name" className="w-28 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+          <input type="text" value={logo.imageUrl || ''} onChange={(e) => updateLogo(index, 'imageUrl', e.target.value)} placeholder="Logo URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+          <button onClick={() => removeLogo(index)} className="text-red-400 hover:text-red-300"><FiTrash2 size={14} /></button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============ Newsletter Settings ============
+function NewsletterSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.title || ''} onChange={(e) => onUpdate({ ...props, title: e.target.value })} placeholder="Newsletter Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <textarea value={props.description || ''} onChange={(e) => onUpdate({ ...props, description: e.target.value })} placeholder="Description" rows={2} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <input type="text" value={props.placeholder || ''} onChange={(e) => onUpdate({ ...props, placeholder: e.target.value })} placeholder="Input placeholder" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <input type="text" value={props.buttonText || ''} onChange={(e) => onUpdate({ ...props, buttonText: e.target.value })} placeholder="Button text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Style</label>
+        <select value={props.style || 'inline'} onChange={(e) => onUpdate({ ...props, style: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="inline">Inline</option>
+          <option value="stacked">Stacked</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+      <label className="flex items-center gap-2 text-xs text-gray-400">
+        <input type="checkbox" checked={props.showPrivacyNote !== false} onChange={(e) => onUpdate({ ...props, showPrivacyNote: e.target.checked })} className="rounded" />
+        Show Privacy Note
+      </label>
+    </div>
+  );
+}
+
+// ============ Social Proof Settings ============
+function SocialProofSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const avatars = props.avatars || [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <label className="block text-xs text-gray-400 mb-1">Rating</label>
+          <input type="number" step="0.1" min="0" max="5" value={props.rating || 0} onChange={(e) => onUpdate({ ...props, rating: parseFloat(e.target.value) })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+        </div>
+        <div className="flex-1">
+          <label className="block text-xs text-gray-400 mb-1">Review Count</label>
+          <input type="number" value={props.reviewCount || 0} onChange={(e) => onUpdate({ ...props, reviewCount: parseInt(e.target.value) })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+        </div>
+      </div>
+      <input type="text" value={props.text || ''} onChange={(e) => onUpdate({ ...props, text: e.target.value })} placeholder="Subtitle text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Avatar URLs (one per line)</label>
+        <textarea value={avatars.join('\n')} onChange={(e) => onUpdate({ ...props, avatars: e.target.value.split('\n').filter(Boolean) })} rows={4} placeholder="https://i.pravatar.cc/40?img=1" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      </div>
+    </div>
+  );
+}
+
+// ============ Countdown Settings ============
+function CountdownSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.title || ''} onChange={(e) => onUpdate({ ...props, title: e.target.value })} placeholder="Countdown Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Target Date</label>
+        <input type="datetime-local" value={props.targetDate ? props.targetDate.slice(0, 16) : ''} onChange={(e) => onUpdate({ ...props, targetDate: new Date(e.target.value).toISOString() })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      </div>
+      <label className="flex items-center gap-2 text-xs text-gray-400">
+        <input type="checkbox" checked={props.showLabels !== false} onChange={(e) => onUpdate({ ...props, showLabels: e.target.checked })} className="rounded" />
+        Show Labels (Days, Hours, etc.)
+      </label>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Style</label>
+        <select value={props.style || 'cards'} onChange={(e) => onUpdate({ ...props, style: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="cards">Cards</option>
+          <option value="minimal">Minimal</option>
+          <option value="flip">Flip Animation</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+// ============ Row/Column Settings ============
+function RowBlockSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const columns = props.columns || [];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Column Layout</label>
+        <select value={props.layout || '2-equal'} onChange={(e) => onUpdate({ ...props, layout: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="2-equal">2 Equal Columns</option>
+          <option value="3-equal">3 Equal Columns</option>
+          <option value="4-equal">4 Equal Columns</option>
+          <option value="1-3-2-3">1/3 + 2/3</option>
+          <option value="2-3-1-3">2/3 + 1/3</option>
+          <option value="sidebar-left">Sidebar Left</option>
+          <option value="sidebar-right">Sidebar Right</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Gap</label>
+        <input type="range" min="0" max="48" value={props.gap || 16} onChange={(e) => onUpdate({ ...props, gap: parseInt(e.target.value) })} className="w-full" />
+        <span className="text-xs text-gray-500">{props.gap || 16}px</span>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Vertical Alignment</label>
+        <select value={props.verticalAlign || 'top'} onChange={(e) => onUpdate({ ...props, verticalAlign: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="top">Top</option>
+          <option value="center">Center</option>
+          <option value="bottom">Bottom</option>
+          <option value="stretch">Stretch</option>
+        </select>
+      </div>
+      <p className="text-xs text-gray-500">Columns: {columns.length}</p>
+    </div>
+  );
+}
+
+// ============ Header Settings ============
+function HeaderBlockSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const navItems = props.navItems || [];
+  const [showLogoPicker, setShowLogoPicker] = useState(false);
+
+  const updateNavItem = (index: number, key: string, value: any) => {
+    const newItems = [...navItems];
+    newItems[index] = { ...newItems[index], [key]: value };
+    onUpdate({ ...props, navItems: newItems });
+  };
+
+  const addNavItem = () => {
+    onUpdate({ ...props, navItems: [...navItems, { id: Date.now().toString(), label: 'New Link', link: { type: 'internal', url: '/' }, children: [] }] });
+  };
+
+  const removeNavItem = (index: number) => {
+    onUpdate({ ...props, navItems: navItems.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-blue-400 py-2 border-b border-gray-700">Logo</summary>
+        <div className="mt-3 space-y-2">
+          <div className="flex gap-2">
+            <input type="text" value={props.logo?.url || ''} onChange={(e) => onUpdate({ ...props, logo: { ...props.logo, url: e.target.value } })} placeholder="Logo URL" className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <button onClick={() => setShowLogoPicker(true)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"><FiUpload size={14} /></button>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Logo Width: {props.logo?.width || 120}px</label>
+            <input type="range" min="60" max="200" value={props.logo?.width || 120} onChange={(e) => onUpdate({ ...props, logo: { ...props.logo, width: parseInt(e.target.value) } })} className="w-full" />
+          </div>
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-green-400 py-2 border-b border-gray-700">Style</summary>
+        <div className="mt-3 space-y-2">
+          <select value={props.style || 'default'} onChange={(e) => onUpdate({ ...props, style: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+            <option value="default">Default</option>
+            <option value="centered">Centered</option>
+            <option value="minimal">Minimal</option>
+          </select>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Background Color</label>
+            <input type="color" value={props.backgroundColor || '#1F2937'} onChange={(e) => onUpdate({ ...props, backgroundColor: e.target.value })} className="w-full h-10 rounded cursor-pointer" />
+          </div>
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-yellow-400 py-2 border-b border-gray-700">Navigation ({navItems.length} items)</summary>
+        <div className="mt-3 space-y-2">
+          {navItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="flex gap-2 items-center">
+              <input type="text" value={item.label || ''} onChange={(e) => updateNavItem(index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <input type="text" value={item.link?.url || ''} onChange={(e) => updateNavItem(index, 'link', { ...item.link, url: e.target.value })} placeholder="URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <button onClick={() => removeNavItem(index)} className="text-red-400 hover:text-red-300"><FiTrash2 size={14} /></button>
+            </div>
+          ))}
+          <button onClick={addNavItem} className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white w-full">+ Add Nav Item</button>
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-purple-400 py-2 border-b border-gray-700">CTA Button</summary>
+        <div className="mt-3 space-y-2">
+          <label className="flex items-center gap-2 text-xs text-gray-400">
+            <input type="checkbox" checked={props.ctaButton?.show !== false} onChange={(e) => onUpdate({ ...props, ctaButton: { ...props.ctaButton, show: e.target.checked } })} className="rounded" />
+            Show CTA Button
+          </label>
+          {props.ctaButton?.show !== false && (
+            <>
+              <input type="text" value={props.ctaButton?.text || ''} onChange={(e) => onUpdate({ ...props, ctaButton: { ...props.ctaButton, text: e.target.value } })} placeholder="Button text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+              <input type="text" value={props.ctaButton?.link?.url || ''} onChange={(e) => onUpdate({ ...props, ctaButton: { ...props.ctaButton, link: { type: 'internal', url: e.target.value } } })} placeholder="Button URL" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            </>
+          )}
+        </div>
+      </details>
+
+      {showLogoPicker && (
+        <MediaPickerModal type="image" onClose={() => setShowLogoPicker(false)} onSelect={(media) => { onUpdate({ ...props, logo: { ...props.logo, url: media.path || media.url } }); setShowLogoPicker(false); }} />
+      )}
+    </div>
+  );
+}
+
+// ============ Glass Navigation Settings ============
+function NavGlassSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const navItems = props.navItems || [];
+  const [showLogoPicker, setShowLogoPicker] = useState(false);
+
+  const updateNavItem = (index: number, key: string, value: any) => {
+    const newItems = [...navItems];
+    newItems[index] = { ...newItems[index], [key]: value };
+    onUpdate({ ...props, navItems: newItems });
+  };
+
+  const addNavItem = () => {
+    onUpdate({ ...props, navItems: [...navItems, { id: Date.now().toString(), label: 'New Link', url: '/', active: false }] });
+  };
+
+  const removeNavItem = (index: number) => {
+    onUpdate({ ...props, navItems: navItems.filter((_: any, i: number) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Logo Section */}
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-blue-400 py-2 border-b border-gray-700">🎨 Logo & Branding</summary>
+        <div className="mt-3 space-y-3">
+          <div className="flex gap-2">
+            <input type="text" value={props.logoUrl || ''} onChange={(e) => onUpdate({ ...props, logoUrl: e.target.value })} placeholder="Logo URL" className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            <button onClick={() => setShowLogoPicker(true)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"><FiUpload size={14} /></button>
+          </div>
+          <input type="text" value={props.logoText || ''} onChange={(e) => onUpdate({ ...props, logoText: e.target.value })} placeholder="Logo text (fallback)" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+        </div>
+      </details>
+
+      {/* Navigation Items */}
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-green-400 py-2 border-b border-gray-700">🔗 Navigation Items ({navItems.length})</summary>
+        <div className="mt-3 space-y-2">
+          {navItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="flex gap-2 items-center bg-gray-800 p-2 rounded">
+              <input type="text" value={item.label || ''} onChange={(e) => updateNavItem(index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <input type="text" value={item.url || ''} onChange={(e) => updateNavItem(index, 'url', e.target.value)} placeholder="URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <label className="flex items-center gap-1 text-xs text-gray-400">
+                <input type="checkbox" checked={item.active || false} onChange={(e) => updateNavItem(index, 'active', e.target.checked)} className="rounded" />
+                Active
+              </label>
+              <button onClick={() => removeNavItem(index)} className="text-red-400 hover:text-red-300"><FiTrash2 size={14} /></button>
+            </div>
+          ))}
+          <button onClick={addNavItem} className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300">+ Add Navigation Item</button>
+        </div>
+      </details>
+
+      {/* CTA Button */}
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-purple-400 py-2 border-b border-gray-700">🔘 Call to Action Button</summary>
+        <div className="mt-3 space-y-3">
+          <label className="flex items-center gap-2 text-xs text-gray-400">
+            <input type="checkbox" checked={props.showCta !== false} onChange={(e) => onUpdate({ ...props, showCta: e.target.checked })} className="rounded" />
+            Show CTA Button
+          </label>
+          {props.showCta !== false && (
+            <>
+              <input type="text" value={props.ctaText || ''} onChange={(e) => onUpdate({ ...props, ctaText: e.target.value })} placeholder="Button text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+              <input type="text" value={props.ctaUrl || ''} onChange={(e) => onUpdate({ ...props, ctaUrl: e.target.value })} placeholder="Button URL" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+              <select value={props.ctaStyle || 'gradient'} onChange={(e) => onUpdate({ ...props, ctaStyle: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+                <option value="gradient">Gradient</option>
+                <option value="solid">Solid</option>
+                <option value="outline">Outline</option>
+              </select>
+            </>
+          )}
+        </div>
+      </details>
+
+      {/* Features */}
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-yellow-400 py-2 border-b border-gray-700">⚙️ Features</summary>
+        <div className="mt-3 space-y-2">
+          <label className="flex items-center gap-2 text-xs text-gray-400">
+            <input type="checkbox" checked={props.showSearch || false} onChange={(e) => onUpdate({ ...props, showSearch: e.target.checked })} className="rounded" />
+            Show Search Button
+          </label>
+          <label className="flex items-center gap-2 text-xs text-gray-400">
+            <input type="checkbox" checked={props.showUserMenu || false} onChange={(e) => onUpdate({ ...props, showUserMenu: e.target.checked })} className="rounded" />
+            Show User Menu
+          </label>
+          <label className="flex items-center gap-2 text-xs text-gray-400">
+            <input type="checkbox" checked={props.borderBottom !== false} onChange={(e) => onUpdate({ ...props, borderBottom: e.target.checked })} className="rounded" />
+            Show Bottom Border
+          </label>
+        </div>
+      </details>
+
+      {/* Styling */}
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-pink-400 py-2 border-b border-gray-700">🎨 Styling</summary>
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Position</label>
+            <select value={props.position || 'sticky'} onChange={(e) => onUpdate({ ...props, position: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+              <option value="sticky">Sticky</option>
+              <option value="fixed">Fixed</option>
+              <option value="static">Static</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Background</label>
+              <input type="color" value={props.backgroundColor || '#0F172A'} onChange={(e) => onUpdate({ ...props, backgroundColor: e.target.value })} className="w-full h-10 rounded cursor-pointer" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Accent</label>
+              <input type="color" value={props.accentColor || '#6366F1'} onChange={(e) => onUpdate({ ...props, accentColor: e.target.value })} className="w-full h-10 rounded cursor-pointer" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Text Color</label>
+            <input type="color" value={props.textColor || '#F8FAFC'} onChange={(e) => onUpdate({ ...props, textColor: e.target.value })} className="w-full h-10 rounded cursor-pointer" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Blur: {props.blur || 16}px</label>
+            <input type="range" min="0" max="32" value={props.blur || 16} onChange={(e) => onUpdate({ ...props, blur: parseInt(e.target.value) })} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Opacity: {Math.round((props.opacity || 0.8) * 100)}%</label>
+            <input type="range" min="0" max="100" value={Math.round((props.opacity || 0.8) * 100)} onChange={(e) => onUpdate({ ...props, opacity: parseInt(e.target.value) / 100 })} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Height: {props.height || 72}px</label>
+            <input type="range" min="48" max="100" value={props.height || 72} onChange={(e) => onUpdate({ ...props, height: parseInt(e.target.value) })} className="w-full" />
+          </div>
+        </div>
+      </details>
+
+      {showLogoPicker && (
+        <MediaPickerModal type="image" onClose={() => setShowLogoPicker(false)} onSelect={(media) => { onUpdate({ ...props, logoUrl: media.path || media.url }); setShowLogoPicker(false); }} />
+      )}
+    </div>
+  );
+}
+
+// ============ Minimal Navigation Settings ============
+function NavMinimalSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const navItems = props.navItems || [];
+
+  const updateNavItem = (index: number, key: string, value: any) => {
+    const newItems = [...navItems];
+    newItems[index] = { ...newItems[index], [key]: value };
+    onUpdate({ ...props, navItems: newItems });
+  };
+
+  const addNavItem = () => {
+    onUpdate({ ...props, navItems: [...navItems, { id: Date.now().toString(), label: 'Link', url: '/' }] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.logoText || ''} onChange={(e) => onUpdate({ ...props, logoText: e.target.value })} placeholder="Logo Text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-green-400 py-2 border-b border-gray-700">Navigation Items</summary>
+        <div className="mt-3 space-y-2">
+          {navItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="flex gap-2">
+              <input type="text" value={item.label || ''} onChange={(e) => updateNavItem(index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <input type="text" value={item.url || ''} onChange={(e) => updateNavItem(index, 'url', e.target.value)} placeholder="URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <button onClick={() => onUpdate({ ...props, navItems: navItems.filter((_: any, i: number) => i !== index) })} className="text-red-400"><FiTrash2 size={14} /></button>
+            </div>
+          ))}
+          <button onClick={addNavItem} className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300">+ Add Item</button>
+        </div>
+      </details>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Text Color</label>
+          <input type="color" value={props.textColor || '#111827'} onChange={(e) => onUpdate({ ...props, textColor: e.target.value })} className="w-full h-10 rounded" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Accent</label>
+          <input type="color" value={props.accentColor || '#000000'} onChange={(e) => onUpdate({ ...props, accentColor: e.target.value })} className="w-full h-10 rounded" />
+        </div>
+      </div>
+
+      <label className="flex items-center gap-2 text-xs text-gray-400">
+        <input type="checkbox" checked={props.uppercase !== false} onChange={(e) => onUpdate({ ...props, uppercase: e.target.checked })} className="rounded" />
+        Uppercase Text
+      </label>
+
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Letter Spacing: {props.letterSpacing || 2}px</label>
+        <input type="range" min="0" max="8" value={props.letterSpacing || 2} onChange={(e) => onUpdate({ ...props, letterSpacing: parseInt(e.target.value) })} className="w-full" />
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Height: {props.height || 80}px</label>
+        <input type="range" min="60" max="120" value={props.height || 80} onChange={(e) => onUpdate({ ...props, height: parseInt(e.target.value) })} className="w-full" />
+      </div>
+    </div>
+  );
+}
+
+// ============ Mega Menu Navigation Settings ============
+function NavMegaSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const navItems = props.navItems || [];
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.logoText || ''} onChange={(e) => onUpdate({ ...props, logoText: e.target.value })} placeholder="Logo Text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+
+      <label className="flex items-center gap-2 text-xs text-gray-400">
+        <input type="checkbox" checked={props.topBarEnabled || false} onChange={(e) => onUpdate({ ...props, topBarEnabled: e.target.checked })} className="rounded" />
+        Enable Top Bar
+      </label>
+
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-green-400 py-2 border-b border-gray-700">Navigation Items ({navItems.length})</summary>
+        <div className="mt-3 space-y-2">
+          {navItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="bg-gray-800 p-2 rounded space-y-2">
+              <div className="flex gap-2">
+                <input type="text" value={item.label || ''} onChange={(e) => {
+                  const newItems = [...navItems];
+                  newItems[index] = { ...newItems[index], label: e.target.value };
+                  onUpdate({ ...props, navItems: newItems });
+                }} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+                <label className="flex items-center gap-1 text-xs text-gray-400">
+                  <input type="checkbox" checked={item.hasMegaMenu || false} onChange={(e) => {
+                    const newItems = [...navItems];
+                    newItems[index] = { ...newItems[index], hasMegaMenu: e.target.checked };
+                    onUpdate({ ...props, navItems: newItems });
+                  }} className="rounded" />
+                  Mega
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      </details>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Background</label>
+          <input type="color" value={props.backgroundColor || '#FFFFFF'} onChange={(e) => onUpdate({ ...props, backgroundColor: e.target.value })} className="w-full h-10 rounded" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Accent</label>
+          <input type="color" value={props.accentColor || '#4F46E5'} onChange={(e) => onUpdate({ ...props, accentColor: e.target.value })} className="w-full h-10 rounded" />
+        </div>
+      </div>
+
+      <label className="flex items-center gap-2 text-xs text-gray-400">
+        <input type="checkbox" checked={props.showSearch || false} onChange={(e) => onUpdate({ ...props, showSearch: e.target.checked })} className="rounded" />
+        Show Search
+      </label>
+
+      <label className="flex items-center gap-2 text-xs text-gray-400">
+        <input type="checkbox" checked={props.showCta !== false} onChange={(e) => onUpdate({ ...props, showCta: e.target.checked })} className="rounded" />
+        Show CTA Button
+      </label>
+      {props.showCta !== false && (
+        <input type="text" value={props.ctaText || ''} onChange={(e) => onUpdate({ ...props, ctaText: e.target.value })} placeholder="CTA Text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+      )}
+    </div>
+  );
+}
+
+// ============ Centered Navigation Settings ============
+function NavCenteredSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const leftItems = props.leftItems || [];
+  const rightItems = props.rightItems || [];
+
+  const updateItem = (side: 'left' | 'right', index: number, key: string, value: any) => {
+    const items = side === 'left' ? [...leftItems] : [...rightItems];
+    items[index] = { ...items[index], [key]: value };
+    onUpdate({ ...props, [side === 'left' ? 'leftItems' : 'rightItems']: items });
+  };
+
+  const addItem = (side: 'left' | 'right') => {
+    const items = side === 'left' ? leftItems : rightItems;
+    onUpdate({ ...props, [side === 'left' ? 'leftItems' : 'rightItems']: [...items, { id: Date.now().toString(), label: 'Link', url: '/' }] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.logoText || ''} onChange={(e) => onUpdate({ ...props, logoText: e.target.value })} placeholder="Logo Text" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-blue-400 py-2 border-b border-gray-700">Left Items</summary>
+        <div className="mt-3 space-y-2">
+          {leftItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="flex gap-2">
+              <input type="text" value={item.label || ''} onChange={(e) => updateItem('left', index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <input type="text" value={item.url || ''} onChange={(e) => updateItem('left', index, 'url', e.target.value)} placeholder="URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+            </div>
+          ))}
+          <button onClick={() => addItem('left')} className="w-full py-1 bg-gray-700 rounded text-xs">+ Add</button>
+        </div>
+      </details>
+
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-green-400 py-2 border-b border-gray-700">Right Items</summary>
+        <div className="mt-3 space-y-2">
+          {rightItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="flex gap-2">
+              <input type="text" value={item.label || ''} onChange={(e) => updateItem('right', index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              <input type="text" value={item.url || ''} onChange={(e) => updateItem('right', index, 'url', e.target.value)} placeholder="URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+            </div>
+          ))}
+          <button onClick={() => addItem('right')} className="w-full py-1 bg-gray-700 rounded text-xs">+ Add</button>
+        </div>
+      </details>
+
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Logo Size</label>
+        <select value={props.logoSize || 'large'} onChange={(e) => onUpdate({ ...props, logoSize: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Hover Style</label>
+        <select value={props.hoverStyle || 'underline'} onChange={(e) => onUpdate({ ...props, hoverStyle: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+          <option value="underline">Underline</option>
+          <option value="color">Color Fade</option>
+          <option value="background">Background</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Background</label>
+          <input type="color" value={props.backgroundColor || '#FAFAFA'} onChange={(e) => onUpdate({ ...props, backgroundColor: e.target.value })} className="w-full h-10 rounded" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Accent</label>
+          <input type="color" value={props.accentColor || '#A855F7'} onChange={(e) => onUpdate({ ...props, accentColor: e.target.value })} className="w-full h-10 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ Sidebar Navigation Settings ============
+function NavSidebarSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const navItems = props.navItems || [];
+
+  const updateNavItem = (index: number, key: string, value: any) => {
+    const newItems = [...navItems];
+    newItems[index] = { ...newItems[index], [key]: value };
+    onUpdate({ ...props, navItems: newItems });
+  };
+
+  const addNavItem = () => {
+    onUpdate({ ...props, navItems: [...navItems, { id: Date.now().toString(), label: 'New Item', url: '/', icon: 'folder', badge: '' }] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <input type="text" value={props.logoText || ''} onChange={(e) => onUpdate({ ...props, logoText: e.target.value })} placeholder="Logo/Title" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+
+      <details className="group" open>
+        <summary className="cursor-pointer text-sm font-medium text-green-400 py-2 border-b border-gray-700">Navigation Items ({navItems.length})</summary>
+        <div className="mt-3 space-y-2">
+          {navItems.map((item: any, index: number) => (
+            <div key={item.id || index} className="bg-gray-800 p-2 rounded space-y-2">
+              <div className="flex gap-2">
+                <input type="text" value={item.label || ''} onChange={(e) => updateNavItem(index, 'label', e.target.value)} placeholder="Label" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+                <select value={item.icon || 'folder'} onChange={(e) => updateNavItem(index, 'icon', e.target.value)} className="px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white">
+                  <option value="home">🏠 Home</option>
+                  <option value="chart">📊 Chart</option>
+                  <option value="folder">📁 Folder</option>
+                  <option value="users">👥 Users</option>
+                  <option value="settings">⚙️ Settings</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <input type="text" value={item.url || ''} onChange={(e) => updateNavItem(index, 'url', e.target.value)} placeholder="URL" className="flex-1 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+                <input type="text" value={item.badge || ''} onChange={(e) => updateNavItem(index, 'badge', e.target.value)} placeholder="Badge" className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white" />
+              </div>
+            </div>
+          ))}
+          <button onClick={addNavItem} className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300">+ Add Item</button>
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-purple-400 py-2 border-b border-gray-700">User Profile</summary>
+        <div className="mt-3 space-y-2">
+          <label className="flex items-center gap-2 text-xs text-gray-400">
+            <input type="checkbox" checked={props.showUserProfile !== false} onChange={(e) => onUpdate({ ...props, showUserProfile: e.target.checked })} className="rounded" />
+            Show User Profile
+          </label>
+          {props.showUserProfile !== false && (
+            <>
+              <input type="text" value={props.userAvatar || ''} onChange={(e) => onUpdate({ ...props, userAvatar: e.target.value })} placeholder="Avatar URL" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+              <input type="text" value={props.userName || ''} onChange={(e) => onUpdate({ ...props, userName: e.target.value })} placeholder="User Name" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+              <input type="text" value={props.userEmail || ''} onChange={(e) => onUpdate({ ...props, userEmail: e.target.value })} placeholder="User Email" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white" />
+            </>
+          )}
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-pink-400 py-2 border-b border-gray-700">Styling</summary>
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Width: {props.width || 260}px</label>
+            <input type="range" min="200" max="320" value={props.width || 260} onChange={(e) => onUpdate({ ...props, width: parseInt(e.target.value) })} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Position</label>
+            <select value={props.position || 'left'} onChange={(e) => onUpdate({ ...props, position: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white">
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Background</label>
+              <input type="color" value={props.backgroundColor || '#111827'} onChange={(e) => onUpdate({ ...props, backgroundColor: e.target.value })} className="w-full h-10 rounded" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Accent</label>
+              <input type="color" value={props.accentColor || '#6366F1'} onChange={(e) => onUpdate({ ...props, accentColor: e.target.value })} className="w-full h-10 rounded" />
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
   );
 }

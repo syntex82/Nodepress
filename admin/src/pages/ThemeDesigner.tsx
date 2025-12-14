@@ -91,6 +91,30 @@ const THEME_PRESETS: { id: string; name: string; description: string; settings: 
       borders: { radius: 8, width: 1 },
     },
   },
+  {
+    id: 'cyber-dark',
+    name: 'Cyber Dark',
+    description: 'Modern dark theme with purple/blue gradients - perfect for auth pages',
+    settings: {
+      colors: { primary: '#6366F1', secondary: '#8B5CF6', background: '#0F0F1A', surface: '#1E1E2E', text: '#E2E8F0', textMuted: '#94A3B8', heading: '#F8FAFC', link: '#818CF8', linkHover: '#A5B4FC', border: '#3F3F5A', accent: '#EC4899' },
+      typography: { headingFont: 'Inter', bodyFont: 'Inter', baseFontSize: 16, lineHeight: 1.7, headingWeight: 700 },
+      layout: { sidebarPosition: 'none', contentWidth: 1200, headerStyle: 'minimal', footerStyle: 'minimal' },
+      spacing: { sectionPadding: 48, elementSpacing: 24, containerPadding: 32 },
+      borders: { radius: 16, width: 1 },
+    },
+  },
+  {
+    id: 'midnight-blue',
+    name: 'Midnight Blue',
+    description: 'Professional dark blue theme for SaaS applications',
+    settings: {
+      colors: { primary: '#3B82F6', secondary: '#2563EB', background: '#0B1120', surface: '#111827', text: '#D1D5DB', textMuted: '#6B7280', heading: '#F9FAFB', link: '#60A5FA', linkHover: '#93C5FD', border: '#1F2937', accent: '#10B981' },
+      typography: { headingFont: 'Inter', bodyFont: 'Inter', baseFontSize: 15, lineHeight: 1.6, headingWeight: 600 },
+      layout: { sidebarPosition: 'none', contentWidth: 1100, headerStyle: 'sticky', footerStyle: 'default' },
+      spacing: { sectionPadding: 40, elementSpacing: 20, containerPadding: 24 },
+      borders: { radius: 12, width: 1 },
+    },
+  },
 ];
 
 const FONT_OPTIONS = [
