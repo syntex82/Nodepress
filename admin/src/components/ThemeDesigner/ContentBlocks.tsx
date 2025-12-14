@@ -9,7 +9,7 @@ import {
   FiMaximize, FiX, FiChevronLeft, FiChevronRight, FiTrash2,
   FiMove, FiPlus, FiArrowUp, FiArrowDown, FiCopy, FiEye, FiEyeOff,
   FiBook, FiList, FiTrendingUp, FiUser, FiFolder, FiShoppingCart,
-  FiFilter, FiCreditCard, FiPercent, FiUpload
+  FiFilter, FiCreditCard, FiPercent, FiUpload, FiLock, FiMail, FiLogIn
 } from 'react-icons/fi';
 import { CustomThemeSettings } from '../../services/api';
 import MediaPickerModal from '../MediaPickerModal';
@@ -40,7 +40,9 @@ export type BlockType =
   // Course/LMS blocks
   | 'courseCard' | 'courseGrid' | 'courseCurriculum' | 'courseProgress' | 'courseInstructor' | 'courseCategories'
   // Shop/E-commerce blocks
-  | 'shoppingCart' | 'productCategories' | 'productFilter' | 'checkoutSummary' | 'saleBanner';
+  | 'shoppingCart' | 'productCategories' | 'productFilter' | 'checkoutSummary' | 'saleBanner'
+  // Auth blocks
+  | 'loginForm';
 
 export interface ContentBlock {
   id: string;
@@ -597,6 +599,74 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
       style: 'full',
       backgroundColor: '#DC2626',
+    },
+  },
+  // ============ Auth Blocks ============
+  loginForm: {
+    label: 'Login Form',
+    icon: FiLock,
+    defaultProps: {
+      // Header
+      title: 'Welcome Back',
+      subtitle: 'Sign in to your account to continue',
+      logoUrl: '',
+      // Form Fields
+      usernameLabel: 'Email address',
+      usernamePlaceholder: 'Enter your email',
+      passwordLabel: 'Password',
+      passwordPlaceholder: 'Enter your password',
+      useEmailField: true, // true for email, false for username
+      // Options
+      showRememberMe: true,
+      rememberMeLabel: 'Remember me',
+      showForgotPassword: true,
+      forgotPasswordText: 'Forgot password?',
+      forgotPasswordUrl: '/forgot-password',
+      showRegisterLink: true,
+      registerText: "Don't have an account?",
+      registerLinkText: 'Sign up',
+      registerUrl: '/register',
+      // Button
+      buttonText: 'Sign In',
+      buttonStyle: 'gradient', // solid, outline, gradient
+      buttonColor: '#3B82F6',
+      // Redirect
+      redirectUrl: '/dashboard',
+      // Social Login
+      showSocialLogin: true,
+      showGoogleLogin: true,
+      showGithubLogin: true,
+      showAppleLogin: false,
+      socialLoginText: 'Or continue with',
+      // Styling
+      formStyle: 'card', // card, minimal, split
+      backgroundColor: 'transparent',
+      cardBackground: '#1F2937',
+      textColor: '#FFFFFF',
+      inputBackground: '#374151',
+      inputBorderColor: '#4B5563',
+      inputTextColor: '#FFFFFF',
+      borderRadius: 12,
+      showLabels: true,
+      // Error States
+      errorTextColor: '#EF4444',
+      showPasswordToggle: true,
+      // Animation
+      animateOnLoad: true,
+      // Two-Factor Authentication
+      enable2FA: true,
+      twoFactorMethod: 'app', // app, sms, email
+      twoFactorTitle: 'Two-Factor Authentication',
+      twoFactorSubtitle: 'Enter the 6-digit code from your authenticator app',
+      twoFactorCodeLength: 6,
+      showBackupCodeOption: true,
+      backupCodeText: 'Use backup code instead',
+      showResendCode: true,
+      resendCodeText: 'Resend code',
+      resendCooldown: 60, // seconds
+      twoFactorButtonText: 'Verify',
+      showTrustDevice: true,
+      trustDeviceText: 'Trust this device for 30 days',
     },
   },
 };
@@ -2085,6 +2155,594 @@ export function CountdownBlock({
   );
 }
 
+// ============ Login Form Block ============
+export function LoginFormBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  // 2FA State
+  const [show2FAScreen, setShow2FAScreen] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState(['', '', '', '', '', '']);
+  const [showBackupInput, setShowBackupInput] = useState(false);
+  const [backupCode, setBackupCode] = useState('');
+  const [trustDevice, setTrustDevice] = useState(false);
+  const [resendCooldownActive, setResendCooldownActive] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const codeInputRefs = [
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+  ];
+
+  const {
+    title,
+    subtitle,
+    logoUrl,
+    usernameLabel,
+    usernamePlaceholder,
+    passwordLabel,
+    passwordPlaceholder,
+    showRememberMe,
+    rememberMeLabel,
+    showForgotPassword,
+    forgotPasswordText,
+    forgotPasswordUrl,
+    showRegisterLink,
+    registerText,
+    registerLinkText,
+    registerUrl,
+    buttonText,
+    buttonStyle,
+    buttonColor,
+    showSocialLogin,
+    showGoogleLogin,
+    showGithubLogin,
+    showAppleLogin,
+    socialLoginText,
+    formStyle,
+    cardBackground,
+    textColor,
+    inputBackground,
+    inputBorderColor,
+    inputTextColor,
+    borderRadius,
+    showLabels,
+    showPasswordToggle,
+    animateOnLoad,
+    // 2FA Props
+    enable2FA,
+    twoFactorMethod,
+    twoFactorTitle,
+    twoFactorSubtitle,
+    twoFactorCodeLength,
+    showBackupCodeOption,
+    backupCodeText,
+    showResendCode,
+    resendCodeText,
+    resendCooldown,
+    twoFactorButtonText,
+    showTrustDevice,
+    trustDeviceText,
+  } = props;
+
+  // Handle 2FA code input
+  const handleCodeChange = (index: number, value: string) => {
+    if (value.length > 1) {
+      // Handle paste
+      const pastedCode = value.slice(0, 6).split('');
+      const newCode = [...twoFactorCode];
+      pastedCode.forEach((char, i) => {
+        if (index + i < 6 && /^\d$/.test(char)) {
+          newCode[index + i] = char;
+        }
+      });
+      setTwoFactorCode(newCode);
+      const nextIndex = Math.min(index + pastedCode.length, 5);
+      codeInputRefs[nextIndex]?.current?.focus();
+      return;
+    }
+
+    if (/^\d*$/.test(value)) {
+      const newCode = [...twoFactorCode];
+      newCode[index] = value;
+      setTwoFactorCode(newCode);
+
+      // Auto-focus next input
+      if (value && index < 5) {
+        codeInputRefs[index + 1]?.current?.focus();
+      }
+    }
+  };
+
+  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !twoFactorCode[index] && index > 0) {
+      codeInputRefs[index - 1]?.current?.focus();
+    }
+  };
+
+  // Handle resend cooldown
+  const handleResendCode = () => {
+    if (resendCooldownActive) return;
+    setResendCooldownActive(true);
+    setCooldownSeconds(resendCooldown || 60);
+    // Simulate resend - would call API
+    const interval = setInterval(() => {
+      setCooldownSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setResendCooldownActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Get 2FA method icon and description
+  const get2FAMethodInfo = () => {
+    switch (twoFactorMethod) {
+      case 'sms':
+        return { icon: '📱', desc: 'We sent a code to your phone' };
+      case 'email':
+        return { icon: '📧', desc: 'We sent a code to your email' };
+      default:
+        return { icon: '🔐', desc: 'Enter the code from your authenticator app' };
+    }
+  };
+
+  // Button styles
+  const getButtonStyles = () => {
+    switch (buttonStyle) {
+      case 'outline':
+        return {
+          background: 'transparent',
+          border: `2px solid ${buttonColor}`,
+          color: buttonColor,
+        };
+      case 'gradient':
+        return {
+          background: `linear-gradient(135deg, ${buttonColor} 0%, ${adjustColor(buttonColor, -30)} 100%)`,
+          border: 'none',
+          color: 'white',
+        };
+      default:
+        return {
+          background: buttonColor,
+          border: 'none',
+          color: 'white',
+        };
+    }
+  };
+
+  // Helper to darken/lighten color
+  function adjustColor(color: string, amount: number): string {
+    const clamp = (num: number) => Math.min(255, Math.max(0, num));
+    const hex = color.replace('#', '');
+    const r = clamp(parseInt(hex.slice(0, 2), 16) + amount);
+    const g = clamp(parseInt(hex.slice(2, 4), 16) + amount);
+    const b = clamp(parseInt(hex.slice(4, 6), 16) + amount);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  }
+
+  const containerStyle = formStyle === 'card' ? {
+    background: cardBackground,
+    borderRadius: `${borderRadius}px`,
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  } : {};
+
+  return (
+    <div
+      className={`w-full max-w-md mx-auto ${animateOnLoad ? 'animate-fadeIn' : ''}`}
+      style={{ color: textColor }}
+    >
+      <div className={`p-8 ${formStyle === 'card' ? 'border border-gray-700/50' : ''}`} style={containerStyle}>
+        {/* Logo */}
+        {logoUrl && (
+          <div className="flex justify-center mb-6">
+            <img src={logoUrl} alt="Logo" className="h-12 w-auto" />
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2
+            className="text-3xl font-bold mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent"
+            style={{ fontFamily: settings.typography.headingFont }}
+          >
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="text-gray-400 text-sm">{subtitle}</p>
+          )}
+        </div>
+
+        {/* Social Login Buttons */}
+        {showSocialLogin && (showGoogleLogin || showGithubLogin || showAppleLogin) && (
+          <div className="space-y-3 mb-6">
+            {showGoogleLogin && (
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-600 hover:bg-gray-700/50 transition-all duration-200 group"
+                style={{ borderRadius: `${borderRadius}px` }}
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"/>
+                  <path fill="#34A853" d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z"/>
+                  <path fill="#4A90E2" d="M19.834192,20.9995801 C22.0291676,18.9520994 23.4545455,15.903663 23.4545455,12 C23.4545455,11.2909091 23.3454545,10.5272727 23.1818182,9.81818182 L12,9.81818182 L12,14.4545455 L18.4363636,14.4545455 C18.1187732,16.013626 17.2662994,17.2212117 16.0407269,18.0125889 L19.834192,20.9995801 Z"/>
+                  <path fill="#FBBC05" d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7## L1.23746264,17.3349879 L5.27698177,14.2678769 Z"/>
+                </svg>
+                <span className="text-gray-300 group-hover:text-white transition-colors">Continue with Google</span>
+              </button>
+            )}
+
+            {showGithubLogin && (
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-600 hover:bg-gray-700/50 transition-all duration-200 group"
+                style={{ borderRadius: `${borderRadius}px` }}
+              >
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span className="text-gray-300 group-hover:text-white transition-colors">Continue with GitHub</span>
+              </button>
+            )}
+
+            {showAppleLogin && (
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-600 hover:bg-gray-700/50 transition-all duration-200 group"
+                style={{ borderRadius: `${borderRadius}px` }}
+              >
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                <span className="text-gray-300 group-hover:text-white transition-colors">Continue with Apple</span>
+              </button>
+            )}
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 text-gray-400" style={{ background: formStyle === 'card' ? cardBackground : 'transparent' }}>
+                  {socialLoginText}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Login Form */}
+        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          {/* Email/Username Field */}
+          <div className="space-y-2">
+            {showLabels && (
+              <label className="block text-sm font-medium text-gray-300">
+                {usernameLabel}
+              </label>
+            )}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <FiMail className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={usernamePlaceholder}
+                className="w-full pl-12 pr-4 py-3.5 rounded-lg border focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 placeholder-gray-500"
+                style={{
+                  background: inputBackground,
+                  borderColor: inputBorderColor,
+                  color: inputTextColor,
+                  borderRadius: `${borderRadius}px`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Password Field */}
+          <div className="space-y-2">
+            {showLabels && (
+              <label className="block text-sm font-medium text-gray-300">
+                {passwordLabel}
+              </label>
+            )}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <FiLock className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={passwordPlaceholder}
+                className="w-full pl-12 pr-12 py-3.5 rounded-lg border focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 placeholder-gray-500"
+                style={{
+                  background: inputBackground,
+                  borderColor: inputBorderColor,
+                  color: inputTextColor,
+                  borderRadius: `${borderRadius}px`,
+                }}
+              />
+              {showPasswordToggle && (
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                >
+                  {showPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Remember Me & Forgot Password */}
+          {(showRememberMe || showForgotPassword) && (
+            <div className="flex items-center justify-between">
+              {showRememberMe && (
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 rounded border-2 border-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-500 transition-all duration-200 flex items-center justify-center">
+                      {rememberMe && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{rememberMeLabel}</span>
+                </label>
+              )}
+              {showForgotPassword && (
+                <a
+                  href={forgotPasswordUrl}
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors hover:underline"
+                >
+                  {forgotPasswordText}
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              if (enable2FA && email && password) {
+                setShow2FAScreen(true);
+              }
+            }}
+            className="w-full py-3.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg hover:shadow-xl"
+            style={{
+              ...getButtonStyles(),
+              borderRadius: `${borderRadius}px`,
+            }}
+          >
+            <FiLogIn className="w-5 h-5" />
+            {buttonText}
+          </button>
+        </form>
+
+        {/* Register Link */}
+        {showRegisterLink && (
+          <p className="text-center mt-6 text-sm text-gray-400">
+            {registerText}{' '}
+            <a
+              href={registerUrl}
+              className="text-blue-400 hover:text-blue-300 font-medium transition-colors hover:underline"
+            >
+              {registerLinkText}
+            </a>
+          </p>
+        )}
+
+        {/* 2FA Badge Indicator */}
+        {enable2FA && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-green-400">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span>Protected by Two-Factor Authentication</span>
+          </div>
+        )}
+
+        {/* Decorative Elements */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+      </div>
+
+      {/* ============ 2FA Verification Screen ============ */}
+      {show2FAScreen && enable2FA && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+          <div
+            className={`w-full max-w-md mx-4 p-8 relative ${animateOnLoad ? 'animate-slideUp' : ''}`}
+            style={{
+              background: cardBackground,
+              borderRadius: `${borderRadius}px`,
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShow2FAScreen(false);
+                setTwoFactorCode(['', '', '', '', '', '']);
+                setShowBackupInput(false);
+                setBackupCode('');
+              }}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
+            >
+              <FiX className="w-5 h-5" />
+            </button>
+
+            {/* 2FA Header */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg shadow-blue-500/25">
+                <span className="text-3xl">{get2FAMethodInfo().icon}</span>
+              </div>
+              <h2
+                className="text-2xl font-bold mb-2"
+                style={{ color: textColor, fontFamily: settings.typography.headingFont }}
+              >
+                {twoFactorTitle}
+              </h2>
+              <p className="text-gray-400 text-sm">
+                {showBackupInput ? 'Enter your backup code' : (twoFactorSubtitle || get2FAMethodInfo().desc)}
+              </p>
+            </div>
+
+            {!showBackupInput ? (
+              <>
+                {/* 2FA Code Input */}
+                <div className="flex justify-center gap-2 mb-6">
+                  {twoFactorCode.slice(0, twoFactorCodeLength || 6).map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={codeInputRefs[index]}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={digit}
+                      onChange={(e) => handleCodeChange(index, e.target.value)}
+                      onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                      className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
+                      style={{
+                        background: inputBackground,
+                        borderColor: digit ? buttonColor : inputBorderColor,
+                        color: inputTextColor,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Resend Code */}
+                {showResendCode && (twoFactorMethod === 'sms' || twoFactorMethod === 'email') && (
+                  <div className="text-center mb-4">
+                    <button
+                      onClick={handleResendCode}
+                      disabled={resendCooldownActive}
+                      className={`text-sm ${resendCooldownActive ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300 hover:underline'} transition-colors`}
+                    >
+                      {resendCooldownActive ? `${resendCodeText} (${cooldownSeconds}s)` : resendCodeText}
+                    </button>
+                  </div>
+                )}
+
+                {/* Backup Code Option */}
+                {showBackupCodeOption && (
+                  <div className="text-center mb-6">
+                    <button
+                      onClick={() => setShowBackupInput(true)}
+                      className="text-sm text-gray-400 hover:text-gray-300 transition-colors hover:underline"
+                    >
+                      {backupCodeText}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Backup Code Input */}
+                <div className="mb-6">
+                  <input
+                    type="text"
+                    value={backupCode}
+                    onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
+                    placeholder="XXXX-XXXX-XXXX"
+                    className="w-full px-4 py-4 text-center text-lg font-mono tracking-widest rounded-xl border-2 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
+                    style={{
+                      background: inputBackground,
+                      borderColor: inputBorderColor,
+                      color: inputTextColor,
+                    }}
+                  />
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    Enter one of your backup codes
+                  </p>
+                </div>
+
+                {/* Back to code input */}
+                <div className="text-center mb-6">
+                  <button
+                    onClick={() => setShowBackupInput(false)}
+                    className="text-sm text-blue-400 hover:text-blue-300 transition-colors hover:underline"
+                  >
+                    ← Use authenticator code instead
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Trust Device */}
+            {showTrustDevice && (
+              <label className="flex items-center justify-center gap-3 mb-6 cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={trustDevice}
+                    onChange={(e) => setTrustDevice(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-5 h-5 rounded border-2 border-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-500 transition-all duration-200 flex items-center justify-center">
+                    {trustDevice && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{trustDeviceText}</span>
+              </label>
+            )}
+
+            {/* Verify Button */}
+            <button
+              onClick={() => {
+                // Would call API to verify
+                setShow2FAScreen(false);
+              }}
+              disabled={!showBackupInput && twoFactorCode.filter(d => d).length < (twoFactorCodeLength || 6)}
+              className="w-full py-3.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{
+                ...getButtonStyles(),
+                borderRadius: `${borderRadius}px`,
+              }}
+            >
+              <FiLock className="w-5 h-5" />
+              {twoFactorButtonText || 'Verify'}
+            </button>
+
+            {/* Security Note */}
+            <p className="text-xs text-gray-500 text-center mt-4">
+              🔒 Your account is protected by two-factor authentication
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============ Block Renderer ============
 export function BlockRenderer({
   block,
@@ -2214,6 +2872,9 @@ export function BlockRenderer({
         return <CheckoutSummaryBlock props={block.props as { cart: CartData; showItems?: boolean; showCoupon?: boolean }} settings={settings} />;
       case 'saleBanner':
         return <SaleBannerBlock props={block.props as { title: string; subtitle?: string; discountCode?: string; discountText?: string; ctaText?: string; ctaUrl?: string; endDate?: string; style: 'full' | 'compact' | 'floating'; backgroundColor?: string }} settings={settings} />;
+      // Auth Blocks
+      case 'loginForm':
+        return <LoginFormBlock props={block.props} settings={settings} />;
       default:
         return <div>Unknown block type: {block.type}</div>;
     }
@@ -2826,6 +3487,10 @@ function BlockSettingsForm({
 
     case 'saleBanner':
       return <SaleBannerSettings props={props} onUpdate={onUpdate} />;
+
+    // ============ Auth Block Settings ============
+    case 'loginForm':
+      return <LoginFormSettings props={props} onUpdate={onUpdate} />;
 
     default:
       return <p className="text-gray-400 text-sm">No settings available</p>;
@@ -6695,6 +7360,603 @@ function VideoBlockSettings({ props, onUpdate }: { props: Record<string, any>; o
           onSelect={(media) => {
             onUpdate({ ...props, posterUrl: media.path || media.url });
             setShowPosterPicker(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============ Login Form Settings ============
+function LoginFormSettings({ props, onUpdate }: { props: Record<string, any>; onUpdate: (props: Record<string, any>) => void }) {
+  const [showLogoPicker, setShowLogoPicker] = useState(false);
+
+  const updateProp = (key: string, value: any) => {
+    onUpdate({ ...props, [key]: value });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header Section */}
+      <details className="group" open>
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-blue-400 hover:text-blue-300 py-2 border-b border-gray-700">
+          <span>📝 Header & Branding</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          {/* Logo */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Logo URL</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={props.logoUrl || ''}
+                onChange={(e) => updateProp('logoUrl', e.target.value)}
+                placeholder="Enter logo URL or select from media"
+                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+              <button
+                onClick={() => setShowLogoPicker(true)}
+                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-white"
+              >
+                <FiUpload size={14} />
+              </button>
+            </div>
+          </div>
+          {/* Title */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Title</label>
+            <input
+              type="text"
+              value={props.title || ''}
+              onChange={(e) => updateProp('title', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          {/* Subtitle */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Subtitle</label>
+            <input
+              type="text"
+              value={props.subtitle || ''}
+              onChange={(e) => updateProp('subtitle', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+        </div>
+      </details>
+
+      {/* Form Fields Section */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-green-400 hover:text-green-300 py-2 border-b border-gray-700">
+          <span>✏️ Form Fields</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Email/Username Label</label>
+            <input
+              type="text"
+              value={props.usernameLabel || ''}
+              onChange={(e) => updateProp('usernameLabel', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Email/Username Placeholder</label>
+            <input
+              type="text"
+              value={props.usernamePlaceholder || ''}
+              onChange={(e) => updateProp('usernamePlaceholder', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Password Label</label>
+            <input
+              type="text"
+              value={props.passwordLabel || ''}
+              onChange={(e) => updateProp('passwordLabel', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Password Placeholder</label>
+            <input
+              type="text"
+              value={props.passwordPlaceholder || ''}
+              onChange={(e) => updateProp('passwordPlaceholder', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.showLabels !== false}
+              onChange={(e) => updateProp('showLabels', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Show Field Labels</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.showPasswordToggle !== false}
+              onChange={(e) => updateProp('showPasswordToggle', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Show Password Toggle</label>
+          </div>
+        </div>
+      </details>
+
+      {/* Options Section */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-yellow-400 hover:text-yellow-300 py-2 border-b border-gray-700">
+          <span>⚙️ Form Options</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          {/* Remember Me */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.showRememberMe !== false}
+              onChange={(e) => updateProp('showRememberMe', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Show "Remember Me"</label>
+          </div>
+          {props.showRememberMe !== false && (
+            <div className="ml-6">
+              <input
+                type="text"
+                value={props.rememberMeLabel || ''}
+                onChange={(e) => updateProp('rememberMeLabel', e.target.value)}
+                placeholder="Remember me label"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          )}
+
+          {/* Forgot Password */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.showForgotPassword !== false}
+              onChange={(e) => updateProp('showForgotPassword', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Show "Forgot Password"</label>
+          </div>
+          {props.showForgotPassword !== false && (
+            <div className="ml-6 space-y-2">
+              <input
+                type="text"
+                value={props.forgotPasswordText || ''}
+                onChange={(e) => updateProp('forgotPasswordText', e.target.value)}
+                placeholder="Link text"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+              <input
+                type="text"
+                value={props.forgotPasswordUrl || ''}
+                onChange={(e) => updateProp('forgotPasswordUrl', e.target.value)}
+                placeholder="Link URL"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          )}
+
+          {/* Register Link */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.showRegisterLink !== false}
+              onChange={(e) => updateProp('showRegisterLink', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Show "Register" Link</label>
+          </div>
+          {props.showRegisterLink !== false && (
+            <div className="ml-6 space-y-2">
+              <input
+                type="text"
+                value={props.registerText || ''}
+                onChange={(e) => updateProp('registerText', e.target.value)}
+                placeholder="Text before link"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+              <input
+                type="text"
+                value={props.registerLinkText || ''}
+                onChange={(e) => updateProp('registerLinkText', e.target.value)}
+                placeholder="Link text"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+              <input
+                type="text"
+                value={props.registerUrl || ''}
+                onChange={(e) => updateProp('registerUrl', e.target.value)}
+                placeholder="Link URL"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          )}
+        </div>
+      </details>
+
+      {/* Button Section */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-purple-400 hover:text-purple-300 py-2 border-b border-gray-700">
+          <span>🔘 Button Settings</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Button Text</label>
+            <input
+              type="text"
+              value={props.buttonText || ''}
+              onChange={(e) => updateProp('buttonText', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Button Style</label>
+            <select
+              value={props.buttonStyle || 'gradient'}
+              onChange={(e) => updateProp('buttonStyle', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            >
+              <option value="solid">Solid</option>
+              <option value="outline">Outline</option>
+              <option value="gradient">Gradient</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Button Color</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={props.buttonColor || '#3B82F6'}
+                onChange={(e) => updateProp('buttonColor', e.target.value)}
+                className="w-12 h-10 rounded border-gray-600 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={props.buttonColor || '#3B82F6'}
+                onChange={(e) => updateProp('buttonColor', e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Redirect URL (after login)</label>
+            <input
+              type="text"
+              value={props.redirectUrl || ''}
+              onChange={(e) => updateProp('redirectUrl', e.target.value)}
+              placeholder="/dashboard"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            />
+          </div>
+        </div>
+      </details>
+
+      {/* Social Login Section */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-pink-400 hover:text-pink-300 py-2 border-b border-gray-700">
+          <span>🌐 Social Login</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.showSocialLogin !== false}
+              onChange={(e) => updateProp('showSocialLogin', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Enable Social Login</label>
+          </div>
+          {props.showSocialLogin !== false && (
+            <>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Divider Text</label>
+                <input
+                  type="text"
+                  value={props.socialLoginText || ''}
+                  onChange={(e) => updateProp('socialLoginText', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={props.showGoogleLogin !== false}
+                    onChange={(e) => updateProp('showGoogleLogin', e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+                  />
+                  <label className="text-xs text-gray-400">Google Login</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={props.showGithubLogin !== false}
+                    onChange={(e) => updateProp('showGithubLogin', e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+                  />
+                  <label className="text-xs text-gray-400">GitHub Login</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={props.showAppleLogin === true}
+                    onChange={(e) => updateProp('showAppleLogin', e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+                  />
+                  <label className="text-xs text-gray-400">Apple Login</label>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </details>
+
+      {/* Styling Section */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-cyan-400 hover:text-cyan-300 py-2 border-b border-gray-700">
+          <span>🎨 Styling</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Form Style</label>
+            <select
+              value={props.formStyle || 'card'}
+              onChange={(e) => updateProp('formStyle', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+            >
+              <option value="card">Card (with background)</option>
+              <option value="minimal">Minimal (transparent)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Card Background</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={props.cardBackground || '#1F2937'}
+                onChange={(e) => updateProp('cardBackground', e.target.value)}
+                className="w-12 h-10 rounded border-gray-600 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={props.cardBackground || '#1F2937'}
+                onChange={(e) => updateProp('cardBackground', e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Input Background</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={props.inputBackground || '#374151'}
+                onChange={(e) => updateProp('inputBackground', e.target.value)}
+                className="w-12 h-10 rounded border-gray-600 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={props.inputBackground || '#374151'}
+                onChange={(e) => updateProp('inputBackground', e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Input Border Color</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={props.inputBorderColor || '#4B5563'}
+                onChange={(e) => updateProp('inputBorderColor', e.target.value)}
+                className="w-12 h-10 rounded border-gray-600 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={props.inputBorderColor || '#4B5563'}
+                onChange={(e) => updateProp('inputBorderColor', e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Border Radius: {props.borderRadius || 12}px</label>
+            <input
+              type="range"
+              min="0"
+              max="24"
+              value={props.borderRadius || 12}
+              onChange={(e) => updateProp('borderRadius', parseInt(e.target.value))}
+              className="w-full accent-blue-500"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.animateOnLoad !== false}
+              onChange={(e) => updateProp('animateOnLoad', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Animate on Load</label>
+          </div>
+        </div>
+      </details>
+
+      {/* Two-Factor Authentication Section */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-orange-400 hover:text-orange-300 py-2 border-b border-gray-700">
+          <span>🔐 Two-Factor Authentication</span>
+        </summary>
+        <div className="mt-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={props.enable2FA !== false}
+              onChange={(e) => updateProp('enable2FA', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+            />
+            <label className="text-xs text-gray-400">Enable 2FA</label>
+          </div>
+
+          {props.enable2FA !== false && (
+            <>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">2FA Method</label>
+                <select
+                  value={props.twoFactorMethod || 'app'}
+                  onChange={(e) => updateProp('twoFactorMethod', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                >
+                  <option value="app">Authenticator App</option>
+                  <option value="sms">SMS</option>
+                  <option value="email">Email</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">2FA Title</label>
+                <input
+                  type="text"
+                  value={props.twoFactorTitle || ''}
+                  onChange={(e) => updateProp('twoFactorTitle', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">2FA Subtitle</label>
+                <input
+                  type="text"
+                  value={props.twoFactorSubtitle || ''}
+                  onChange={(e) => updateProp('twoFactorSubtitle', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Code Length</label>
+                <select
+                  value={props.twoFactorCodeLength || 6}
+                  onChange={(e) => updateProp('twoFactorCodeLength', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                >
+                  <option value={4}>4 digits</option>
+                  <option value={6}>6 digits</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Verify Button Text</label>
+                <input
+                  type="text"
+                  value={props.twoFactorButtonText || ''}
+                  onChange={(e) => updateProp('twoFactorButtonText', e.target.value)}
+                  placeholder="Verify"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-gray-700">
+                <p className="text-xs text-gray-500 mb-2">Options</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={props.showBackupCodeOption !== false}
+                      onChange={(e) => updateProp('showBackupCodeOption', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+                    />
+                    <label className="text-xs text-gray-400">Show Backup Code Option</label>
+                  </div>
+                  {props.showBackupCodeOption !== false && (
+                    <div className="ml-6">
+                      <input
+                        type="text"
+                        value={props.backupCodeText || ''}
+                        onChange={(e) => updateProp('backupCodeText', e.target.value)}
+                        placeholder="Use backup code instead"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={props.showResendCode !== false}
+                      onChange={(e) => updateProp('showResendCode', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+                    />
+                    <label className="text-xs text-gray-400">Show Resend Code (SMS/Email only)</label>
+                  </div>
+                  {props.showResendCode !== false && (
+                    <div className="ml-6 space-y-2">
+                      <input
+                        type="text"
+                        value={props.resendCodeText || ''}
+                        onChange={(e) => updateProp('resendCodeText', e.target.value)}
+                        placeholder="Resend code"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                      />
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Cooldown: {props.resendCooldown || 60}s</label>
+                        <input
+                          type="range"
+                          min="30"
+                          max="120"
+                          step="10"
+                          value={props.resendCooldown || 60}
+                          onChange={(e) => updateProp('resendCooldown', parseInt(e.target.value))}
+                          className="w-full accent-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={props.showTrustDevice !== false}
+                      onChange={(e) => updateProp('showTrustDevice', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500"
+                    />
+                    <label className="text-xs text-gray-400">Show "Trust Device" Option</label>
+                  </div>
+                  {props.showTrustDevice !== false && (
+                    <div className="ml-6">
+                      <input
+                        type="text"
+                        value={props.trustDeviceText || ''}
+                        onChange={(e) => updateProp('trustDeviceText', e.target.value)}
+                        placeholder="Trust this device for 30 days"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </details>
+
+      {/* Media Picker Modal */}
+      {showLogoPicker && (
+        <MediaPickerModal
+          type="image"
+          onClose={() => setShowLogoPicker(false)}
+          onSelect={(media) => {
+            updateProp('logoUrl', media.path || media.url);
+            setShowLogoPicker(false);
           }}
         />
       )}
