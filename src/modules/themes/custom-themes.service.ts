@@ -673,7 +673,7 @@ img { max-width: 100%; height: auto; display: block; }
     // Generate templates from pages/blocks FIRST so we know what templates exist
     const pages = (theme.pages as unknown as ThemePageData[]) || [];
     const templates = this.generateTemplates(theme.name, settings, slug, pages);
-    const templateNames = Object.keys(templates).map(name => `${name}.hbs`);
+    const templateNames = Object.keys(templates).map((name) => `${name}.hbs`);
 
     // Generate theme.json with all required fields for import validation
     const themeJson = {
@@ -722,7 +722,7 @@ img { max-width: 100%; height: auto; display: block; }
     // The import expects PNG format
     const pngPlaceholder = Buffer.from(
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-      'base64'
+      'base64',
     );
     zip.addFile(`${slug}/screenshot.png`, pngPlaceholder);
 
@@ -750,12 +750,16 @@ img { max-width: 100%; height: auto; display: block; }
 </section>`;
 
       case 'features':
-        const featuresHTML = (props.features || []).map((f: any) => `
+        const featuresHTML = (props.features || [])
+          .map(
+            (f: any) => `
       <div class="feature-item" style="text-align: center; padding: 2rem;">
         <div style="font-size: 2.5rem; margin-bottom: 1rem;">${f.icon || '⭐'}</div>
         <h3 style="margin-bottom: 0.5rem;">${f.title || 'Feature'}</h3>
         <p style="color: var(--color-text-muted);">${f.description || ''}</p>
-      </div>`).join('');
+      </div>`,
+          )
+          .join('');
         return `<section class="features-block" style="padding: var(--section-padding) 0;">
   <div class="container">
     ${props.title ? `<h2 style="text-align: center; margin-bottom: 3rem;">${props.title}</h2>` : ''}
@@ -789,11 +793,15 @@ img { max-width: 100%; height: auto; display: block; }
 </section>`;
 
       case 'stats':
-        const statsHTML = (props.stats || []).map((s: any) => `
+        const statsHTML = (props.stats || [])
+          .map(
+            (s: any) => `
       <div style="text-align: center; padding: 1.5rem;">
         <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">${s.value || '0'}</div>
         <div style="color: var(--color-text-muted);">${s.label || ''}</div>
-      </div>`).join('');
+      </div>`,
+          )
+          .join('');
         return `<section class="stats-block" style="padding: var(--section-padding) 0; background: var(--color-surface);">
   <div class="container">
     <div style="display: grid; grid-template-columns: repeat(${(props.stats || []).length || 4}, 1fr); gap: 2rem;">
@@ -818,10 +826,14 @@ img { max-width: 100%; height: auto; display: block; }
 </section>`;
 
       case 'gallery':
-        const images = (props.images || []).map((img: any) => `
+        const images = (props.images || [])
+          .map(
+            (img: any) => `
       <div style="overflow: hidden; border-radius: var(--border-radius);">
         <img src="${img.src || ''}" alt="${img.caption || ''}" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; transition: transform 0.3s;">
-      </div>`).join('');
+      </div>`,
+          )
+          .join('');
         return `<section class="gallery-block" style="padding: var(--section-padding) 0;">
   <div class="container">
     <div style="display: grid; grid-template-columns: repeat(${props.columns || 3}, 1fr); gap: 1rem;">
@@ -839,7 +851,9 @@ img { max-width: 100%; height: auto; display: block; }
         return `<hr style="border: none; height: 1px; background: var(--color-border); margin: var(--section-padding) auto; max-width: ${props.width || '100%'};">`;
 
       case 'pricing':
-        const plans = (props.plans || []).map((plan: any) => `
+        const plans = (props.plans || [])
+          .map(
+            (plan: any) => `
       <div class="card" style="padding: 2rem; text-align: center; ${plan.featured ? 'border-color: var(--color-primary); transform: scale(1.05);' : ''}">
         <h3 style="margin-bottom: 0.5rem;">${plan.name || 'Plan'}</h3>
         <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: 1rem;">$${plan.price || '0'}<span style="font-size: 1rem; font-weight: normal; color: var(--color-text-muted);">/${plan.period || 'mo'}</span></div>
@@ -847,7 +861,9 @@ img { max-width: 100%; height: auto; display: block; }
           ${(plan.features || []).map((f: string) => `<li style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border);">✓ ${f}</li>`).join('')}
         </ul>
         <a href="${plan.buttonLink || '#'}" class="btn btn-${plan.featured ? 'primary' : 'outline'}">${plan.buttonText || 'Choose Plan'}</a>
-      </div>`).join('');
+      </div>`,
+          )
+          .join('');
         return `<section class="pricing-block" style="padding: var(--section-padding) 0;">
   <div class="container">
     ${props.title ? `<h2 style="text-align: center; margin-bottom: 3rem;">${props.title}</h2>` : ''}
@@ -938,7 +954,9 @@ img { max-width: 100%; height: auto; display: block; }
 </div>`;
 
       case 'timeline':
-        const timelineItems = (props.items || []).map((item: any, i: number) => `
+        const timelineItems = (props.items || [])
+          .map(
+            (item: any, i: number) => `
       <div style="display: flex; gap: 1.5rem; margin-bottom: 2rem;">
         <div style="display: flex; flex-direction: column; align-items: center;">
           <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--color-primary);"></div>
@@ -949,7 +967,9 @@ img { max-width: 100%; height: auto; display: block; }
           <h4 style="margin: 0 0 0.5rem;">${item.title || ''}</h4>
           <p style="margin: 0; color: var(--color-text-muted);">${item.description || ''}</p>
         </div>
-      </div>`).join('');
+      </div>`,
+          )
+          .join('');
         return `<section class="timeline-block" style="padding: var(--section-padding) 0;">
   <div class="container" style="max-width: 700px;">
     ${props.title ? `<h2 style="text-align: center; margin-bottom: 3rem;">${props.title}</h2>` : ''}
@@ -958,11 +978,15 @@ img { max-width: 100%; height: auto; display: block; }
 </section>`;
 
       case 'accordion':
-        const accordionItems = (props.items || []).map((item: any, i: number) => `
+        const accordionItems = (props.items || [])
+          .map(
+            (item: any, i: number) => `
       <details style="border: 1px solid var(--color-border); border-radius: var(--border-radius); margin-bottom: 0.5rem;" ${i === 0 ? 'open' : ''}>
         <summary style="padding: 1rem; cursor: pointer; font-weight: 600;">${item.title || 'Question'}</summary>
         <div style="padding: 0 1rem 1rem; color: var(--color-text-muted);">${item.content || ''}</div>
-      </details>`).join('');
+      </details>`,
+          )
+          .join('');
         return `<section class="accordion-block" style="padding: var(--section-padding) 0;">
   <div class="container" style="max-width: 800px;">
     ${props.title ? `<h2 style="text-align: center; margin-bottom: 2rem;">${props.title}</h2>` : ''}
@@ -971,7 +995,12 @@ img { max-width: 100%; height: auto; display: block; }
 </section>`;
 
       case 'tabs':
-        const tabButtons = (props.tabs || []).map((tab: any, i: number) => `<button style="padding: 0.75rem 1.5rem; border: none; background: ${i === 0 ? 'var(--color-primary)' : 'transparent'}; color: ${i === 0 ? '#fff' : 'var(--color-text)'}; cursor: pointer; border-radius: var(--border-radius) var(--border-radius) 0 0;">${tab.title || 'Tab'}</button>`).join('');
+        const tabButtons = (props.tabs || [])
+          .map(
+            (tab: any, i: number) =>
+              `<button style="padding: 0.75rem 1.5rem; border: none; background: ${i === 0 ? 'var(--color-primary)' : 'transparent'}; color: ${i === 0 ? '#fff' : 'var(--color-text)'}; cursor: pointer; border-radius: var(--border-radius) var(--border-radius) 0 0;">${tab.title || 'Tab'}</button>`,
+          )
+          .join('');
         const tabContent = (props.tabs || [])[0]?.content || '';
         return `<section class="tabs-block" style="padding: var(--section-padding) 0;">
   <div class="container">
@@ -981,10 +1010,14 @@ img { max-width: 100%; height: auto; display: block; }
 </section>`;
 
       case 'logoCloud':
-        const logos = (props.logos || []).map((logo: any) => `
+        const logos = (props.logos || [])
+          .map(
+            (logo: any) => `
       <div style="display: flex; align-items: center; justify-content: center; padding: 1rem;">
         <img src="${logo.src || ''}" alt="${logo.name || ''}" style="max-height: 50px; max-width: 120px; filter: grayscale(100%); opacity: 0.7; transition: all 0.3s;">
-      </div>`).join('');
+      </div>`,
+          )
+          .join('');
         return `<section class="logo-cloud-block" style="padding: var(--section-padding) 0; background: var(--color-surface);">
   <div class="container">
     ${props.title ? `<h3 style="text-align: center; margin-bottom: 2rem; color: var(--color-text-muted);">${props.title}</h3>` : ''}
@@ -1119,13 +1152,18 @@ img { max-width: 100%; height: auto; display: block; }
     if (!blocks || blocks.length === 0) {
       return '';
     }
-    return blocks.map(block => this.renderBlockToHTML(block, settings)).join('\n\n');
+    return blocks.map((block) => this.renderBlockToHTML(block, settings)).join('\n\n');
   }
 
   /**
    * Generate Handlebars templates for the theme
    */
-  private generateTemplates(themeName: string, settings: CustomThemeSettings, slug: string, pages: ThemePageData[] = []): Record<string, string> {
+  private generateTemplates(
+    themeName: string,
+    settings: CustomThemeSettings,
+    slug: string,
+    pages: ThemePageData[] = [],
+  ): Record<string, string> {
     const { typography } = settings;
 
     const header = `<!DOCTYPE html>
@@ -1174,7 +1212,7 @@ img { max-width: 100%; height: auto; display: block; }
 `;
 
     // Find home page and render its blocks
-    const homePage = pages.find(p => p.isHomePage || p.slug === '/');
+    const homePage = pages.find((p) => p.isHomePage || p.slug === '/');
     const homePageBlocks = homePage?.blocks || [];
     const renderedHomeBlocks = this.renderPageBlocks(homePageBlocks, settings);
 
@@ -1194,7 +1232,7 @@ ${renderedHomeBlocks}
         {{#if images.[0]}}<img src="{{images.[0]}}" alt="{{name}}" class="post-image">{{/if}}
         <div class="post-content">
           <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
-          <p style="color: var(--color-primary); font-weight: 600;">{{#if salePrice}}<s style="color: var(--color-text-muted);">${"$"}{{price}}</s> ${"$"}{{salePrice}}{{else}}${"$"}{{price}}{{/if}}</p>
+          <p style="color: var(--color-primary); font-weight: 600;">{{#if salePrice}}<s style="color: var(--color-text-muted);">${'$'}{{price}}</s> ${'$'}{{salePrice}}{{else}}${'$'}{{price}}{{/if}}</p>
         </div>
       </article>
       {{/each}}
@@ -1242,7 +1280,7 @@ ${renderedHomeBlocks}
         {{#if images.[0]}}<img src="{{images.[0]}}" alt="{{name}}" class="post-image">{{/if}}
         <div class="post-content">
           <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
-          <p style="color: var(--color-primary); font-weight: 600;">{{#if salePrice}}<s style="color: var(--color-text-muted);">${"$"}{{price}}</s> ${"$"}{{salePrice}}{{else}}${"$"}{{price}}{{/if}}</p>
+          <p style="color: var(--color-primary); font-weight: 600;">{{#if salePrice}}<s style="color: var(--color-text-muted);">${'$'}{{price}}</s> ${'$'}{{salePrice}}{{else}}${'$'}{{price}}{{/if}}</p>
         </div>
       </article>
       {{/each}}
@@ -1434,7 +1472,7 @@ ${renderedHomeBlocks}
       shop,
       'single-product': singleProduct,
       courses,
-      'single-course': singleCourse
+      'single-course': singleCourse,
     };
 
     // Generate custom page templates from pages array (non-home pages with blocks)
@@ -1443,7 +1481,9 @@ ${renderedHomeBlocks}
         continue;
       }
       // Create a template name from the page slug
-      const pageName = page.slug.replace(/^\//, '').replace(/\//g, '-') || page.name.toLowerCase().replace(/\s+/g, '-');
+      const pageName =
+        page.slug.replace(/^\//, '').replace(/\//g, '-') ||
+        page.name.toLowerCase().replace(/\s+/g, '-');
       const pageBlocks = this.renderPageBlocks(page.blocks, settings);
 
       result[`page-${pageName}`] = `{{> header}}

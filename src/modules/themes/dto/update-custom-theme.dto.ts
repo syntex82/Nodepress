@@ -90,4 +90,3 @@ export class UpdateCustomThemeDto {
   @IsOptional()
   isDefault?: boolean;
 }
-

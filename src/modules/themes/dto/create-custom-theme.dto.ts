@@ -91,4 +91,3 @@ export class CreateCustomThemeDto {
   @IsOptional()
   isDefault?: boolean;
 }
-
