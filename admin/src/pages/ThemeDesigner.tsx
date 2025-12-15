@@ -123,6 +123,23 @@ const FONT_OPTIONS = [
   'Raleway', 'Nunito', 'Work Sans', 'Oswald', 'Quicksand',
 ];
 
+// System fonts that don't need Google Fonts loading
+const SYSTEM_FONTS = ['system-ui', 'Georgia'];
+
+// Google Fonts loader - dynamically loads fonts when selected
+const loadGoogleFont = (fontName: string) => {
+  if (SYSTEM_FONTS.includes(fontName)) return;
+
+  const linkId = `google-font-${fontName.replace(/\s+/g, '-').toLowerCase()}`;
+  if (document.getElementById(linkId)) return; // Already loaded
+
+  const link = document.createElement('link');
+  link.id = linkId;
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@300;400;500;600;700;800;900&display=swap`;
+  document.head.appendChild(link);
+};
+
 type DesignSection = 'colors' | 'typography' | 'layout' | 'spacing' | 'components' | 'css' | 'blocks' | 'pages';
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 type PreviewMode = 'light' | 'dark';
@@ -376,6 +393,12 @@ export default function ThemeDesigner() {
       loadTheme(editId);
     }
   }, [editId]);
+
+  // Load Google Fonts when typography settings change
+  useEffect(() => {
+    loadGoogleFont(settings.typography.headingFont);
+    loadGoogleFont(settings.typography.bodyFont);
+  }, [settings.typography.headingFont, settings.typography.bodyFont]);
 
   const loadThemes = async () => {
     try {
