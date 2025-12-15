@@ -13,7 +13,10 @@ import {
   Param,
   UseGuards,
   Request,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import {
   CustomThemesService,
@@ -121,6 +124,40 @@ export class CustomThemesController {
   @Roles(UserRole.ADMIN)
   exportTheme(@Param('id') id: string) {
     return this.customThemesService.exportTheme(id);
+  }
+
+  /**
+   * Export a custom theme as ZIP file
+   * GET /api/custom-themes/:id/export-zip
+   */
+  @Get(':id/export-zip')
+  @Roles(UserRole.ADMIN)
+  async exportAsZip(@Param('id') id: string, @Res() res: Response) {
+    const theme = await this.customThemesService.findById(id);
+    const buffer = await this.customThemesService.exportAsZip(id);
+
+    const slug = theme.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${slug}.zip"`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
+  }
+
+  /**
+   * Install custom theme as a full installable theme
+   * POST /api/custom-themes/:id/install
+   */
+  @Post(':id/install')
+  @Roles(UserRole.ADMIN)
+  installTheme(@Param('id') id: string) {
+    return this.customThemesService.installTheme(id);
   }
 
   /**

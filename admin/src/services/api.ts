@@ -251,6 +251,8 @@ export const customThemesApi = {
   duplicate: (id: string, name?: string) => api.post<CustomTheme>(`/custom-themes/${id}/duplicate`, { name }),
   activate: (id: string) => api.post<CustomTheme>(`/custom-themes/${id}/activate`),
   export: (id: string) => api.get(`/custom-themes/${id}/export`),
+  exportZip: (id: string) => api.get(`/custom-themes/${id}/export-zip`, { responseType: 'blob' }),
+  install: (id: string) => api.post(`/custom-themes/${id}/install`),
   import: (data: any) => api.post<CustomTheme>('/custom-themes/import', data),
   generateCSS: (settings: CustomThemeSettings, customCSS?: string) =>
     api.post<{ css: string }>('/custom-themes/generate-css', { settings, customCSS }),
@@ -469,7 +471,7 @@ export interface MenuItem {
   label: string;
   url?: string;
   target?: string;
-  type: 'CUSTOM' | 'PAGE' | 'POST' | 'HOME' | 'SHOP' | 'PRODUCT' | 'CATEGORY';
+  type: 'CUSTOM' | 'PAGE' | 'POST' | 'HOME' | 'SHOP' | 'PRODUCT' | 'CATEGORY' | 'LOGIN';
   pageId?: string;
   postId?: string;
   productId?: string;

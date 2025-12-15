@@ -8,7 +8,7 @@ import { menusApi, Menu, MenuItem } from '../services/api';
 import toast from 'react-hot-toast';
 import {
   FiPlus, FiTrash2, FiSave, FiLink, FiFile, FiFileText,
-  FiHome, FiChevronDown, FiChevronUp, FiMove, FiX, FiShoppingBag, FiGrid, FiShoppingCart
+  FiHome, FiChevronDown, FiChevronUp, FiMove, FiX, FiShoppingBag, FiGrid, FiShoppingCart, FiLogIn
 } from 'react-icons/fi';
 
 // Menu locations
@@ -27,6 +27,7 @@ const ITEM_TYPES = [
   { id: 'SHOP', name: 'Shop', icon: FiShoppingCart },
   { id: 'PRODUCT', name: 'Product', icon: FiShoppingBag },
   { id: 'CATEGORY', name: 'Category', icon: FiGrid },
+  { id: 'LOGIN', name: 'Login', icon: FiLogIn },
 ];
 
 export default function MenuManager() {
@@ -166,6 +167,8 @@ export default function MenuManager() {
     } else if (item.type === 'CATEGORY' && newItem.categoryId) {
       const category = availableCategories.find(c => c.id === newItem.categoryId);
       if (category) item.url = `/shop?category=${category.slug}`;
+    } else if (item.type === 'LOGIN') {
+      item.url = '/admin/login';
     }
     setMenuItems([...menuItems, item]);
     setShowAddItemModal(false);

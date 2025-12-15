@@ -736,6 +736,7 @@ enum MenuItemType {
   POST      // Link to a post
   HOME      // Home page link
   CATEGORY  // Category archive (future)
+  LOGIN     // Login/Logout link
 }
 
 // ============================================

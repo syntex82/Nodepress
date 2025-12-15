@@ -9,8 +9,8 @@ import toast from 'react-hot-toast';
 import {
   FiArrowLeft, FiDroplet, FiType, FiLayout, FiSave,
   FiCode, FiSmartphone, FiTablet, FiMonitor, FiSun, FiMoon, FiCopy, FiTrash2,
-  FiDownload, FiUpload, FiRotateCcw, FiRotateCw, FiChevronDown, FiChevronRight,
-  FiPlus, FiGrid, FiSliders, FiBox
+  FiUpload, FiRotateCcw, FiRotateCw, FiChevronDown, FiChevronRight,
+  FiPlus, FiGrid, FiSliders, FiBox, FiPackage, FiFile, FiArchive
 } from 'react-icons/fi';
 import {
   ContentBlock, BlockType, BLOCK_CONFIGS,
@@ -558,7 +558,7 @@ export default function ThemeDesigner() {
     }
   };
 
-  // Export theme
+  // Export theme as JSON
   const handleExport = async (id: string) => {
     try {
       const res = await customThemesApi.export(id);
@@ -569,9 +569,40 @@ export default function ThemeDesigner() {
       a.download = `theme-${res.data.name.toLowerCase().replace(/\s+/g, '-')}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Theme exported');
+      toast.success('Theme exported as JSON');
     } catch (error) {
       toast.error('Failed to export theme');
+    }
+  };
+
+  // Export theme as ZIP
+  const handleExportZip = async (id: string) => {
+    try {
+      const theme = themes.find(t => t.id === id);
+      const slug = theme?.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'theme';
+
+      const response = await customThemesApi.exportZip(id);
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${slug}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Theme exported as ZIP');
+    } catch (error) {
+      toast.error('Failed to export theme as ZIP');
+    }
+  };
+
+  // Install theme to installed themes
+  const handleInstall = async (id: string) => {
+    try {
+      await customThemesApi.install(id);
+      toast.success('Theme installed successfully! You can now activate it from Themes.');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to install theme';
+      toast.error(message);
     }
   };
 
@@ -667,19 +698,29 @@ export default function ThemeDesigner() {
                 <div className="p-4">
                   <h3 className="font-semibold text-lg">{theme.name}</h3>
                   <p className="text-gray-400 text-sm mt-1 line-clamp-2">{theme.description || 'No description'}</p>
-                  <div className="flex items-center gap-2 mt-4">
-                    <button onClick={() => loadTheme(theme.id)} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium">
-                      Edit
-                    </button>
-                    <button onClick={() => handleDuplicate(theme.id)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg" title="Duplicate">
-                      <FiCopy size={16} />
-                    </button>
-                    <button onClick={() => handleExport(theme.id)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg" title="Export">
-                      <FiDownload size={16} />
-                    </button>
-                    <button onClick={() => handleDelete(theme.id)} className="p-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg" title="Delete">
-                      <FiTrash2 size={16} />
-                    </button>
+                  <div className="flex flex-col gap-2 mt-4">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => loadTheme(theme.id)} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium">
+                        Edit
+                      </button>
+                      <button onClick={() => handleInstall(theme.id)} className="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1" title="Install to Themes">
+                        <FiPackage size={14} /> Install
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleDuplicate(theme.id)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg" title="Duplicate">
+                        <FiCopy size={16} />
+                      </button>
+                      <button onClick={() => handleExport(theme.id)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg" title="Export JSON">
+                        <FiFile size={16} />
+                      </button>
+                      <button onClick={() => handleExportZip(theme.id)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg" title="Export ZIP">
+                        <FiArchive size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(theme.id)} className="p-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg" title="Delete">
+                        <FiTrash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
