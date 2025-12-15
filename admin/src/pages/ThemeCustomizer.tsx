@@ -5,10 +5,20 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiX, FiSave, FiRefreshCw, FiMonitor, FiTablet, FiSmartphone, FiChevronLeft, FiChevronRight, FiEye, FiSettings, FiType, FiLayout, FiGrid, FiHome as FiHomeIcon } from 'react-icons/fi';
+import { FiX, FiSave, FiRefreshCw, FiMonitor, FiTablet, FiSmartphone, FiChevronLeft, FiChevronRight, FiEye, FiSettings, FiType, FiLayout, FiGrid, FiHome as FiHomeIcon, FiAlertCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { customThemesApi, CustomTheme, CustomThemeSettings } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
+
+// Get the backend URL - in production it's same origin, in development it's port 3000
+const getBackendUrl = () => {
+  // In production, admin is served from the backend
+  if (window.location.port !== '5173') {
+    return window.location.origin;
+  }
+  // In development (Vite dev server on 5173), backend is on port 3000
+  return 'http://localhost:3000';
+};
 import ColorPanel from '../components/ThemeCustomizer/ColorPanel';
 import TypographyPanel from '../components/ThemeCustomizer/TypographyPanel';
 import HeaderPanel from '../components/ThemeCustomizer/HeaderPanel';
@@ -62,6 +72,7 @@ export default function ThemeCustomizer() {
   const navigate = useNavigate();
   useAuthStore(); // Ensure user is authenticated
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const backendUrl = getBackendUrl();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -72,11 +83,46 @@ export default function ThemeCustomizer() {
   const [devicePreview, setDevicePreview] = useState<DevicePreview>('desktop');
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(true);
+  const [previewToken, setPreviewToken] = useState<string | null>(null);
+  const tokenRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load active theme on mount
+  // Get the preview URL with secure token
+  const getPreviewUrl = useCallback(() => {
+    if (!previewToken) return null;
+    return `${backendUrl}?_preview_token=${encodeURIComponent(previewToken)}`;
+  }, [backendUrl, previewToken]);
+
+  // Fetch preview token on mount and refresh before expiry
+  const fetchPreviewToken = useCallback(async () => {
+    try {
+      const response = await customThemesApi.getPreviewToken();
+      setPreviewToken(response.data.token);
+
+      // Refresh token 1 minute before expiry
+      const refreshIn = (response.data.expiresIn - 60) * 1000;
+      if (tokenRefreshTimer.current) {
+        clearTimeout(tokenRefreshTimer.current);
+      }
+      tokenRefreshTimer.current = setTimeout(fetchPreviewToken, Math.max(refreshIn, 60000));
+    } catch (error) {
+      console.error('Failed to get preview token:', error);
+      setPreviewError(true);
+    }
+  }, []);
+
+  // Load active theme and preview token on mount
   useEffect(() => {
     loadActiveTheme();
-  }, []);
+    fetchPreviewToken();
+
+    return () => {
+      if (tokenRefreshTimer.current) {
+        clearTimeout(tokenRefreshTimer.current);
+      }
+    };
+  }, [fetchPreviewToken]);
 
   // Track changes
   useEffect(() => {
@@ -96,10 +142,35 @@ export default function ThemeCustomizer() {
         setActiveTheme(response.data);
         setSettings(response.data.settings);
         setDraftSettings(response.data.settings);
+      } else {
+        // No active theme - try to get all themes and activate one, or create a default
+        const allThemesResponse = await customThemesApi.getAll();
+        if (allThemesResponse.data && allThemesResponse.data.length > 0) {
+          // Activate the first available theme
+          const firstTheme = allThemesResponse.data[0];
+          await customThemesApi.activate(firstTheme.id);
+          setActiveTheme(firstTheme);
+          setSettings(firstTheme.settings);
+          setDraftSettings(firstTheme.settings);
+          toast.success(`Activated theme: ${firstTheme.name}`);
+        } else {
+          // No themes exist - create a default theme
+          const newTheme = await customThemesApi.create({
+            name: 'Default Theme',
+            description: 'Auto-generated default theme',
+            settings: defaultSettings,
+            isDefault: true,
+          });
+          await customThemesApi.activate(newTheme.data.id);
+          setActiveTheme(newTheme.data);
+          setSettings(newTheme.data.settings);
+          setDraftSettings(newTheme.data.settings);
+          toast.success('Created and activated Default Theme');
+        }
       }
     } catch (error) {
       console.error('Error loading theme:', error);
-      toast.error('Failed to load active theme');
+      toast.error('Failed to load or create theme');
     } finally {
       setLoading(false);
     }
@@ -216,8 +287,9 @@ export default function ThemeCustomizer() {
       setHasChanges(false);
       toast.success('Theme published successfully!');
       // Refresh iframe to show published changes
-      if (iframeRef.current) {
-        iframeRef.current.src = iframeRef.current.src;
+      if (iframeRef.current && previewToken) {
+        setPreviewLoading(true);
+        iframeRef.current.src = getPreviewUrl() || '';
       }
     } catch (error) {
       toast.error('Failed to publish theme');
@@ -432,7 +504,7 @@ export default function ThemeCustomizer() {
             </div>
           </div>
           <a
-            href="http://localhost:3000"
+            href={backendUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-blue-400 hover:text-blue-300"
@@ -444,16 +516,63 @@ export default function ThemeCustomizer() {
         {/* Preview iframe */}
         <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
           <div
-            className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300"
+            className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
             style={{ width: getPreviewWidth(), height: devicePreview === 'desktop' ? '100%' : '90%' }}
           >
-            <iframe
-              ref={iframeRef}
-              src="http://localhost:3000"
-              className="w-full h-full border-0"
-              title="Theme Preview"
-              onLoad={applyPreviewStyles}
-            />
+            {/* Loading state */}
+            {(previewLoading || !previewToken) && !previewError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+                <p className="text-gray-600">Loading preview...</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {!previewToken ? 'Authenticating...' : `Connecting to ${backendUrl}`}
+                </p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {previewError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 p-8">
+                <FiAlertCircle className="text-orange-500 mb-4" size={48} />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Cannot Connect to Server</h3>
+                <p className="text-gray-500 text-center mb-4 max-w-md">
+                  The backend server at <code className="bg-gray-200 px-2 py-1 rounded">{backendUrl}</code> is not responding.
+                </p>
+                <div className="bg-gray-800 text-gray-200 rounded-lg p-4 mb-4 font-mono text-sm max-w-md">
+                  <p className="text-gray-400 mb-2"># Start the backend server:</p>
+                  <p>npm run start:dev</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    setPreviewError(false);
+                    setPreviewLoading(true);
+                    await fetchPreviewToken();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  <FiRefreshCw size={16} /> Retry Connection
+                </button>
+              </div>
+            )}
+
+            {/* Only render iframe when we have a valid preview token */}
+            {previewToken && (
+              <iframe
+                ref={iframeRef}
+                src={getPreviewUrl() || ''}
+                className="w-full h-full border-0"
+                title="Theme Preview"
+                onLoad={() => {
+                  setPreviewLoading(false);
+                  setPreviewError(false);
+                  applyPreviewStyles();
+                }}
+                onError={() => {
+                  setPreviewLoading(false);
+                  setPreviewError(true);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   CustomThemesService,
   CreateCustomThemeDto,
@@ -27,7 +28,10 @@ import { UserRole } from '@prisma/client';
 @Controller('api/custom-themes')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CustomThemesController {
-  constructor(private readonly customThemesService: CustomThemesService) {}
+  constructor(
+    private readonly customThemesService: CustomThemesService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   /**
    * Get all custom themes
@@ -137,5 +141,36 @@ export class CustomThemesController {
   @Roles(UserRole.ADMIN)
   generateCSS(@Body() body: { settings: any; customCSS?: string }) {
     return { css: this.customThemesService.generateCSS(body.settings, body.customCSS) };
+  }
+
+  /**
+   * Generate a short-lived preview token for iframe embedding
+   * This token allows the Theme Customizer to embed the site in an iframe securely.
+   * Token expires in 15 minutes and contains a 'preview' claim.
+   *
+   * Security considerations:
+   * - Only ADMIN/EDITOR can get preview tokens
+   * - Tokens are short-lived (15 min)
+   * - Token is tied to user ID for audit trail
+   * - Backend validates token before allowing iframe embedding
+   *
+   * POST /api/custom-themes/preview-token
+   */
+  @Post('preview-token')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  generatePreviewToken(@Request() req: any) {
+    const token = this.jwtService.sign(
+      {
+        sub: req.user.id,
+        preview: true, // Special claim to identify preview tokens
+        purpose: 'theme-customizer-preview',
+      },
+      { expiresIn: '15m' },
+    );
+
+    return {
+      token,
+      expiresIn: 900, // 15 minutes in seconds
+    };
   }
 }

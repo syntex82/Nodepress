@@ -251,6 +251,8 @@ export const customThemesApi = {
   import: (data: any) => api.post<CustomTheme>('/custom-themes/import', data),
   generateCSS: (settings: CustomThemeSettings, customCSS?: string) =>
     api.post<{ css: string }>('/custom-themes/generate-css', { settings, customCSS }),
+  // Generate a short-lived preview token for secure iframe embedding
+  getPreviewToken: () => api.post<{ token: string; expiresIn: number }>('/custom-themes/preview-token'),
 };
 
 // Media block for WYSIWYG editor

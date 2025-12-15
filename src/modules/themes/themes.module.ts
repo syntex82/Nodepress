@@ -4,6 +4,8 @@
  */
 
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThemesService } from './themes.service';
 import { ThemesController } from './themes.controller';
 import { ThemeRendererService } from './theme-renderer.service';
@@ -16,7 +18,20 @@ import { SettingsModule } from '../settings/settings.module';
 import { MenusModule } from '../menus/menus.module';
 
 @Module({
-  imports: [ContentModule, SettingsModule, MenusModule],
+  imports: [
+    ContentModule,
+    SettingsModule,
+    MenusModule,
+    // JWT for preview token generation
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '15m' }, // Short-lived preview tokens
+      }),
+      inject: [ConfigService],
+    }),
+  ],
   providers: [ThemesService, ThemeRendererService, ThemeEditorService, CustomThemesService],
   controllers: [ThemesController, ThemeEditorController, CustomThemesController],
   exports: [ThemesService, ThemeRendererService, ThemeEditorService, CustomThemesService],
