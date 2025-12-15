@@ -1,33 +1,58 @@
 /**
  * Theme Customizer Page
  * WordPress-like live theme customization with sidebar and preview
+ * Features: Real-time preview via postMessage, Undo/Redo, Import/Export, Element Inspector
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiX, FiSave, FiRefreshCw, FiMonitor, FiTablet, FiSmartphone, FiChevronLeft, FiChevronRight, FiEye, FiSettings, FiType, FiLayout, FiGrid, FiHome as FiHomeIcon, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiSave, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEye, FiSettings, FiType, FiLayout, FiGrid, FiHome as FiHomeIcon, FiAlertCircle, FiCode, FiTarget, FiRotateCcw, FiRotateCw, FiDownload, FiDroplet, FiBox } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { customThemesApi, CustomTheme, CustomThemeSettings } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 
-// Get the backend URL - in production it's same origin, in development it's port 3000
-const getBackendUrl = () => {
-  // In production, admin is served from the backend
-  if (window.location.port !== '5173') {
-    return window.location.origin;
-  }
-  // In development (Vite dev server on 5173), backend is on port 3000
-  return 'http://localhost:3000';
-};
+// Components
 import ColorPanel from '../components/ThemeCustomizer/ColorPanel';
 import TypographyPanel from '../components/ThemeCustomizer/TypographyPanel';
 import HeaderPanel from '../components/ThemeCustomizer/HeaderPanel';
 import FooterPanel from '../components/ThemeCustomizer/FooterPanel';
 import LayoutPanel from '../components/ThemeCustomizer/LayoutPanel';
 import HomepagePanel from '../components/ThemeCustomizer/HomepagePanel';
+import CustomCSSEditor from '../components/ThemeCustomizer/CustomCSSEditor';
+import ColorPaletteManager from '../components/ThemeCustomizer/ColorPaletteManager';
+import AdvancedTypographyPanel from '../components/ThemeCustomizer/AdvancedTypographyPanel';
+import SpacingLayoutPanel from '../components/ThemeCustomizer/SpacingLayoutPanel';
+import ElementInspector from '../components/ThemeCustomizer/ElementInspector';
+import ImportExportPanel from '../components/ThemeCustomizer/ImportExportPanel';
+import ResponsivePreview, { ViewportSize, getViewportWidth } from '../components/ThemeCustomizer/ResponsivePreview';
+import { useUndoRedo } from '../components/ThemeCustomizer/useUndoRedo';
 
-type DevicePreview = 'desktop' | 'tablet' | 'mobile';
-type PanelType = 'colors' | 'typography' | 'header' | 'footer' | 'layout' | 'homepage' | null;
+// Get the backend URL - in production it's same origin, in development it's port 3000
+const getBackendUrl = () => {
+  if (window.location.port !== '5173') {
+    return window.location.origin;
+  }
+  return 'http://localhost:3000';
+};
+
+type PanelType = 'colors' | 'typography' | 'header' | 'footer' | 'layout' | 'homepage' | 'css' | 'palette' | 'advTypography' | 'spacing' | 'inspector' | 'importExport' | null;
+
+interface ElementInfo {
+  tagName: string;
+  id: string;
+  className: string;
+  text: string;
+  styles: {
+    color: string;
+    backgroundColor: string;
+    fontSize: string;
+    fontFamily: string;
+    fontWeight: string;
+    margin: string;
+    padding: string;
+    borderRadius: string;
+  };
+}
 
 // Default theme settings
 const defaultSettings: CustomThemeSettings = {
@@ -70,23 +95,48 @@ const defaultSettings: CustomThemeSettings = {
 
 export default function ThemeCustomizer() {
   const navigate = useNavigate();
-  useAuthStore(); // Ensure user is authenticated
+  useAuthStore();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const backendUrl = getBackendUrl();
 
+  // Core state
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTheme, setActiveTheme] = useState<CustomTheme | null>(null);
-  const [settings, setSettings] = useState<CustomThemeSettings>(defaultSettings);
-  const [draftSettings, setDraftSettings] = useState<CustomThemeSettings>(defaultSettings);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [devicePreview, setDevicePreview] = useState<DevicePreview>('desktop');
+  const [savedSettings, setSavedSettings] = useState<CustomThemeSettings>(defaultSettings);
+
+  // Undo/Redo for draft settings
+  const {
+    state: draftSettings,
+    setState: setDraftSettings,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useUndoRedo<CustomThemeSettings>(defaultSettings);
+
+  // Custom CSS (separate from theme settings)
+  const [customCSS, setCustomCSS] = useState('');
+
+  // UI state
+  const [viewport, setViewport] = useState<ViewportSize>('full');
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Preview state
   const [previewError, setPreviewError] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(true);
+  const [previewReady, setPreviewReady] = useState(false);
   const [previewToken, setPreviewToken] = useState<string | null>(null);
   const tokenRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Element Inspector state
+  const [inspectorEnabled, setInspectorEnabled] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
+
+  // Computed
+  const hasChanges = JSON.stringify(savedSettings) !== JSON.stringify(draftSettings);
 
   // Get the preview URL with secure token
   const getPreviewUrl = useCallback(() => {
@@ -124,15 +174,37 @@ export default function ThemeCustomizer() {
     };
   }, [fetchPreviewToken]);
 
-  // Track changes
+  // Listen for messages from iframe
   useEffect(() => {
-    setHasChanges(JSON.stringify(settings) !== JSON.stringify(draftSettings));
-  }, [settings, draftSettings]);
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data;
+      if (!data || typeof data !== 'object') return;
 
-  // Apply live preview styles to iframe
+      switch (data.type) {
+        case 'CUSTOMIZER_READY':
+          setPreviewReady(true);
+          // Send initial styles
+          applyPreviewStyles();
+          break;
+        case 'CUSTOMIZER_PONG':
+          setPreviewReady(true);
+          break;
+        case 'ELEMENT_SELECTED':
+          setSelectedElement(data.element);
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Apply live preview styles to iframe via postMessage
   useEffect(() => {
-    applyPreviewStyles();
-  }, [draftSettings]);
+    if (previewReady) {
+      applyPreviewStyles();
+    }
+  }, [draftSettings, customCSS, previewReady]);
 
   const loadActiveTheme = async () => {
     try {
@@ -140,21 +212,20 @@ export default function ThemeCustomizer() {
       const response = await customThemesApi.getActive();
       if (response.data) {
         setActiveTheme(response.data);
-        setSettings(response.data.settings);
-        setDraftSettings(response.data.settings);
+        setSavedSettings(response.data.settings);
+        resetHistory(response.data.settings);
+        setCustomCSS(response.data.customCSS || '');
       } else {
-        // No active theme - try to get all themes and activate one, or create a default
         const allThemesResponse = await customThemesApi.getAll();
         if (allThemesResponse.data && allThemesResponse.data.length > 0) {
-          // Activate the first available theme
           const firstTheme = allThemesResponse.data[0];
           await customThemesApi.activate(firstTheme.id);
           setActiveTheme(firstTheme);
-          setSettings(firstTheme.settings);
-          setDraftSettings(firstTheme.settings);
+          setSavedSettings(firstTheme.settings);
+          resetHistory(firstTheme.settings);
+          setCustomCSS(firstTheme.customCSS || '');
           toast.success(`Activated theme: ${firstTheme.name}`);
         } else {
-          // No themes exist - create a default theme
           const newTheme = await customThemesApi.create({
             name: 'Default Theme',
             description: 'Auto-generated default theme',
@@ -163,8 +234,8 @@ export default function ThemeCustomizer() {
           });
           await customThemesApi.activate(newTheme.data.id);
           setActiveTheme(newTheme.data);
-          setSettings(newTheme.data.settings);
-          setDraftSettings(newTheme.data.settings);
+          setSavedSettings(newTheme.data.settings);
+          resetHistory(newTheme.data.settings);
           toast.success('Created and activated Default Theme');
         }
       }
@@ -176,30 +247,53 @@ export default function ThemeCustomizer() {
     }
   };
 
+  // Send styles to iframe via postMessage (cross-origin safe)
   const applyPreviewStyles = useCallback(() => {
     if (!iframeRef.current?.contentWindow) return;
-    try {
-      const iframeDoc = iframeRef.current.contentDocument;
-      if (!iframeDoc) return;
 
-      // Generate CSS from settings
-      const css = generatePreviewCSS(draftSettings);
+    const css = generatePreviewCSS(draftSettings);
 
-      // Find or create style element
-      let styleEl = iframeDoc.getElementById('customizer-preview-styles');
-      if (!styleEl) {
-        styleEl = iframeDoc.createElement('style');
-        styleEl.id = 'customizer-preview-styles';
-        iframeDoc.head.appendChild(styleEl);
-      }
-      styleEl.textContent = css;
-    } catch (e) {
-      // Cross-origin restrictions may prevent this
-      console.warn('Could not apply preview styles:', e);
+    // Send CSS via postMessage
+    iframeRef.current.contentWindow.postMessage({
+      type: 'CUSTOMIZER_UPDATE_STYLES',
+      css: css,
+    }, '*');
+
+    // Send custom CSS separately
+    iframeRef.current.contentWindow.postMessage({
+      type: 'CUSTOMIZER_UPDATE_CUSTOM_CSS',
+      customCSS: customCSS,
+    }, '*');
+  }, [draftSettings, customCSS]);
+
+  // Toggle element inspector in iframe
+  const toggleInspector = useCallback((enabled: boolean) => {
+    setInspectorEnabled(enabled);
+    if (!enabled) {
+      setSelectedElement(null);
     }
-  }, [draftSettings]);
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'CUSTOMIZER_TOGGLE_INSPECTOR',
+        enabled,
+      }, '*');
+    }
+  }, []);
+
+  // Load a Google Font in the iframe
+  const loadFontInPreview = useCallback((font: string) => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'CUSTOMIZER_LOAD_FONT',
+        font,
+      }, '*');
+    }
+  }, []);
 
   const generatePreviewCSS = (s: CustomThemeSettings): string => {
+    const letterSpacing = s.typography.letterSpacing || 0;
+    const bodyWeight = s.typography.bodyWeight || 400;
+
     return `
       :root {
         --color-primary: ${s.colors.primary} !important;
@@ -213,11 +307,13 @@ export default function ThemeCustomizer() {
         --color-link-hover: ${s.colors.linkHover} !important;
         --color-border: ${s.colors.border} !important;
         --color-accent: ${s.colors.accent} !important;
-        --font-heading: ${s.typography.headingFont}, system-ui, sans-serif !important;
-        --font-body: ${s.typography.bodyFont}, system-ui, sans-serif !important;
+        --font-heading: "${s.typography.headingFont}", system-ui, sans-serif !important;
+        --font-body: "${s.typography.bodyFont}", system-ui, sans-serif !important;
         --font-size-base: ${s.typography.baseFontSize}px !important;
         --line-height: ${s.typography.lineHeight} !important;
         --heading-weight: ${s.typography.headingWeight} !important;
+        --body-weight: ${bodyWeight} !important;
+        --letter-spacing: ${letterSpacing}em !important;
         --content-width: ${s.layout.contentWidth}px !important;
         --section-padding: ${s.spacing.sectionPadding}px !important;
         --element-spacing: ${s.spacing.elementSpacing}px !important;
@@ -225,36 +321,66 @@ export default function ThemeCustomizer() {
         --border-radius: ${s.borders.radius}px !important;
         --border-width: ${s.borders.width}px !important;
       }
-      body { 
-        background-color: ${s.colors.background} !important; 
+      body {
+        background-color: ${s.colors.background} !important;
         color: ${s.colors.text} !important;
-        font-family: ${s.typography.bodyFont}, system-ui, sans-serif !important;
+        font-family: "${s.typography.bodyFont}", system-ui, sans-serif !important;
         font-size: ${s.typography.baseFontSize}px !important;
+        font-weight: ${bodyWeight} !important;
         line-height: ${s.typography.lineHeight} !important;
+        letter-spacing: ${letterSpacing}em !important;
       }
       h1, h2, h3, h4, h5, h6 {
-        font-family: ${s.typography.headingFont}, system-ui, sans-serif !important;
+        font-family: "${s.typography.headingFont}", system-ui, sans-serif !important;
         font-weight: ${s.typography.headingWeight} !important;
         color: ${s.colors.heading} !important;
+        letter-spacing: ${letterSpacing}em !important;
       }
+      ${s.typography.h1Size ? `h1 { font-size: ${s.typography.h1Size}px !important; }` : ''}
+      ${s.typography.h2Size ? `h2 { font-size: ${s.typography.h2Size}px !important; }` : ''}
+      ${s.typography.h3Size ? `h3 { font-size: ${s.typography.h3Size}px !important; }` : ''}
+      ${s.typography.h4Size ? `h4 { font-size: ${s.typography.h4Size}px !important; }` : ''}
+      ${s.typography.h5Size ? `h5 { font-size: ${s.typography.h5Size}px !important; }` : ''}
+      ${s.typography.h6Size ? `h6 { font-size: ${s.typography.h6Size}px !important; }` : ''}
       a { color: ${s.colors.link} !important; }
       a:hover { color: ${s.colors.linkHover} !important; }
+      .container, .content-wrapper, main { max-width: ${s.layout.contentWidth}px !important; }
+      section { padding: ${s.spacing.sectionPadding}px 0 !important; }
+      .card, .post-card, .widget { border-radius: ${s.borders.radius}px !important; border-width: ${s.borders.width}px !important; }
     `;
   };
 
-  const updateSettings = (path: string, value: any) => {
-    setDraftSettings(prev => {
-      const newSettings = { ...prev };
-      const keys = path.split('.');
-      let current: any = newSettings;
-      for (let i = 0; i < keys.length - 1; i++) {
-        current[keys[i]] = { ...current[keys[i]] };
-        current = current[keys[i]];
-      }
-      current[keys[keys.length - 1]] = value;
-      return newSettings;
-    });
-  };
+  const updateSettings = useCallback((path: string, value: any, actionName?: string) => {
+    const newSettings = JSON.parse(JSON.stringify(draftSettings));
+    const keys = path.split('.');
+    let current: any = newSettings;
+    for (let i = 0; i < keys.length - 1; i++) {
+      current = current[keys[i]];
+    }
+    current[keys[keys.length - 1]] = value;
+    setDraftSettings(newSettings, actionName || `Update ${path}`);
+  }, [draftSettings, setDraftSettings]);
+
+  // Apply a full color palette
+  const applyColorPalette = useCallback((colors: CustomThemeSettings['colors']) => {
+    const newSettings = { ...draftSettings, colors };
+    setDraftSettings(newSettings, 'Apply color palette');
+  }, [draftSettings, setDraftSettings]);
+
+  // Import settings from JSON
+  const handleImportSettings = useCallback((importedSettings: CustomThemeSettings, importedCSS?: string) => {
+    setDraftSettings(importedSettings, 'Import settings');
+    if (importedCSS !== undefined) {
+      setCustomCSS(importedCSS);
+    }
+  }, [setDraftSettings]);
+
+  // Add CSS from element inspector
+  const handleAddCSSFromInspector = useCallback((css: string) => {
+    setCustomCSS(prev => prev ? prev + '\n\n' + css : css);
+    setActivePanel('css');
+    toast.success('CSS rule added');
+  }, []);
 
   const handleSaveDraft = async () => {
     if (!activeTheme) {
@@ -263,9 +389,11 @@ export default function ThemeCustomizer() {
     }
     try {
       setSaving(true);
-      await customThemesApi.update(activeTheme.id, { settings: draftSettings });
-      setSettings(draftSettings);
-      setHasChanges(false);
+      await customThemesApi.update(activeTheme.id, {
+        settings: draftSettings,
+        customCSS: customCSS,
+      });
+      setSavedSettings(draftSettings);
       toast.success('Draft saved successfully');
     } catch (error) {
       toast.error('Failed to save draft');
@@ -281,14 +409,17 @@ export default function ThemeCustomizer() {
     }
     try {
       setSaving(true);
-      await customThemesApi.update(activeTheme.id, { settings: draftSettings });
+      await customThemesApi.update(activeTheme.id, {
+        settings: draftSettings,
+        customCSS: customCSS,
+      });
       await customThemesApi.activate(activeTheme.id);
-      setSettings(draftSettings);
-      setHasChanges(false);
+      setSavedSettings(draftSettings);
       toast.success('Theme published successfully!');
       // Refresh iframe to show published changes
       if (iframeRef.current && previewToken) {
         setPreviewLoading(true);
+        setPreviewReady(false);
         iframeRef.current.src = getPreviewUrl() || '';
       }
     } catch (error) {
@@ -299,7 +430,8 @@ export default function ThemeCustomizer() {
   };
 
   const handleReset = () => {
-    setDraftSettings(settings);
+    resetHistory(savedSettings);
+    setCustomCSS(activeTheme?.customCSS || '');
     toast.success('Changes reverted');
   };
 
@@ -314,20 +446,27 @@ export default function ThemeCustomizer() {
   };
 
   const getPreviewWidth = () => {
-    switch (devicePreview) {
-      case 'tablet': return '768px';
-      case 'mobile': return '375px';
-      default: return '100%';
-    }
+    const width = getViewportWidth(viewport);
+    return typeof width === 'number' ? `${width}px` : width;
   };
 
-  const panels = [
+  // Panel definitions - Basic and Advanced
+  const basicPanels = [
     { id: 'colors' as PanelType, name: 'Colors', icon: FiEye },
     { id: 'typography' as PanelType, name: 'Typography', icon: FiType },
     { id: 'header' as PanelType, name: 'Header', icon: FiLayout },
     { id: 'footer' as PanelType, name: 'Footer', icon: FiGrid },
     { id: 'layout' as PanelType, name: 'Layout', icon: FiSettings },
     { id: 'homepage' as PanelType, name: 'Homepage', icon: FiHomeIcon },
+  ];
+
+  const advancedPanels = [
+    { id: 'palette' as PanelType, name: 'Color Palette', icon: FiDroplet },
+    { id: 'advTypography' as PanelType, name: 'Advanced Typography', icon: FiType },
+    { id: 'spacing' as PanelType, name: 'Spacing & Layout', icon: FiBox },
+    { id: 'css' as PanelType, name: 'Custom CSS', icon: FiCode },
+    { id: 'inspector' as PanelType, name: 'Element Inspector', icon: FiTarget },
+    { id: 'importExport' as PanelType, name: 'Import / Export', icon: FiDownload },
   ];
 
   if (loading) {
@@ -369,18 +508,39 @@ export default function ThemeCustomizer() {
         {/* Panel Navigation */}
         {!sidebarCollapsed && !activePanel && (
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-2">
-              {panels.map(panel => (
-                <button
-                  key={panel.id}
-                  onClick={() => setActivePanel(panel.id)}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                >
-                  <panel.icon size={20} />
-                  <span>{panel.name}</span>
-                  <FiChevronRight size={16} className="ml-auto" />
-                </button>
-              ))}
+            {/* Basic Panels */}
+            <div className="mb-4">
+              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-1">Basic</h3>
+              <div className="space-y-1">
+                {basicPanels.map(panel => (
+                  <button
+                    key={panel.id}
+                    onClick={() => setActivePanel(panel.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                  >
+                    <panel.icon size={18} />
+                    <span className="text-sm">{panel.name}</span>
+                    <FiChevronRight size={14} className="ml-auto text-gray-500" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Advanced Panels */}
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-1">Advanced</h3>
+              <div className="space-y-1">
+                {advancedPanels.map(panel => (
+                  <button
+                    key={panel.id}
+                    onClick={() => setActivePanel(panel.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                  >
+                    <panel.icon size={18} />
+                    <span className="text-sm">{panel.name}</span>
+                    <FiChevronRight size={14} className="ml-auto text-gray-500" />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -389,31 +549,27 @@ export default function ThemeCustomizer() {
         {!sidebarCollapsed && activePanel && (
           <div className="flex-1 overflow-y-auto">
             <button
-              onClick={() => setActivePanel(null)}
+              onClick={() => { setActivePanel(null); toggleInspector(false); }}
               className="flex items-center gap-2 p-4 text-gray-400 hover:text-white border-b border-gray-700 w-full"
             >
               <FiChevronLeft size={16} />
               <span>Back</span>
             </button>
             <div className="p-4">
-              {activePanel === 'colors' && (
-                <ColorPanel settings={draftSettings} onChange={updateSettings} />
-              )}
-              {activePanel === 'typography' && (
-                <TypographyPanel settings={draftSettings} onChange={updateSettings} />
-              )}
-              {activePanel === 'header' && (
-                <HeaderPanel settings={draftSettings} onChange={updateSettings} />
-              )}
-              {activePanel === 'footer' && (
-                <FooterPanel settings={draftSettings} onChange={updateSettings} />
-              )}
-              {activePanel === 'layout' && (
-                <LayoutPanel settings={draftSettings} onChange={updateSettings} />
-              )}
-              {activePanel === 'homepage' && (
-                <HomepagePanel settings={draftSettings} onChange={updateSettings} />
-              )}
+              {/* Basic Panels */}
+              {activePanel === 'colors' && <ColorPanel settings={draftSettings} onChange={updateSettings} />}
+              {activePanel === 'typography' && <TypographyPanel settings={draftSettings} onChange={updateSettings} />}
+              {activePanel === 'header' && <HeaderPanel settings={draftSettings} onChange={updateSettings} />}
+              {activePanel === 'footer' && <FooterPanel settings={draftSettings} onChange={updateSettings} />}
+              {activePanel === 'layout' && <LayoutPanel settings={draftSettings} onChange={updateSettings} />}
+              {activePanel === 'homepage' && <HomepagePanel settings={draftSettings} onChange={updateSettings} />}
+              {/* Advanced Panels */}
+              {activePanel === 'palette' && <ColorPaletteManager settings={draftSettings} onChange={updateSettings} onApplyPalette={applyColorPalette} />}
+              {activePanel === 'advTypography' && <AdvancedTypographyPanel settings={draftSettings} onChange={updateSettings} onLoadFont={loadFontInPreview} />}
+              {activePanel === 'spacing' && <SpacingLayoutPanel settings={draftSettings} onChange={updateSettings} />}
+              {activePanel === 'css' && <CustomCSSEditor value={customCSS} onChange={setCustomCSS} />}
+              {activePanel === 'inspector' && <ElementInspector isEnabled={inspectorEnabled} onToggle={toggleInspector} selectedElement={selectedElement} onGenerateCSS={handleAddCSSFromInspector} />}
+              {activePanel === 'importExport' && <ImportExportPanel settings={draftSettings} customCSS={customCSS} themeName={activeTheme?.name || 'Theme'} onImport={handleImportSettings} />}
             </div>
           </div>
         )}
@@ -421,15 +577,15 @@ export default function ThemeCustomizer() {
         {/* Collapsed sidebar icons */}
         {sidebarCollapsed && (
           <div className="flex-1 overflow-y-auto py-4">
-            <div className="space-y-2 px-2">
-              {panels.map(panel => (
+            <div className="space-y-1 px-2">
+              {[...basicPanels, ...advancedPanels].map(panel => (
                 <button
                   key={panel.id}
                   onClick={() => { setSidebarCollapsed(false); setActivePanel(panel.id); }}
-                  className="w-full p-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors flex items-center justify-center"
+                  className="w-full p-2.5 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors flex items-center justify-center"
                   title={panel.name}
                 >
-                  <panel.icon size={20} />
+                  <panel.icon size={18} />
                 </button>
               ))}
             </div>
@@ -440,6 +596,27 @@ export default function ThemeCustomizer() {
         <div className="p-4 border-t border-gray-700 space-y-2">
           {!sidebarCollapsed && (
             <>
+              {/* Undo/Redo buttons */}
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+                  title="Undo"
+                >
+                  <FiRotateCcw size={14} />
+                  Undo
+                </button>
+                <button
+                  onClick={redo}
+                  disabled={!canRedo}
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+                  title="Redo"
+                >
+                  <FiRotateCw size={14} />
+                  Redo
+                </button>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveDraft}
@@ -479,45 +656,30 @@ export default function ThemeCustomizer() {
         <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-4">
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-400">Preview</span>
-            <div className="flex bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => setDevicePreview('desktop')}
-                className={`p-2 rounded ${devicePreview === 'desktop' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-                title="Desktop"
-              >
-                <FiMonitor size={16} />
-              </button>
-              <button
-                onClick={() => setDevicePreview('tablet')}
-                className={`p-2 rounded ${devicePreview === 'tablet' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-                title="Tablet"
-              >
-                <FiTablet size={16} />
-              </button>
-              <button
-                onClick={() => setDevicePreview('mobile')}
-                className={`p-2 rounded ${devicePreview === 'mobile' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-                title="Mobile"
-              >
-                <FiSmartphone size={16} />
-              </button>
-            </div>
+            <ResponsivePreview currentViewport={viewport} onViewportChange={setViewport} />
           </div>
-          <a
-            href={backendUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-blue-400 hover:text-blue-300"
-          >
-            Open in new tab →
-          </a>
+          <div className="flex items-center gap-4">
+            {inspectorEnabled && (
+              <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded">
+                Inspector Active
+              </span>
+            )}
+            <a
+              href={backendUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-400 hover:text-blue-300"
+            >
+              Open in new tab →
+            </a>
+          </div>
         </div>
 
         {/* Preview iframe */}
         <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
           <div
             className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
-            style={{ width: getPreviewWidth(), height: devicePreview === 'desktop' ? '100%' : '90%' }}
+            style={{ width: getPreviewWidth(), height: viewport === 'full' ? '100%' : '90%', maxHeight: '100%' }}
           >
             {/* Loading state */}
             {(previewLoading || !previewToken) && !previewError && (

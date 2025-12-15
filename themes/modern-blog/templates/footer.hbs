@@ -50,6 +50,162 @@
   <!-- Theme Scripts -->
   <script src="/themes/modern-blog/assets/js/main.js"></script>
 
+  <!-- Theme Customizer Live Preview Script -->
+  <script>
+    (function() {
+      // Only run if we're in an iframe (Theme Customizer preview)
+      if (window.parent === window) return;
+
+      // Create or get the customizer styles element
+      let customizerStyleEl = document.getElementById('customizer-preview-styles');
+      if (!customizerStyleEl) {
+        customizerStyleEl = document.createElement('style');
+        customizerStyleEl.id = 'customizer-preview-styles';
+        document.head.appendChild(customizerStyleEl);
+      }
+
+      // Create or get the custom CSS element
+      let customCSSEl = document.getElementById('customizer-custom-css');
+      if (!customCSSEl) {
+        customCSSEl = document.createElement('style');
+        customCSSEl.id = 'customizer-custom-css';
+        document.head.appendChild(customCSSEl);
+      }
+
+      // Track element inspector state
+      let inspectorEnabled = false;
+      let hoveredElement = null;
+      let selectedElement = null;
+      const highlightOverlay = document.createElement('div');
+      highlightOverlay.id = 'customizer-highlight-overlay';
+      highlightOverlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #3B82F6;background:rgba(59,130,246,0.1);z-index:999999;display:none;transition:all 0.1s ease;';
+      document.body.appendChild(highlightOverlay);
+
+      const selectedOverlay = document.createElement('div');
+      selectedOverlay.id = 'customizer-selected-overlay';
+      selectedOverlay.style.cssText = 'position:fixed;pointer-events:none;border:2px dashed #EF4444;background:rgba(239,68,68,0.05);z-index:999998;display:none;';
+      document.body.appendChild(selectedOverlay);
+
+      // Element inspector mouse handlers
+      function handleMouseOver(e) {
+        if (!inspectorEnabled) return;
+        hoveredElement = e.target;
+        const rect = e.target.getBoundingClientRect();
+        highlightOverlay.style.display = 'block';
+        highlightOverlay.style.top = rect.top + 'px';
+        highlightOverlay.style.left = rect.left + 'px';
+        highlightOverlay.style.width = rect.width + 'px';
+        highlightOverlay.style.height = rect.height + 'px';
+      }
+
+      function handleMouseOut(e) {
+        if (!inspectorEnabled) return;
+        highlightOverlay.style.display = 'none';
+      }
+
+      function handleClick(e) {
+        if (!inspectorEnabled) return;
+        e.preventDefault();
+        e.stopPropagation();
+        selectedElement = e.target;
+        const rect = e.target.getBoundingClientRect();
+        selectedOverlay.style.display = 'block';
+        selectedOverlay.style.top = rect.top + 'px';
+        selectedOverlay.style.left = rect.left + 'px';
+        selectedOverlay.style.width = rect.width + 'px';
+        selectedOverlay.style.height = rect.height + 'px';
+
+        // Get computed styles
+        const computed = window.getComputedStyle(e.target);
+        const elementInfo = {
+          tagName: e.target.tagName.toLowerCase(),
+          id: e.target.id,
+          className: e.target.className,
+          text: e.target.innerText?.substring(0, 50),
+          styles: {
+            color: computed.color,
+            backgroundColor: computed.backgroundColor,
+            fontSize: computed.fontSize,
+            fontFamily: computed.fontFamily,
+            fontWeight: computed.fontWeight,
+            margin: computed.margin,
+            padding: computed.padding,
+            borderRadius: computed.borderRadius,
+          }
+        };
+        window.parent.postMessage({ type: 'ELEMENT_SELECTED', element: elementInfo }, '*');
+      }
+
+      // Listen for messages from parent (Theme Customizer)
+      window.addEventListener('message', function(event) {
+        // Validate message origin in production
+        const data = event.data;
+        if (!data || typeof data !== 'object') return;
+
+        switch (data.type) {
+          case 'CUSTOMIZER_UPDATE_STYLES':
+            // Apply CSS from customizer
+            if (data.css) {
+              customizerStyleEl.textContent = data.css;
+            }
+            break;
+
+          case 'CUSTOMIZER_UPDATE_CUSTOM_CSS':
+            // Apply custom CSS
+            if (typeof data.customCSS === 'string') {
+              customCSSEl.textContent = data.customCSS;
+            }
+            break;
+
+          case 'CUSTOMIZER_TOGGLE_INSPECTOR':
+            inspectorEnabled = data.enabled;
+            document.body.style.cursor = inspectorEnabled ? 'crosshair' : '';
+            if (!inspectorEnabled) {
+              highlightOverlay.style.display = 'none';
+              selectedOverlay.style.display = 'none';
+              selectedElement = null;
+            }
+            break;
+
+          case 'CUSTOMIZER_SCROLL_TO':
+            if (data.selector) {
+              const el = document.querySelector(data.selector);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            break;
+
+          case 'CUSTOMIZER_PING':
+            // Respond to ping from customizer to confirm connection
+            window.parent.postMessage({ type: 'CUSTOMIZER_PONG' }, '*');
+            break;
+
+          case 'CUSTOMIZER_LOAD_FONT':
+            // Dynamically load a Google Font
+            if (data.font) {
+              const fontName = data.font.replace(/ /g, '+');
+              const linkId = 'google-font-' + fontName;
+              if (!document.getElementById(linkId)) {
+                const link = document.createElement('link');
+                link.id = linkId;
+                link.rel = 'stylesheet';
+                link.href = 'https://fonts.googleapis.com/css2?family=' + fontName + ':wght@300;400;500;600;700;800&display=swap';
+                document.head.appendChild(link);
+              }
+            }
+            break;
+        }
+      });
+
+      // Add event listeners for element inspector
+      document.addEventListener('mouseover', handleMouseOver, true);
+      document.addEventListener('mouseout', handleMouseOut, true);
+      document.addEventListener('click', handleClick, true);
+
+      // Notify parent that preview is ready
+      window.parent.postMessage({ type: 'CUSTOMIZER_READY' }, '*');
+    })();
+  </script>
+
   <!-- Admin Bar Script - Shows customize button for ADMIN/EDITOR users -->
   <script>
     (function() {

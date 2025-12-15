@@ -154,6 +154,8 @@ export interface CustomThemeSettings {
     baseFontSize: number;
     lineHeight: number;
     headingWeight: number;
+    bodyWeight?: number;
+    letterSpacing?: number;
     h1Size?: number;
     h2Size?: number;
     h3Size?: number;
@@ -171,6 +173,7 @@ export interface CustomThemeSettings {
     sectionPadding: number;
     elementSpacing: number;
     containerPadding: number;
+    contentMargin?: { top: number; right: number; bottom: number; left: number };
   };
   borders: {
     radius: number;
