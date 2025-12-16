@@ -88,6 +88,33 @@ export class PublicController {
   }
 
   /**
+   * My Courses page - redirects to React LMS student dashboard
+   * GET /my-courses
+   */
+  @Get('my-courses')
+  async myCourses(@Res() res: Response) {
+    res.redirect('http://localhost:5173/admin/lms/dashboard');
+  }
+
+  /**
+   * My Account page - redirects to React profile settings
+   * GET /my-account
+   */
+  @Get('my-account')
+  async myAccount(@Res() res: Response) {
+    res.redirect('http://localhost:5173/admin/settings/profile');
+  }
+
+  /**
+   * Orders page - redirects to React orders list
+   * GET /orders
+   */
+  @Get('orders')
+  async ordersPage(@Res() res: Response) {
+    res.redirect('http://localhost:5173/admin/shop/orders');
+  }
+
+  /**
    * Login page
    * GET /login
    */
