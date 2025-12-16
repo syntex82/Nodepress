@@ -1,0 +1,166 @@
+{{> header}}
+
+<section class="checkout-section">
+  <div class="container">
+    <h1>Checkout</h1>
+    
+    <div class="checkout-layout">
+      <div class="checkout-form-container">
+        <form id="checkoutForm" class="checkout-form">
+          <!-- Contact Information -->
+          <div class="form-section">
+            <h3>Contact Information</h3>
+            {{#if user}}
+            <p class="logged-in-as">Logged in as <strong>{{user.email}}</strong></p>
+            <input type="hidden" name="email" value="{{user.email}}">
+            {{else}}
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required placeholder="you@example.com">
+            </div>
+            <p class="form-hint">Already have an account? <a href="/login?redirect=/checkout">Log in</a></p>
+            {{/if}}
+          </div>
+
+          <!-- Billing Address -->
+          <div class="form-section">
+            <h3>Billing Address</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="address">Address</label>
+              <input type="text" id="address" name="address" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city" required>
+              </div>
+              <div class="form-group">
+                <label for="state">State/Province</label>
+                <input type="text" id="state" name="state" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="postalCode">Postal Code</label>
+                <input type="text" id="postalCode" name="postalCode" required>
+              </div>
+              <div class="form-group">
+                <label for="country">Country</label>
+                <select id="country" name="country" required>
+                  <option value="">Select Country</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment (Placeholder) -->
+          <div class="form-section">
+            <h3>Payment</h3>
+            <div class="payment-placeholder">
+              <p>Payment integration coming soon.</p>
+              <p class="form-hint">For demo purposes, orders will be placed without payment.</p>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="placeOrderBtn">
+            <span class="btn-text">Place Order</span>
+            <span class="btn-loading" style="display: none;">Processing...</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="order-summary">
+        <h3>Order Summary</h3>
+        <div id="orderItems" class="order-items">
+          <div class="loading-state">Loading...</div>
+        </div>
+        <div class="summary-totals">
+          <div class="summary-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+          <div class="summary-row"><span>Tax</span><span id="tax">$0.00</span></div>
+          <div class="summary-row total"><span>Total</span><span id="total">$0.00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.checkout-section { padding: var(--section-padding) 0; }
+.checkout-section h1 { margin-bottom: 2rem; }
+.checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; }
+@media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; } }
+.checkout-form-container {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+}
+.form-section { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: var(--border-width) solid var(--color-border); }
+.form-section:last-of-type { border-bottom: none; margin-bottom: 1rem; }
+.form-section h3 { font-size: 1.1rem; margin-bottom: 1rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem; }
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: var(--color-background);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: calc(var(--border-radius) / 2);
+  color: var(--color-text);
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.logged-in-as { color: var(--color-text-muted); margin: 0; }
+.payment-placeholder {
+  background: var(--color-background);
+  padding: 1.5rem;
+  border-radius: calc(var(--border-radius) / 2);
+  text-align: center;
+}
+.order-summary {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+.order-summary h3 { margin-bottom: 1rem; }
+.order-items { margin-bottom: 1rem; max-height: 300px; overflow-y: auto; }
+.order-item { display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.9rem; }
+.order-item-image { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+.order-item-details { flex: 1; }
+.order-item-title { font-weight: 500; }
+.order-item-qty { color: var(--color-text-muted); font-size: 0.85rem; }
+.order-item-price { font-weight: 500; }
+.summary-totals { border-top: var(--border-width) solid var(--color-border); padding-top: 1rem; }
+.summary-row { display: flex; justify-content: space-between; padding: 0.5rem 0; }
+.summary-row.total { font-weight: 600; font-size: 1.1rem; color: var(--color-heading); padding-top: 0.75rem; }
+.btn-lg { padding: 1rem 2rem; font-size: 1.1rem; }
+</style>
+
+<script src="/themes/{{themeSlug}}/assets/js/checkout.js"></script>
+
+{{> footer}}
+

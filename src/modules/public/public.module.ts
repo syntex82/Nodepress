@@ -10,9 +10,10 @@ import { ThemesModule } from '../themes/themes.module';
 import { ShopModule } from '../shop/shop.module';
 import { LmsModule } from '../lms/lms.module';
 import { UsersModule } from '../users/users.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [ContentModule, ThemesModule, ShopModule, LmsModule, UsersModule],
+  imports: [ContentModule, ThemesModule, ShopModule, LmsModule, UsersModule, AuthModule],
   controllers: [PublicController],
 })
 export class PublicModule {}

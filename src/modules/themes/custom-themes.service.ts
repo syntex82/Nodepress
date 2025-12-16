@@ -452,9 +452,26 @@ img { max-width: 100%; height: auto; display: block; }
 .nav-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
 .logo { font-size: 1.5rem; font-weight: 700; color: var(--color-heading); }
 .logo:hover { color: var(--color-primary); }
-.nav-menu { display: flex; gap: 1.5rem; align-items: center; }
+.nav-menu { display: flex; gap: 1.5rem; align-items: center; flex: 1; justify-content: center; }
 .nav-link { font-weight: 500; color: var(--color-text); padding: 0.5rem 1rem; border-radius: var(--border-radius); }
 .nav-link:hover { background: var(--color-primary); color: #fff; }
+
+/* Nav Actions */
+.nav-actions { display: flex; align-items: center; gap: 1rem; }
+.nav-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: var(--color-text); transition: var(--transition); position: relative; }
+.nav-icon:hover { background: var(--color-background); color: var(--color-primary); }
+.cart-count { position: absolute; top: -2px; right: -2px; background: var(--color-primary); color: #fff; font-size: 0.7rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+.nav-auth-link { margin-left: 0.5rem; }
+.user-menu { position: relative; }
+.user-menu-btn { display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; padding: 0.25rem; border-radius: var(--border-radius); transition: var(--transition); }
+.user-menu-btn:hover { background: var(--color-background); }
+.user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+.user-name { color: var(--color-text); font-weight: 500; font-size: 0.9rem; }
+.user-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: var(--color-surface); border: var(--border-width) solid var(--color-border); border-radius: calc(var(--border-radius) / 2); min-width: 180px; box-shadow: var(--shadow-lg); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition); z-index: 1001; }
+.user-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-item { display: block; width: 100%; padding: 0.75rem 1rem; text-align: left; background: none; border: none; color: var(--color-text); font-size: 0.9rem; cursor: pointer; transition: var(--transition); }
+.dropdown-item:hover { background: var(--color-background); color: var(--color-primary); }
+.dropdown-divider { height: 1px; background: var(--color-border); margin: 0.5rem 0; }
 
 /* Hero Section */
 .hero {
@@ -601,6 +618,7 @@ img { max-width: 100%; height: auto; display: block; }
       await fs.mkdir(path.join(themePath, 'templates'), { recursive: true });
       await fs.mkdir(path.join(themePath, 'assets'), { recursive: true });
       await fs.mkdir(path.join(themePath, 'assets', 'css'), { recursive: true });
+      await fs.mkdir(path.join(themePath, 'assets', 'js'), { recursive: true });
 
       // Generate theme.json
       const themeJson = {
@@ -616,6 +634,12 @@ img { max-width: 100%; height: auto; display: block; }
       // Generate CSS
       const cssContent = this.generateCSS(settings, theme.customCSS || undefined);
       await fs.writeFile(path.join(themePath, 'assets', 'css', 'style.css'), cssContent);
+
+      // Generate JavaScript files
+      const jsFiles = this.generateJavaScriptFiles();
+      for (const [name, content] of Object.entries(jsFiles)) {
+        await fs.writeFile(path.join(themePath, 'assets', 'js', `${name}.js`), content);
+      }
 
       // Generate templates from pages/blocks
       const pages = (theme.pages as unknown as ThemePageData[]) || [];
@@ -712,6 +736,12 @@ img { max-width: 100%; height: auto; display: block; }
     // Generate CSS
     const cssContent = this.generateCSS(settings, theme.customCSS || undefined);
     zip.addFile(`${slug}/assets/css/style.css`, Buffer.from(cssContent));
+
+    // Generate JavaScript files
+    const jsFiles = this.generateJavaScriptFiles();
+    for (const [name, content] of Object.entries(jsFiles)) {
+      zip.addFile(`${slug}/assets/js/${name}.js`, Buffer.from(content));
+    }
 
     // Add templates to ZIP
     for (const [name, content] of Object.entries(templates)) {
@@ -1195,6 +1225,30 @@ img { max-width: 100%; height: auto; display: block; }
             <a href="/blog" class="nav-link">Blog</a>
           {{/if}}
         </div>
+        <div class="nav-actions">
+          <a href="/cart" class="nav-icon cart-icon" title="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span class="cart-count" id="cartCount" style="display: none;">0</span>
+          </a>
+          {{#if user}}
+          <div class="user-menu">
+            <button class="user-menu-btn" id="userMenuBtn">
+              <span class="user-avatar">{{substring user.name 0 1}}</span>
+              <span class="user-name">{{user.name}}</span>
+            </button>
+            <div class="user-dropdown" id="userDropdown">
+              <a href="/my-account" class="dropdown-item">My Account</a>
+              <a href="/my-courses" class="dropdown-item">My Courses</a>
+              <a href="/orders" class="dropdown-item">Orders</a>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" id="logoutBtn">Sign Out</button>
+            </div>
+          </div>
+          {{else}}
+          <a href="/login" class="nav-link nav-auth-link">Sign In</a>
+          <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+          {{/if}}
+        </div>
       </div>
     </div>
   </nav>
@@ -1207,6 +1261,7 @@ img { max-width: 100%; height: auto; display: block; }
       <p>&copy; {{year}} {{site.name}}. All rights reserved.</p>
     </div>
   </footer>
+  <script src="/themes/${slug}/assets/js/main.js"></script>
 </body>
 </html>
 `;
@@ -1454,10 +1509,158 @@ ${renderedHomeBlocks}
       <p style="font-size: 1.5rem; color: var(--color-primary); font-weight: 600;">
         {{#if (eq course.priceType 'FREE')}}Free{{else}}\${{course.price}}{{/if}}
       </p>
-      <button class="btn btn-primary btn-lg" style="margin-top: 1rem;">Enroll Now</button>
+      <button class="btn btn-primary btn-lg" data-add-course="{{course.id}}" style="margin-top: 1rem;">Enroll Now</button>
     </div>
   </div>
 </div>
+{{> footer}}
+`;
+
+    const login = `{{> header}}
+<section class="auth-section" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: var(--section-padding) 0;">
+  <div class="container" style="max-width: 420px;">
+    <div class="auth-card" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 2.5rem;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0.5rem;">Welcome Back</h1>
+        <p style="color: var(--color-text-muted); margin: 0;">Sign in to your account</p>
+      </div>
+      {{#if error}}<div class="alert alert-error" style="padding: 1rem; background: rgba(239,68,68,0.1); border: 1px solid var(--color-error); color: var(--color-error); border-radius: 8px; margin-bottom: 1.5rem;">{{error}}</div>{{/if}}
+      <form id="loginForm" method="POST" action="/login">
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email</label>
+          <input type="email" name="email" required placeholder="you@example.com" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
+        </div>
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Password</label>
+          <input type="password" name="password" required placeholder="••••••••" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="submitBtn"><span class="btn-text">Sign In</span><span class="btn-loading" style="display: none;">Signing in...</span></button>
+      </form>
+      <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
+        <p style="margin: 0; color: var(--color-text-muted);">Don't have an account? <a href="/register">Create one</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/themes/${slug}/assets/js/auth.js"></script>
+{{> footer}}
+`;
+
+    const register = `{{> header}}
+<section class="auth-section" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: var(--section-padding) 0;">
+  <div class="container" style="max-width: 420px;">
+    <div class="auth-card" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 2.5rem;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0.5rem;">Create Account</h1>
+        <p style="color: var(--color-text-muted); margin: 0;">Join us and start learning</p>
+      </div>
+      {{#if error}}<div class="alert alert-error" style="padding: 1rem; background: rgba(239,68,68,0.1); border: 1px solid var(--color-error); color: var(--color-error); border-radius: 8px; margin-bottom: 1.5rem;">{{error}}</div>{{/if}}
+      <form id="registerForm" method="POST" action="/register">
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Full Name</label>
+          <input type="text" name="name" required placeholder="John Doe" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
+        </div>
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email</label>
+          <input type="email" name="email" required placeholder="you@example.com" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
+        </div>
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Password</label>
+          <input type="password" name="password" required placeholder="••••••••" minlength="8" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
+        </div>
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Confirm Password</label>
+          <input type="password" name="confirmPassword" required placeholder="••••••••" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="submitBtn"><span class="btn-text">Create Account</span><span class="btn-loading" style="display: none;">Creating...</span></button>
+      </form>
+      <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
+        <p style="margin: 0; color: var(--color-text-muted);">Already have an account? <a href="/login">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/themes/${slug}/assets/js/auth.js"></script>
+{{> footer}}
+`;
+
+    const cart = `{{> header}}
+<section class="cart-section" style="padding: var(--section-padding) 0;">
+  <div class="container">
+    <h1>Shopping Cart</h1>
+    <div class="cart-layout" id="cartContent" style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+      <div class="cart-items" id="cartItems" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem;">
+        <div class="loading-state" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">Loading cart...</div>
+      </div>
+      <div class="cart-summary" id="cartSummary" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content;">
+        <h3 style="margin-bottom: 1rem;">Order Summary</h3>
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);"><span>Tax</span><span id="tax">$0.00</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 600; font-size: 1.1rem;"><span>Total</span><span id="total">$0.00</span></div>
+        <a href="/checkout" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Proceed to Checkout</a>
+        <a href="/shop" class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 0.5rem;">Continue Shopping</a>
+      </div>
+    </div>
+    <div class="empty-cart" id="emptyCart" style="display: none; text-align: center; padding: 4rem 2rem;">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p style="color: var(--color-text-muted); margin-bottom: 2rem;">Looks like you haven't added anything yet.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="/shop" class="btn btn-primary">Browse Products</a>
+        <a href="/courses" class="btn btn-outline">Explore Courses</a>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/themes/${slug}/assets/js/cart.js"></script>
+{{> footer}}
+`;
+
+    const checkout = `{{> header}}
+<section class="checkout-section" style="padding: var(--section-padding) 0;">
+  <div class="container">
+    <h1>Checkout</h1>
+    <div class="checkout-layout" style="display: grid; grid-template-columns: 1fr 380px; gap: 2rem;">
+      <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 2rem;">
+        <form id="checkoutForm">
+          <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
+            <h3 style="margin-bottom: 1rem;">Contact Information</h3>
+            {{#if user}}<p style="color: var(--color-text-muted);">Logged in as <strong>{{user.email}}</strong></p>{{else}}
+            <div style="margin-bottom: 1rem;"><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email</label><input type="email" name="email" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+            {{/if}}
+          </div>
+          <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
+            <h3 style="margin-bottom: 1rem;">Billing Address</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">First Name</label><input type="text" name="firstName" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+              <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Last Name</label><input type="text" name="lastName" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+            </div>
+            <div style="margin-bottom: 1rem;"><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Address</label><input type="text" name="address" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">City</label><input type="text" name="city" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+              <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">State</label><input type="text" name="state" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Postal Code</label><input type="text" name="postalCode" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
+              <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Country</label><select name="country" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"><option value="">Select</option><option value="US">United States</option><option value="CA">Canada</option><option value="GB">United Kingdom</option></select></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" id="placeOrderBtn"><span class="btn-text">Place Order</span><span class="btn-loading" style="display: none;">Processing...</span></button>
+        </form>
+      </div>
+      <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content;">
+        <h3 style="margin-bottom: 1rem;">Order Summary</h3>
+        <div id="orderItems" style="margin-bottom: 1rem; max-height: 300px; overflow-y: auto;"><div class="loading-state">Loading...</div></div>
+        <div style="border-top: 1px solid var(--color-border); padding-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;"><span>Tax</span><span id="tax">$0.00</span></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 600; font-size: 1.1rem;"><span>Total</span><span id="total">$0.00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/themes/${slug}/assets/js/checkout.js"></script>
 {{> footer}}
 `;
 
@@ -1473,6 +1676,10 @@ ${renderedHomeBlocks}
       'single-product': singleProduct,
       courses,
       'single-course': singleCourse,
+      login,
+      register,
+      cart,
+      checkout,
     };
 
     // Generate custom page templates from pages array (non-home pages with blocks)
@@ -1492,6 +1699,64 @@ ${pageBlocks}
     }
 
     return result;
+  }
+
+  /**
+   * Generate JavaScript files for the theme
+   */
+  private generateJavaScriptFiles(): Record<string, string> {
+    const mainJs = `(function(){
+  'use strict';
+  document.addEventListener('DOMContentLoaded',function(){initUserMenu();updateCartCount();initAddToCart();});
+  function initUserMenu(){var b=document.getElementById('userMenuBtn'),d=document.getElementById('userDropdown');if(b&&d){b.addEventListener('click',function(e){e.stopPropagation();d.classList.toggle('active');});document.addEventListener('click',function(){d.classList.remove('active');});}var l=document.getElementById('logoutBtn');if(l){l.addEventListener('click',function(){localStorage.removeItem('access_token');window.location.href='/logout';});}}
+  async function updateCartCount(){var c=document.getElementById('cartCount');if(!c)return;try{var r=await fetch('/api/shop/cart',{credentials:'include',headers:getAuthHeaders()});if(!r.ok){c.style.display='none';return;}var cart=await r.json();var count=cart.items?.reduce((s,i)=>s+i.quantity,0)||0;if(count>0){c.textContent=count;c.style.display='flex';}else{c.style.display='none';}}catch(e){c.style.display='none';}}
+  function initAddToCart(){document.querySelectorAll('[data-add-product]').forEach(b=>{b.addEventListener('click',async function(){await addToCart('product',this.dataset.addProduct);});});document.querySelectorAll('[data-add-course]').forEach(b=>{b.addEventListener('click',async function(){await addToCart('course',this.dataset.addCourse);});});}
+  async function addToCart(type,id){try{var endpoint=type==='course'?'/api/shop/cart/add-course':'/api/shop/cart/add';var body=type==='course'?{courseId:id}:{productId:id,quantity:1};var r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...getAuthHeaders()},body:JSON.stringify(body),credentials:'include'});if(r.ok){updateCartCount();showNotification('Added to cart!','success');}else{var e=await r.json();showNotification(e.message||'Failed to add to cart','error');}}catch(e){showNotification('Failed to add to cart','error');}}
+  function showNotification(msg,type){var n=document.createElement('div');n.className='notification notification-'+type;n.textContent=msg;n.style.cssText='position:fixed;top:80px;right:20px;padding:1rem 1.5rem;background:'+(type==='success'?'var(--color-success)':type==='error'?'var(--color-error)':'var(--color-primary)')+';color:white;border-radius:8px;z-index:9999;';document.body.appendChild(n);setTimeout(()=>n.remove(),3000);}
+  function getAuthHeaders(){var t=localStorage.getItem('access_token');return t?{'Authorization':'Bearer '+t}:{};}
+  window.addToCart=addToCart;window.updateCartCount=updateCartCount;
+})();`;
+
+    const authJs = `(function(){
+  'use strict';
+  var loginForm=document.getElementById('loginForm');
+  if(loginForm){loginForm.addEventListener('submit',async function(e){e.preventDefault();var btn=document.getElementById('submitBtn'),txt=btn.querySelector('.btn-text'),load=btn.querySelector('.btn-loading');txt.style.display='none';load.style.display='inline';btn.disabled=true;var fd=new FormData(loginForm);try{var r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:fd.get('email'),password:fd.get('password')}),credentials:'include'});var d=await r.json();if(r.ok){localStorage.setItem('access_token',d.access_token);window.location.href=new URLSearchParams(window.location.search).get('redirect')||'/';}else{showError(loginForm,d.message||'Invalid email or password');resetBtn(btn,txt,load);}}catch(e){showError(loginForm,'An error occurred');resetBtn(btn,txt,load);}});}
+  var regForm=document.getElementById('registerForm');
+  if(regForm){regForm.addEventListener('submit',async function(e){e.preventDefault();var btn=document.getElementById('submitBtn'),txt=btn.querySelector('.btn-text'),load=btn.querySelector('.btn-loading');var fd=new FormData(regForm);if(fd.get('password')!==fd.get('confirmPassword')){showError(regForm,'Passwords do not match');return;}txt.style.display='none';load.style.display='inline';btn.disabled=true;try{var r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),password:fd.get('password')}),credentials:'include'});var d=await r.json();if(r.ok){var lr=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:fd.get('email'),password:fd.get('password')}),credentials:'include'});if(lr.ok){var ld=await lr.json();localStorage.setItem('access_token',ld.access_token);window.location.href='/';}else{window.location.href='/login';}}else{showError(regForm,d.message||'Registration failed');resetBtn(btn,txt,load);}}catch(e){showError(regForm,'An error occurred');resetBtn(btn,txt,load);}});}
+  function showError(f,m){var a=f.querySelector('.alert-error');if(!a){a=document.createElement('div');a.className='alert alert-error';f.insertBefore(a,f.firstChild);}a.textContent=m;}
+  function resetBtn(b,t,l){t.style.display='inline';l.style.display='none';b.disabled=false;}
+})();`;
+
+    const cartJs = `(function(){
+  'use strict';
+  var API='/api/shop/cart';
+  document.addEventListener('DOMContentLoaded',function(){loadCart();});
+  async function loadCart(){var items=document.getElementById('cartItems'),empty=document.getElementById('emptyCart'),content=document.getElementById('cartContent');if(!items)return;try{var r=await fetch(API,{credentials:'include',headers:getAuthHeaders()});if(!r.ok)throw new Error();var cart=await r.json();if(!cart.items||cart.items.length===0){if(content)content.style.display='none';if(empty)empty.style.display='block';return;}if(content)content.style.display='grid';if(empty)empty.style.display='none';renderItems(cart.items);updateSummary(cart);}catch(e){items.innerHTML='<p>Failed to load cart</p>';}}
+  function renderItems(items){var el=document.getElementById('cartItems');if(!el)return;el.innerHTML=items.map(i=>{var isCourse=i.type==='COURSE';var img=i.product?.images?.[0]||i.course?.thumbnail||'/placeholder.jpg';var title=i.product?.name||i.course?.title||'Item';var price=i.product?.price||i.course?.price||0;return '<div class="cart-item" data-item-id="'+i.id+'"><img src="'+img+'" alt="'+title+'" style="width:100px;height:100px;object-fit:cover;border-radius:8px;"><div style="flex:1;"><div style="font-weight:600;">'+title+'</div><div style="font-size:0.8rem;color:var(--color-primary);">'+(isCourse?'Course':'Product')+'</div><div style="color:var(--color-text-muted);">$'+parseFloat(price).toFixed(2)+'</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">'+(isCourse?'':'<div style="display:flex;align-items:center;gap:0.5rem;"><button onclick="updateQuantity(\\''+i.id+'\\','+(i.quantity-1)+')" style="width:32px;height:32px;border:1px solid var(--color-border);background:var(--color-background);border-radius:4px;cursor:pointer;">-</button><span>'+i.quantity+'</span><button onclick="updateQuantity(\\''+i.id+'\\','+(i.quantity+1)+')" style="width:32px;height:32px;border:1px solid var(--color-border);background:var(--color-background);border-radius:4px;cursor:pointer;">+</button></div>')+'<button onclick="removeItem(\\''+i.id+'\\')\" style="background:none;border:none;color:var(--color-error);cursor:pointer;">Remove</button></div></div>';}).join('');}
+  function updateSummary(cart){var sub=cart.items.reduce((s,i)=>{var p=i.product?.price||i.course?.price||0;return s+(parseFloat(p)*i.quantity);},0);var tax=sub*0.1;document.getElementById('subtotal').textContent='$'+sub.toFixed(2);document.getElementById('tax').textContent='$'+tax.toFixed(2);document.getElementById('total').textContent='$'+(sub+tax).toFixed(2);}
+  window.updateQuantity=async function(id,qty){if(qty<1){removeItem(id);return;}try{await fetch(API+'/item/'+id,{method:'PUT',headers:{'Content-Type':'application/json',...getAuthHeaders()},body:JSON.stringify({quantity:qty}),credentials:'include'});loadCart();if(window.updateCartCount)window.updateCartCount();}catch(e){}};
+  window.removeItem=async function(id){try{await fetch(API+'/item/'+id,{method:'DELETE',headers:getAuthHeaders(),credentials:'include'});loadCart();if(window.updateCartCount)window.updateCartCount();}catch(e){}};
+  function getAuthHeaders(){var t=localStorage.getItem('access_token');return t?{'Authorization':'Bearer '+t}:{};}
+})();`;
+
+    const checkoutJs = `(function(){
+  'use strict';
+  var API='/api/shop';
+  document.addEventListener('DOMContentLoaded',function(){loadOrderSummary();setupForm();});
+  async function loadOrderSummary(){var el=document.getElementById('orderItems');if(!el)return;try{var r=await fetch(API+'/cart',{credentials:'include',headers:getAuthHeaders()});if(!r.ok)throw new Error();var cart=await r.json();if(!cart.items||cart.items.length===0){window.location.href='/cart';return;}renderItems(cart.items);updateTotals(cart);}catch(e){el.innerHTML='<p>Failed to load</p>';}}
+  function renderItems(items){var el=document.getElementById('orderItems');if(!el)return;el.innerHTML=items.map(i=>{var isCourse=i.type==='COURSE';var img=i.product?.images?.[0]||i.course?.thumbnail||'/placeholder.jpg';var title=i.product?.name||i.course?.title||'Item';var price=i.product?.price||i.course?.price||0;return '<div style="display:flex;gap:0.75rem;padding:0.75rem 0;border-bottom:1px solid var(--color-border);font-size:0.9rem;"><img src="'+img+'" style="width:50px;height:50px;object-fit:cover;border-radius:4px;"><div style="flex:1;"><div style="font-weight:500;">'+title+'</div><div style="color:var(--color-text-muted);font-size:0.85rem;">'+(isCourse?'Course':'Qty: '+i.quantity)+'</div></div><div style="font-weight:500;">$'+(parseFloat(price)*i.quantity).toFixed(2)+'</div></div>';}).join('');}
+  function updateTotals(cart){var sub=cart.items.reduce((s,i)=>{var p=i.product?.price||i.course?.price||0;return s+(parseFloat(p)*i.quantity);},0);var tax=sub*0.1;document.getElementById('subtotal').textContent='$'+sub.toFixed(2);document.getElementById('tax').textContent='$'+tax.toFixed(2);document.getElementById('total').textContent='$'+(sub+tax).toFixed(2);}
+  function setupForm(){var form=document.getElementById('checkoutForm');if(!form)return;form.addEventListener('submit',async function(e){e.preventDefault();var btn=document.getElementById('placeOrderBtn'),txt=btn.querySelector('.btn-text'),load=btn.querySelector('.btn-loading');txt.style.display='none';load.style.display='inline';btn.disabled=true;var fd=new FormData(form);try{var r=await fetch(API+'/orders',{method:'POST',headers:{'Content-Type':'application/json',...getAuthHeaders()},body:JSON.stringify({email:fd.get('email'),billingAddress:{firstName:fd.get('firstName'),lastName:fd.get('lastName'),address:fd.get('address'),city:fd.get('city'),state:fd.get('state'),postalCode:fd.get('postalCode'),country:fd.get('country')}}),credentials:'include'});if(r.ok){var o=await r.json();alert('Order placed! ID: '+o.id);window.location.href='/';}else{var e=await r.json();alert(e.message||'Failed');resetBtn(btn,txt,load);}}catch(e){alert('Error');resetBtn(btn,txt,load);}});}
+  function resetBtn(b,t,l){t.style.display='inline';l.style.display='none';b.disabled=false;}
+  function getAuthHeaders(){var t=localStorage.getItem('access_token');return t?{'Authorization':'Bearer '+t}:{};}
+})();`;
+
+    return {
+      main: mainJs,
+      auth: authJs,
+      cart: cartJs,
+      checkout: checkoutJs,
+    };
   }
 
   /**

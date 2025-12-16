@@ -1,0 +1,142 @@
+{{> header}}
+
+<section class="auth-section">
+  <div class="container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Create Account</h1>
+        <p>Join us and start learning today</p>
+      </div>
+
+      {{#if error}}
+      <div class="alert alert-error">
+        {{error}}
+      </div>
+      {{/if}}
+
+      <form id="registerForm" class="auth-form" method="POST" action="/register">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required placeholder="John Doe" autocomplete="name">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="new-password" minlength="8">
+          <small class="form-hint">Must be at least 8 characters</small>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="••••••••" autocomplete="new-password">
+        </div>
+
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input type="checkbox" name="terms" required>
+            <span>I agree to the <a href="/terms">Terms of Service</a></span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+          <span class="btn-text">Create Account</span>
+          <span class="btn-loading" style="display: none;">Creating account...</span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="/login">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.auth-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px);
+  padding: var(--section-padding) 0;
+}
+.auth-card {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.auth-header h1 { margin-bottom: 0.5rem; }
+.auth-header p { color: var(--color-text-muted); margin-bottom: 0; }
+.auth-form .form-group { margin-bottom: 1.25rem; }
+.auth-form label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: var(--color-background);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: calc(var(--border-radius) / 2);
+  color: var(--color-text);
+  transition: var(--transition);
+}
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+.form-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+.form-options { margin-bottom: 1.5rem; font-size: 0.9rem; }
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.checkbox-label input { accent-color: var(--color-primary); }
+.btn-block { width: 100%; justify-content: center; }
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: var(--border-width) solid var(--color-border);
+}
+.auth-footer p { margin: 0; color: var(--color-text-muted); }
+.alert {
+  padding: 1rem;
+  border-radius: calc(var(--border-radius) / 2);
+  margin-bottom: 1.5rem;
+}
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+}
+</style>
+
+<script src="/themes/{{themeSlug}}/assets/js/auth.js"></script>
+
+{{> footer}}
+

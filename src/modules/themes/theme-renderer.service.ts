@@ -152,10 +152,13 @@ export class ThemeRendererService {
         ...data,
         site: siteSettings,
         year: currentYear,
+        themeSlug: activeTheme.slug,
         menus: {
           header: headerMenu,
           footer: footerMenu,
         },
+        // User info for templates (login/register/cart)
+        user: data.user || null,
         // User info for admin bar
         currentUser: user
           ? {
@@ -296,6 +299,63 @@ export class ThemeRendererService {
         courses: profile.instructedCourses || [],
         badges: profile.badges || [],
         certificates: profile.certificates || [],
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render login page
+   */
+  async renderLogin(
+    redirect?: string,
+    error?: string,
+    user?: { id: string; role: string; name?: string } | null,
+  ) {
+    return this.render(
+      'login',
+      {
+        redirect,
+        error,
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render register page
+   */
+  async renderRegister(error?: string, user?: { id: string; role: string; name?: string } | null) {
+    return this.render(
+      'register',
+      {
+        error,
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render cart page
+   */
+  async renderCart(user?: { id: string; role: string; name?: string } | null) {
+    return this.render(
+      'cart',
+      {
+        user,
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render checkout page
+   */
+  async renderCheckout(user?: { id: string; role: string; name?: string } | null) {
+    return this.render(
+      'checkout',
+      {
+        user,
       },
       user,
     );

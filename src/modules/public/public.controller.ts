@@ -3,8 +3,8 @@
  * Handles public-facing routes and renders theme templates
  */
 
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get, Post, Body, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { PostsService } from '../content/services/posts.service';
 import { PagesService } from '../content/services/pages.service';
 import { ThemeRendererService } from '../themes/theme-renderer.service';
@@ -13,8 +13,10 @@ import { CategoriesService } from '../shop/services/categories.service';
 import { CoursesService } from '../lms/services/courses.service';
 import { CertificatesService } from '../lms/services/certificates.service';
 import { ProfilesService } from '../users/profiles.service';
+import { AuthService } from '../auth/auth.service';
 import { PostStatus } from '@prisma/client';
 import { CourseLevel, CoursePriceType } from '../lms/dto/course.dto';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @Controller()
 export class PublicController {
@@ -27,6 +29,7 @@ export class PublicController {
     private coursesService: CoursesService,
     private certificatesService: CertificatesService,
     private profilesService: ProfilesService,
+    private authService: AuthService,
   ) {}
 
   /**
@@ -71,6 +74,144 @@ export class PublicController {
     // In development, redirect to Vite dev server (React app is at /admin/*)
     const originalUrl = res.req?.originalUrl || '/lms';
     res.redirect(`http://localhost:5173/admin${originalUrl}`);
+  }
+
+  /**
+   * Login page
+   * GET /login
+   */
+  @Get('login')
+  @UseGuards(OptionalJwtAuthGuard)
+  async loginPage(@Req() req: Request, @Query('redirect') redirect: string, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      // If already logged in, redirect to home or specified redirect
+      if (user) {
+        return res.redirect(redirect || '/');
+      }
+      const html = await this.themeRenderer.renderLogin(redirect);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering login page:', error);
+      res.status(500).send(`Error rendering login page: ${error.message}`);
+    }
+  }
+
+  /**
+   * Login form submission
+   * POST /login
+   */
+  @Post('login')
+  async loginSubmit(
+    @Body() body: { email: string; password: string },
+    @Query('redirect') redirect: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const result = await this.authService.login({ email: body.email, password: body.password });
+      // Set JWT as HTTP-only cookie for SSR pages
+      res.cookie('access_token', result.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      res.redirect(redirect || '/');
+    } catch (error) {
+      const html = await this.themeRenderer.renderLogin(redirect, 'Invalid email or password');
+      res.send(html);
+    }
+  }
+
+  /**
+   * Register page
+   * GET /register
+   */
+  @Get('register')
+  @UseGuards(OptionalJwtAuthGuard)
+  async registerPage(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      // If already logged in, redirect to home
+      if (user) {
+        return res.redirect('/');
+      }
+      const html = await this.themeRenderer.renderRegister();
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering register page:', error);
+      res.status(500).send(`Error rendering register page: ${error.message}`);
+    }
+  }
+
+  /**
+   * Register form submission
+   * POST /register
+   */
+  @Post('register')
+  async registerSubmit(
+    @Body() body: { name: string; email: string; password: string },
+    @Res() res: Response,
+  ) {
+    try {
+      await this.authService.register({ name: body.name, email: body.email, password: body.password });
+      // Auto-login after registration
+      const result = await this.authService.login({ email: body.email, password: body.password });
+      res.cookie('access_token', result.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.redirect('/');
+    } catch (error) {
+      const html = await this.themeRenderer.renderRegister(error.message || 'Registration failed');
+      res.send(html);
+    }
+  }
+
+  /**
+   * Logout
+   * GET /logout
+   */
+  @Get('logout')
+  async logout(@Res() res: Response) {
+    res.clearCookie('access_token');
+    res.redirect('/');
+  }
+
+  /**
+   * Cart page
+   * GET /cart
+   */
+  @Get('cart')
+  @UseGuards(OptionalJwtAuthGuard)
+  async cartPage(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      const html = await this.themeRenderer.renderCart(user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering cart page:', error);
+      res.status(500).send(`Error rendering cart page: ${error.message}`);
+    }
+  }
+
+  /**
+   * Checkout page
+   * GET /checkout
+   */
+  @Get('checkout')
+  @UseGuards(OptionalJwtAuthGuard)
+  async checkoutPage(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      const html = await this.themeRenderer.renderCheckout(user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering checkout page:', error);
+      res.status(500).send(`Error rendering checkout page: ${error.message}`);
+    }
   }
 
   /**
