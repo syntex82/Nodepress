@@ -245,10 +245,12 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 | **TypeScript 5+** | Type-safe development |
 | **Prisma 6** | Next-generation ORM |
 | **PostgreSQL 15+** | Relational database |
+| **Redis** | Caching, sessions, job queues |
+| **BullMQ** | Background job processing |
 | **Passport.js** | Authentication middleware |
 | **JWT** | Stateless authentication |
 | **Nodemailer** | Email sending |
-| **Multer** | File upload handling |
+| **AWS S3** | Cloud file storage |
 | **Sharp** | Image processing & optimization |
 | **Handlebars** | Server-side templating |
 | **Stripe** | Payment processing |
@@ -274,6 +276,92 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 </td>
 </tr>
 </table>
+
+<br />
+
+---
+
+## 🏗️ Scaling Architecture
+
+WordPress Node CMS is designed for **horizontal scaling** and production deployments. Run multiple instances behind a load balancer to handle increased traffic.
+
+### Architecture Diagram
+
+```
+                                    ┌─────────────────┐
+                                    │   CloudFlare    │
+                                    │   (CDN + WAF)   │
+                                    └────────┬────────┘
+                                             │
+                                    ┌────────▼────────┐
+                                    │     Nginx       │
+                                    │ (Load Balancer) │
+                                    └────────┬────────┘
+                                             │
+              ┌──────────────────────────────┼──────────────────────────────┐
+              │                              │                              │
+     ┌────────▼────────┐            ┌────────▼────────┐            ┌────────▼────────┐
+     │   App Instance  │            │   App Instance  │            │   App Instance  │
+     │    (Port 3001)  │            │    (Port 3002)  │            │    (Port 3003)  │
+     └────────┬────────┘            └────────┬────────┘            └────────┬────────┘
+              │                              │                              │
+              └──────────────────────────────┼──────────────────────────────┘
+                                             │
+              ┌──────────────────────────────┼──────────────────────────────┐
+              │                              │                              │
+     ┌────────▼────────┐            ┌────────▼────────┐            ┌────────▼────────┐
+     │   PostgreSQL    │            │      Redis      │            │   S3 / R2       │
+     │   (Database)    │            │ (Cache + Queue) │            │ (File Storage)  │
+     └─────────────────┘            └─────────────────┘            └─────────────────┘
+```
+
+### Infrastructure Components
+
+| Component | Purpose | Scaling Strategy |
+|-----------|---------|------------------|
+| **Load Balancer** | Distributes traffic across instances | Nginx, AWS ALB, or Cloudflare |
+| **App Instances** | Handles API requests | Scale horizontally (add more instances) |
+| **PostgreSQL** | Primary data store | Connection pooling, read replicas |
+| **Redis** | Caching, sessions, rate limiting, job queues | Redis Cluster for HA |
+| **S3/R2 Storage** | File uploads (shared across instances) | CDN for static assets |
+
+### Key Scaling Features
+
+| Feature | Description |
+|---------|-------------|
+| **Stateless Design** | JWT authentication, no server-side session state |
+| **Redis Sessions** | Session data shared across all instances |
+| **Redis Rate Limiting** | Distributed rate limiting across instances |
+| **Cloud Storage** | S3-compatible storage for file uploads |
+| **Background Jobs** | BullMQ queues for async processing |
+| **Health Checks** | `/health` endpoints for load balancer probes |
+| **Graceful Shutdown** | Clean shutdown on SIGTERM for zero-downtime deploys |
+| **Response Compression** | Gzip/Brotli compression for smaller payloads |
+| **Connection Pooling** | Optimized database connections |
+
+### Quick Deploy with Docker
+
+```bash
+# Clone and configure
+git clone https://github.com/syntex82/WordPress-Node.git
+cd WordPress-Node
+cp .env.example .env
+# Edit .env with your configuration
+
+# Deploy with 3 app instances
+cd deploy
+docker-compose up -d --scale app=3
+```
+
+### Health Check Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health` | Basic liveness check (database connectivity) |
+| `GET /health/ready` | Readiness check (all dependencies) |
+| `GET /health/detailed` | Full health report with metrics |
+| `GET /health/ping` | Simple ping for load balancer |
+| `GET /health/info` | Runtime information (version, uptime) |
 
 <br />
 

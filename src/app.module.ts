@@ -1,13 +1,22 @@
 /**
  * Root application module
  * Imports all feature modules and configures global providers
+ * Optimized for horizontal scaling with Redis caching and job queues
  */
 
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+
+// Infrastructure modules
 import { PrismaModule } from './database/prisma.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
+import { StorageModule } from './infrastructure/storage/storage.module';
+import { QueueModule } from './infrastructure/queue/queue.module';
+import { HealthModule } from './infrastructure/health/health.module';
+
+// Feature modules
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ContentModule } from './modules/content/content.module';
@@ -32,17 +41,22 @@ import { EmailModule } from './modules/email/email.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      cache: true, // Cache env vars for performance
     }),
 
     // Serve static files
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'admin', 'dist'),
       serveRoot: '/admin',
-      exclude: ['/api*', '/uploads*'],
+      exclude: ['/api*', '/uploads*', '/health*'],
     }),
 
-    // Database
+    // Infrastructure modules (order matters - Redis before Queue)
     PrismaModule,
+    RedisModule,
+    StorageModule,
+    QueueModule,
+    HealthModule,
 
     // Feature modules
     AuthModule,

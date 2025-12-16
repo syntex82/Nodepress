@@ -1,30 +1,37 @@
 /**
  * Rate Limiting Service
  * Manages rate limiting configuration and violations
+ * Supports both in-memory (single instance) and Redis (multi-instance) storage
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { SecurityEventsService } from './security-events.service';
 import { IpBlockService } from './ip-block.service';
 import { BlockIpDto } from '../dto/security.dto';
+import { RedisService } from '../../../infrastructure/redis/redis.service';
 
 @Injectable()
 export class RateLimitService {
-  // In-memory store for rate limiting (IP -> endpoint -> requests[])
+  private readonly logger = new Logger(RateLimitService.name);
+
+  // In-memory fallback store for rate limiting (IP -> endpoint -> requests[])
   private requestStore = new Map<string, Map<string, number[]>>();
+  private cleanupInterval: NodeJS.Timeout;
 
   constructor(
     private prisma: PrismaService,
     private securityEvents: SecurityEventsService,
     private ipBlock: IpBlockService,
+    @Optional() private redis?: RedisService,
   ) {
-    // Clean up old requests every minute
-    setInterval(() => this.cleanupOldRequests(), 60000);
+    // Clean up old requests every minute (only needed for in-memory store)
+    this.cleanupInterval = setInterval(() => this.cleanupOldRequests(), 60000);
   }
 
   /**
    * Check if request should be rate limited
+   * Uses Redis if available, falls back to in-memory store
    */
   async checkRateLimit(
     ip: string,
@@ -36,6 +43,67 @@ export class RateLimitService {
       return { allowed: true };
     }
 
+    // Use Redis if available for distributed rate limiting
+    if (this.redis?.isAvailable()) {
+      return this.checkRateLimitRedis(ip, endpoint, config);
+    }
+
+    // Fall back to in-memory store
+    return this.checkRateLimitMemory(ip, endpoint, config);
+  }
+
+  /**
+   * Redis-based rate limiting using sliding window
+   */
+  private async checkRateLimitRedis(
+    ip: string,
+    endpoint: string,
+    config: { windowMs: number; maxRequests: number; blockDuration?: number | null },
+  ): Promise<{ allowed: boolean; retryAfter?: number }> {
+    const key = `ratelimit:${ip}:${endpoint}`;
+    const windowSeconds = Math.ceil(config.windowMs / 1000);
+
+    try {
+      const count = await this.redis!.incr(key);
+
+      // Set expiry on first request
+      if (count === 1) {
+        await this.redis!.expire(key, windowSeconds);
+      }
+
+      if (count > config.maxRequests) {
+        // Log violation
+        await this.logViolation(ip, endpoint, count, config.maxRequests);
+
+        // Block IP if configured
+        if (config.blockDuration) {
+          const blockData: BlockIpDto = {
+            ip,
+            reason: `Rate limit exceeded on ${endpoint}`,
+            expiresAt: new Date(Date.now() + config.blockDuration * 60000).toISOString(),
+          };
+          await this.ipBlock.blockIp(blockData);
+        }
+
+        const ttl = await this.redis!.ttl(key);
+        return { allowed: false, retryAfter: ttl > 0 ? ttl : windowSeconds };
+      }
+
+      return { allowed: true };
+    } catch (error) {
+      this.logger.warn(`Redis rate limit check failed, falling back to memory: ${error.message}`);
+      return this.checkRateLimitMemory(ip, endpoint, config);
+    }
+  }
+
+  /**
+   * In-memory rate limiting (single instance only)
+   */
+  private async checkRateLimitMemory(
+    ip: string,
+    endpoint: string,
+    config: { windowMs: number; maxRequests: number; blockDuration?: number | null },
+  ): Promise<{ allowed: boolean; retryAfter?: number }> {
     // Get or create request history for this IP and endpoint
     if (!this.requestStore.has(ip)) {
       this.requestStore.set(ip, new Map());

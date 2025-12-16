@@ -2,12 +2,14 @@
 // This defines all database models for our CMS platform
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["metrics", "tracing"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL") // For migrations (bypasses connection pooler)
 }
 
 // User model with role-based access control
