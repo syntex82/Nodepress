@@ -6,6 +6,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PluginsService } from './plugins.service';
 import * as path from 'path';
+import * as fs from 'fs';
+
+// Use eval to prevent webpack from transforming require
+// This allows runtime loading of plugins that aren't bundled
+const dynamicRequire = eval('require');
 
 export interface PluginHooks {
   onActivate?: () => Promise<void> | void;
@@ -51,8 +56,17 @@ export class PluginLoaderService implements OnModuleInit {
       const pluginPath = this.pluginsService.getPluginPath(slug);
       const entryFile = path.join(pluginPath, 'index.js');
 
-      // Dynamically import the plugin
-      const pluginModule = await import(entryFile);
+      // Check if the plugin file exists
+      if (!fs.existsSync(entryFile)) {
+        console.warn(`⚠️ Plugin file not found: ${entryFile}`);
+        return;
+      }
+
+      // Clear require cache to allow hot reloading
+      delete dynamicRequire.cache[dynamicRequire.resolve(entryFile)];
+
+      // Use dynamic require to load plugin at runtime (bypasses webpack bundling)
+      const pluginModule = dynamicRequire(entryFile);
       const pluginInstance = pluginModule.default || pluginModule;
 
       this.loadedPlugins.set(slug, pluginInstance);
