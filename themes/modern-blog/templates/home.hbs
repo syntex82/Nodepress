@@ -255,7 +255,15 @@
             {{/if}}
           </div>
 
-          <a href="/shop/product/{{slug}}" class="btn btn-sm btn-primary">View Product</a>
+          <div class="product-actions" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <a href="/shop/product/{{slug}}" class="btn btn-sm btn-outline" style="flex: 1;">View</a>
+            <button class="btn btn-sm btn-primary add-to-cart-btn" onclick="addToCartQuick('{{id}}', this)" style="flex: 1;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              Add
+            </button>
+          </div>
         </div>
       </article>
       {{/each}}
@@ -266,6 +274,44 @@
     </div>
   </div>
 </section>
+
+<script>
+function addToCartQuick(productId, btn) {
+  const originalText = btn.innerHTML;
+  btn.innerHTML = 'Adding...';
+  btn.disabled = true;
+
+  fetch('/api/shop/cart/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ productId: productId, quantity: 1 })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Failed to add to cart');
+    return response.json();
+  })
+  .then(cart => {
+    btn.innerHTML = '✓ Added!';
+    btn.style.background = '#10B981';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+  })
+  .catch(err => {
+    console.error('Add to cart error:', err);
+    btn.innerHTML = '✗ Error';
+    btn.style.background = '#EF4444';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+  });
+}
+</script>
 {{/if}}
 
 <!-- Featured Courses -->

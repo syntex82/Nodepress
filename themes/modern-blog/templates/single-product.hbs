@@ -120,9 +120,46 @@ function increaseQty() {
   if (parseInt(input.value) < max) input.value = parseInt(input.value) + 1;
 }
 function addToCart(productId) {
-  const qty = document.getElementById('quantity').value;
-  // Redirect to React cart with product info
-  window.location.href = '/admin/shop/cart?add=' + productId + '&qty=' + qty;
+  const qty = parseInt(document.getElementById('quantity').value) || 1;
+  const btn = document.querySelector('.add-to-cart');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Adding...';
+  btn.disabled = true;
+
+  fetch('/api/shop/cart/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ productId: productId, quantity: qty })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Failed to add to cart');
+    return response.json();
+  })
+  .then(cart => {
+    btn.innerHTML = '✓ Added to Cart!';
+    btn.style.background = '#10B981';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+    // Update cart count in header if exists
+    const cartCount = document.querySelector('.cart-count');
+    if (cartCount && cart.items) {
+      cartCount.textContent = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    }
+  })
+  .catch(err => {
+    console.error('Add to cart error:', err);
+    btn.innerHTML = '✗ Error - Try Again';
+    btn.style.background = '#EF4444';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+  });
 }
 </script>
 
