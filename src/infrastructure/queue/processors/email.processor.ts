@@ -8,8 +8,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { QUEUE_EMAIL } from '../queue.module';
-import { EmailJobData } from '../queue.service';
+import { QUEUE_EMAIL, EmailJobData } from '../queue.service';
 
 @Processor(QUEUE_EMAIL)
 export class EmailQueueProcessor extends WorkerHost {

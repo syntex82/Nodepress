@@ -55,7 +55,7 @@ import { EmailModule } from './modules/email/email.module';
     PrismaModule,
     RedisModule,
     StorageModule,
-    QueueModule,
+    QueueModule.forRoot(),
     HealthModule,
 
     // Feature modules

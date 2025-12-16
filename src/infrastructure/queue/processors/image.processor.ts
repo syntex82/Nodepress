@@ -9,8 +9,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { QUEUE_IMAGE } from '../queue.module';
-import { ImageJobData } from '../queue.service';
+import { QUEUE_IMAGE, ImageJobData } from '../queue.service';
 
 // Try to load sharp at module level (optional dependency)
 let sharpModule: any = null;

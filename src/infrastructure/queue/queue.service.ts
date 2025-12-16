@@ -1,12 +1,17 @@
 /**
  * Queue Service
  * Provides high-level API for adding jobs to queues
+ * This service is only used when Redis is configured
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue, JobsOptions } from 'bullmq';
-import { QUEUE_EMAIL, QUEUE_IMAGE, QUEUE_NOTIFICATIONS } from './queue.module';
+
+// Queue names - duplicated here to avoid circular import
+export const QUEUE_EMAIL = 'email';
+export const QUEUE_IMAGE = 'image';
+export const QUEUE_NOTIFICATIONS = 'notifications';
 
 export interface EmailJobData {
   to: string;

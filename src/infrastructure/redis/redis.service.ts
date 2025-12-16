@@ -3,7 +3,7 @@
  * Core Redis connection and operations
  */
 
-import { Injectable, OnModuleInit, OnModuleDestroy, Inject, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject, Logger, Optional } from '@nestjs/common';
 import Redis, { RedisOptions } from 'ioredis';
 
 @Injectable()
@@ -11,31 +11,57 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   private client: Redis | null = null;
   private isConnected = false;
+  private readonly redisEnabled: boolean;
 
-  constructor(@Inject('REDIS_OPTIONS') private readonly options: RedisOptions) {}
+  constructor(@Optional() @Inject('REDIS_OPTIONS') private readonly options: RedisOptions | null) {
+    // Check if Redis is actually configured (has a real host)
+    this.redisEnabled = !!(options?.host && options.host !== 'localhost' && options.host !== '127.0.0.1')
+      || !!process.env.REDIS_HOST;
+  }
 
   async onModuleInit() {
+    // Skip connection if Redis is not configured
+    if (!this.redisEnabled || !this.options) {
+      this.logger.log('⏭️ Redis not configured - caching disabled (set REDIS_HOST to enable)');
+      return;
+    }
+
     try {
-      this.client = new Redis(this.options);
-      
+      this.client = new Redis({
+        ...this.options,
+        maxRetriesPerRequest: 3,
+        retryStrategy: (times) => {
+          if (times > 3) {
+            this.logger.warn('Redis connection failed after 3 attempts, giving up');
+            return null; // Stop retrying
+          }
+          return Math.min(times * 200, 1000);
+        },
+        reconnectOnError: () => false, // Don't auto-reconnect on errors
+      });
+
       this.client.on('connect', () => {
         this.isConnected = true;
         this.logger.log('✅ Redis connected');
       });
 
       this.client.on('error', (err) => {
-        this.logger.warn(`Redis connection error: ${err.message}`);
+        if (this.isConnected) {
+          this.logger.warn(`Redis connection error: ${err.message}`);
+        }
         this.isConnected = false;
       });
 
       this.client.on('close', () => {
         this.isConnected = false;
-        this.logger.warn('Redis connection closed');
       });
 
       await this.client.ping();
     } catch (error) {
       this.logger.warn(`Redis not available, caching disabled: ${error.message}`);
+      if (this.client) {
+        this.client.disconnect();
+      }
       this.client = null;
     }
   }
