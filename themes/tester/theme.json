@@ -1,9 +1,9 @@
 {
-  "name": "my theme",
+  "name": "TESTER",
   "version": "1.0.0",
   "author": "Theme Designer",
-  "description": "Auto-generated default theme",
-  "thumbnail": "/themes/my-theme/screenshot.png",
+  "description": "Custom theme created with Theme Designer",
+  "thumbnail": "/themes/tester/screenshot.png",
   "designConfig": {
     "colors": {
       "link": "#818CF8",
