@@ -5,7 +5,7 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3 } from 'react-icons/fi';
+import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { messagesApi } from '../services/api';
 import { canAccess, ROLE_DESCRIPTIONS, type UserRole, type RolePermissions } from '../config/permissions';
@@ -64,6 +64,7 @@ export default function Layout() {
 
   const emailNavigation: Array<{ name: string; path: string; icon: any }> = [
     { name: 'Templates', path: '/email/templates', icon: FiEdit3 },
+    { name: 'Designer', path: '/email/designer', icon: FiLayout },
     { name: 'Composer', path: '/email/composer', icon: FiMail },
     { name: 'Logs', path: '/email/logs', icon: FiInfo },
   ];

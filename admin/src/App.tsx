@@ -66,6 +66,7 @@ import ThemeCustomizer from './pages/ThemeCustomizer';
 import EmailTemplates from './pages/email/EmailTemplates';
 import EmailComposer from './pages/email/EmailComposer';
 import EmailLogs from './pages/email/EmailLogs';
+import EmailTemplateDesigner from './pages/email/EmailTemplateDesigner';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -169,6 +170,7 @@ function App() {
 
               {/* Email - Admin only */}
               <Route path="email/templates" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplates /></ProtectedRoute>} />
+              <Route path="email/designer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplateDesigner /></ProtectedRoute>} />
               <Route path="email/composer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailComposer /></ProtectedRoute>} />
               <Route path="email/logs" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailLogs /></ProtectedRoute>} />
 
