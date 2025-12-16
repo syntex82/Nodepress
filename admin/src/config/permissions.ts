@@ -29,6 +29,7 @@ export interface RolePermissions {
   lms: Permission;
   themes: Permission;
   plugins: Permission;
+  email: Permission;
 }
 
 // Define permissions for each role
@@ -50,6 +51,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     lms: { canView: true, canCreate: true, canEdit: true, canDelete: true },
     themes: { canView: true, canCreate: true, canEdit: true, canDelete: true },
     plugins: { canView: true, canCreate: true, canEdit: true, canDelete: true },
+    email: { canView: true, canCreate: true, canEdit: true, canDelete: true },
   },
   EDITOR: {
     dashboard: { canView: true, canCreate: false, canEdit: false, canDelete: false },
@@ -68,6 +70,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     lms: { canView: true, canCreate: true, canEdit: true, canDelete: false },
     themes: { canView: true, canCreate: false, canEdit: false, canDelete: false },
     plugins: { canView: true, canCreate: false, canEdit: false, canDelete: false },
+    email: { canView: false, canCreate: false, canEdit: false, canDelete: false },
   },
   AUTHOR: {
     dashboard: { canView: true, canCreate: false, canEdit: false, canDelete: false },
@@ -86,6 +89,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     lms: { canView: true, canCreate: false, canEdit: false, canDelete: false }, // View courses
     themes: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     plugins: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    email: { canView: false, canCreate: false, canEdit: false, canDelete: false },
   },
   VIEWER: {
     dashboard: { canView: true, canCreate: false, canEdit: false, canDelete: false },
@@ -104,6 +108,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     lms: { canView: true, canCreate: false, canEdit: false, canDelete: false }, // View courses
     themes: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     plugins: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    email: { canView: false, canCreate: false, canEdit: false, canDelete: false },
   },
 };
 

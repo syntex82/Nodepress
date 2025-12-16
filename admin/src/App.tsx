@@ -62,6 +62,10 @@ import Seo from './pages/Seo';
 import Messages from './pages/Messages';
 // Theme Customizer
 import ThemeCustomizer from './pages/ThemeCustomizer';
+// Email
+import EmailTemplates from './pages/email/EmailTemplates';
+import EmailComposer from './pages/email/EmailComposer';
+import EmailLogs from './pages/email/EmailLogs';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -162,6 +166,11 @@ function App() {
 
               {/* Security - Admin only */}
               <Route path="security/*" element={<ProtectedRoute feature="security" requiredRole="ADMIN"><Security /></ProtectedRoute>} />
+
+              {/* Email - Admin only */}
+              <Route path="email/templates" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplates /></ProtectedRoute>} />
+              <Route path="email/composer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailComposer /></ProtectedRoute>} />
+              <Route path="email/logs" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailLogs /></ProtectedRoute>} />
 
               {/* Settings */}
               <Route path="settings" element={<ProtectedRoute feature="settings" requiredRole="ADMIN"><Settings /></ProtectedRoute>} />

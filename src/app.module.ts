@@ -24,6 +24,7 @@ import { LmsModule } from './modules/lms/lms.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { SeoModule } from './modules/seo/seo.module';
 import { MessagesModule } from './modules/messages/messages.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { MessagesModule } from './modules/messages/messages.module';
     AnalyticsModule,
     SeoModule,
     MessagesModule,
+    EmailModule,
   ],
 })
 export class AppModule {}

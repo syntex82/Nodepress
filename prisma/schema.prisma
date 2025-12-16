@@ -89,6 +89,10 @@ model User {
 
   // Custom Themes
   customThemes      CustomTheme[]
+
+  // Email System
+  emailTemplatesCreated EmailTemplate[] @relation("EmailTemplateCreator")
+  emailsReceived        EmailLog[]      @relation("EmailRecipient")
 }
 
 // Follow relationship for users
@@ -1409,4 +1413,95 @@ model Certificate {
   @@index([userId])
   @@index([verificationHash])
   @@index([certificateNumber])
+}
+
+// ==================== EMAIL SYSTEM ====================
+
+// Email template types
+enum EmailTemplateType {
+  WELCOME
+  PASSWORD_RESET
+  ORDER_CONFIRMATION
+  COURSE_ENROLLMENT
+  NEWSLETTER
+  PROMOTIONAL
+  CUSTOM
+}
+
+// Email delivery status
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
+
+// Email Template model - stores reusable email templates
+model EmailTemplate {
+  id          String            @id @default(uuid())
+  name        String            // Template name (e.g., "Welcome Email")
+  slug        String            @unique // Unique identifier (e.g., "welcome-email")
+  type        EmailTemplateType @default(CUSTOM)
+  subject     String            // Email subject with variable support
+  htmlContent String            @db.Text // HTML content with Handlebars variables
+  textContent String?           @db.Text // Plain text fallback
+  variables   Json?             // Available variables: [{name: "user.name", description: "User's full name"}]
+  isActive    Boolean           @default(true)
+  isSystem    Boolean           @default(false) // System templates can't be deleted
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  createdById String?
+  createdBy   User?             @relation("EmailTemplateCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  // Email logs using this template
+  emailLogs   EmailLog[]
+
+  @@index([type])
+  @@index([slug])
+  @@index([isActive])
+}
+
+// Email Log model - tracks all sent emails
+model EmailLog {
+  id          String      @id @default(uuid())
+  templateId  String?
+  template    EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  recipientId String?
+  recipient   User?       @relation("EmailRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
+
+  // Email details
+  toEmail     String      // Recipient email address
+  toName      String?     // Recipient name
+  fromEmail   String      // Sender email
+  fromName    String?     // Sender name
+  subject     String      // Email subject
+  htmlContent String?     @db.Text // Rendered HTML content
+  textContent String?     @db.Text // Rendered plain text
+
+  // Delivery tracking
+  status      EmailStatus @default(PENDING)
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  failedAt    DateTime?
+  errorMessage String?    @db.Text
+
+  // Provider tracking
+  providerMessageId String? // ID from email provider (SendGrid, AWS SES, etc.)
+  providerResponse  Json?   // Full response from provider
+
+  // Metadata
+  metadata    Json?       // Additional data (order ID, course ID, etc.)
+  ipAddress   String?     // IP address of sender (for bulk emails)
+  userAgent   String?     // User agent (for admin-sent emails)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([templateId])
+  @@index([recipientId])
+  @@index([toEmail])
+  @@index([status])
+  @@index([sentAt])
+  @@index([createdAt])
 }

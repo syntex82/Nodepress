@@ -62,10 +62,17 @@ export default function Layout() {
     { name: 'Course Catalog', path: '/lms/catalog', icon: FiBook },
   ];
 
+  const emailNavigation: Array<{ name: string; path: string; icon: any }> = [
+    { name: 'Templates', path: '/email/templates', icon: FiEdit3 },
+    { name: 'Composer', path: '/email/composer', icon: FiMail },
+    { name: 'Logs', path: '/email/logs', icon: FiInfo },
+  ];
+
   // Filter navigation based on permissions
   const filteredNavigation = navigation.filter(item => canAccess(userRole, item.permission));
   const canViewShop = canAccess(userRole, 'shop');
   const canViewLms = canAccess(userRole, 'lms');
+  const canViewEmail = userRole === 'ADMIN';
   const canCustomize = canAccess(userRole, 'themes');
 
   const isActive = (path: string) => {
@@ -163,6 +170,32 @@ export default function Layout() {
                 LMS
               </div>
               {lmsNavigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-gray-800 text-white border-l-4 border-blue-500'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="mr-3" size={18} />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Email Section - Only show if user is ADMIN */}
+          {canViewEmail && (
+            <div className="mt-4 pt-4 border-t border-gray-800">
+              <div className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Email
+              </div>
+              {emailNavigation.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link

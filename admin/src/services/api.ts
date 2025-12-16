@@ -989,3 +989,73 @@ export const messagesApi = {
   getUnreadCount: () => api.get('/messages/unread-count'),
   getOnlineUsers: () => api.get('/messages/online-users'),
 };
+
+// Email API
+export const emailApi = {
+  // Templates
+  getTemplates: (params?: { page?: number; limit?: number; type?: string }) =>
+    api.get('/email/templates', { params }),
+  getTemplate: (id: string) => api.get(`/email/templates/${id}`),
+  createTemplate: (data: {
+    name: string;
+    slug: string;
+    type?: string;
+    subject: string;
+    htmlContent: string;
+    textContent?: string;
+    variables?: { name: string; description?: string; example?: string }[];
+    isActive?: boolean;
+  }) => api.post('/email/templates', data),
+  updateTemplate: (id: string, data: Partial<{
+    name: string;
+    slug: string;
+    type: string;
+    subject: string;
+    htmlContent: string;
+    textContent: string;
+    variables: { name: string; description?: string; example?: string }[];
+    isActive: boolean;
+  }>) => api.put(`/email/templates/${id}`, data),
+  deleteTemplate: (id: string) => api.delete(`/email/templates/${id}`),
+  previewTemplate: (id: string, variables?: Record<string, unknown>) =>
+    api.post(`/email/templates/${id}/preview`, { variables }),
+
+  // Sending
+  sendEmail: (data: { to: string; toName?: string; subject: string; html: string; text?: string }) =>
+    api.post('/email/send', data),
+  sendTemplateEmail: (data: {
+    templateId: string;
+    to: string;
+    toName?: string;
+    subject?: string;
+    variables?: Record<string, unknown>;
+  }) => api.post('/email/send-template', data),
+  sendBulkEmail: (data: {
+    templateId: string;
+    subject?: string;
+    recipientType: 'all' | 'role' | 'specific';
+    role?: string;
+    userIds?: string[];
+    variables?: Record<string, unknown>;
+    sendTestTo?: string;
+  }) => api.post('/email/send-bulk', data),
+  sendTestEmail: (data: { templateId: string; to: string; variables?: Record<string, unknown> }) =>
+    api.post('/email/send-test', data),
+  verifyConnection: () => api.get('/email/verify'),
+
+  // Logs
+  getLogs: (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    templateId?: string;
+    toEmail?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => api.get('/email/logs', { params }),
+  getLog: (id: string) => api.get(`/email/logs/${id}`),
+  getLogStats: (params?: { startDate?: string; endDate?: string }) =>
+    api.get('/email/logs/stats', { params }),
+  getRecentActivity: (limit?: number) => api.get('/email/logs/recent', { params: { limit } }),
+  cleanupLogs: (daysOld?: number) => api.delete('/email/logs/cleanup', { params: { daysOld } }),
+};
