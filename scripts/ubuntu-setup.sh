@@ -39,17 +39,21 @@ APP_DIR="${USER_HOME}/wordpress-node"
 echo -e "${GREEN}Installing to: ${APP_DIR}${NC}"
 echo ""
 
-# Prompt for admin credentials
+# Prompt for admin credentials (use /dev/tty for piped execution)
 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
 echo -e "${YELLOW}                    Admin Account Setup                         ${NC}"
 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
-read -p "Admin Email [admin@example.com]: " ADMIN_EMAIL
+echo -n "Admin Email [admin@example.com]: "
+read ADMIN_EMAIL < /dev/tty
 ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
 
 echo -e "${YELLOW}Password must be 12+ chars with uppercase, lowercase, number & special char${NC}"
 while true; do
-    read -s -p "Admin Password: " ADMIN_PASSWORD
+    echo -n "Admin Password: "
+    stty -echo < /dev/tty
+    read ADMIN_PASSWORD < /dev/tty
+    stty echo < /dev/tty
     echo ""
     if [ ${#ADMIN_PASSWORD} -lt 12 ]; then
         echo -e "${RED}Password must be at least 12 characters${NC}"
