@@ -147,7 +147,10 @@ echo -e "${GREEN}✓ Dependencies installed${NC}"
 # Run migrations
 echo -e "${BLUE}Running database migrations...${NC}"
 su - ${ACTUAL_USER} -c "cd '${APP_DIR}' && npx prisma migrate deploy"
-su - ${ACTUAL_USER} -c "cd '${APP_DIR}' && npx prisma db seed"
+
+# Run seed with environment variables explicitly passed
+echo -e "${BLUE}Seeding database...${NC}"
+su - ${ACTUAL_USER} -c "cd '${APP_DIR}' && ADMIN_EMAIL='${ADMIN_EMAIL}' ADMIN_PASSWORD='${ADMIN_PASSWORD}' npx ts-node --transpile-only prisma/seed.ts"
 echo -e "${GREEN}✓ Database ready${NC}"
 
 # Create uploads directory
