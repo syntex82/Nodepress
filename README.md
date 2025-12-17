@@ -416,8 +416,8 @@ The script also:
 - ✅ Generates secure secrets for JWT and sessions
 - ✅ Creates `.env` file with all configuration
 - ✅ Installs all npm dependencies (backend + admin)
-- ✅ Runs database migrations
-- ✅ Seeds admin user
+- ✅ Pushes database schema (`npx prisma db push`)
+- ✅ Seeds admin user with default credentials
 
 </details>
 
@@ -445,32 +445,27 @@ npm run dev
 git clone https://github.com/yourusername/wordpress-node.git
 cd wordpress-node
 
-# 2️⃣ Install backend dependencies
+# 2️⃣ Install all dependencies
 npm install
-
-# 3️⃣ Install admin panel dependencies
 cd admin && npm install && cd ..
 
-# 4️⃣ Set up environment variables
+# 3️⃣ Set up environment variables
 cp .env.example .env
 # ⚠️ Edit .env with your database credentials (see below)
 
-# 5️⃣ Generate Prisma client
-npx prisma generate
+# 4️⃣ Setup database (generate client, push schema, seed data)
+npm run db:setup
 
-# 6️⃣ Run database migrations
-npx prisma migrate dev
-
-# 7️⃣ Seed the database with initial data
-npx prisma db seed
-
-# 8️⃣ Start development servers
-# Terminal 1 - Backend API (port 3000)
+# 5️⃣ Start the development server
 npm run dev
-
-# Terminal 2 - Admin Panel (port 5173)
-cd admin && npm run dev
 ```
+
+> 💡 **One-liner alternative for step 4:** If you prefer individual commands, you can run:
+> - `npx prisma generate` - Generate Prisma client
+> - `npx prisma db push` - Push schema to database
+> - `npx prisma db seed` - Seed with initial data (optional)
+
+> 📝 **Note:** `npx prisma db push` syncs your database schema without creating migration files - perfect for development. For production with migration history, use `npx prisma migrate deploy` instead.
 
 <br />
 
@@ -1146,11 +1141,13 @@ cd admin && npm run dev    # Start admin panel dev server
 # ═══════════════════════════════════════════════════════════
 # 🗄️ DATABASE
 # ═══════════════════════════════════════════════════════════
-npx prisma generate        # Generate Prisma client
-npx prisma migrate dev     # Run migrations (development)
-npx prisma migrate deploy  # Run migrations (production)
-npx prisma db seed         # Seed database
-npx prisma studio          # Open Prisma Studio (database GUI)
+npm run db:setup           # ⚡ One command: generate + push + seed (recommended)
+npm run db:generate        # Generate Prisma client only
+npm run db:push            # Push schema to database (no migration files)
+npm run db:migrate         # Create and run migrations (with history)
+npm run db:migrate:prod    # Run migrations (production)
+npm run db:seed            # Seed database with initial data
+npm run db:studio          # Open Prisma Studio (database GUI)
 
 # ═══════════════════════════════════════════════════════════
 # 🏗️ BUILD

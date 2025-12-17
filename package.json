@@ -18,10 +18,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "db:generate": "prisma generate",
+    "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
     "db:seed": "ts-node prisma/seed.ts",
     "db:studio": "prisma studio",
+    "db:setup": "prisma generate && prisma db push && prisma db seed",
     "admin:install": "cd admin && npm install",
     "admin:dev": "cd admin && npm run dev",
     "admin:build": "cd admin && npm run build"

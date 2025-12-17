@@ -107,8 +107,8 @@ su - $ACTUAL_USER -c "cd '$PROJECT_DIR' && npm install"
 su - $ACTUAL_USER -c "cd '$PROJECT_DIR' && npm run db:generate"
 su - $ACTUAL_USER -c "cd '$PROJECT_DIR/admin' && npm install"
 
-echo -e "${BLUE}Running migrations...${NC}"
-su - $ACTUAL_USER -c "cd '$PROJECT_DIR' && npx prisma migrate deploy"
+echo -e "${BLUE}Pushing database schema...${NC}"
+su - $ACTUAL_USER -c "cd '$PROJECT_DIR' && npx prisma db push"
 su - $ACTUAL_USER -c "cd '$PROJECT_DIR' && npm run db:seed"
 
 echo ""

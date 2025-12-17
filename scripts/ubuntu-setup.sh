@@ -139,9 +139,9 @@ sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma generate"
 echo -e "${BLUE}Installing admin dependencies...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR}/admin && npm install"
 
-# Run migrations
-echo -e "${BLUE}Running database migrations...${NC}"
-sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma migrate deploy"
+# Push schema to database (simpler than migrations for fresh install)
+echo -e "${BLUE}Pushing database schema...${NC}"
+sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma db push"
 
 # Seed database - source .env and run seed
 echo -e "${BLUE}Seeding database...${NC}"
