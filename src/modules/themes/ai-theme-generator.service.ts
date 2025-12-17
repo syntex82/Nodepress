@@ -16,16 +16,27 @@ export class AiThemeGeneratorService {
   private anthropicApiKey: string;
   private rateLimitMap: Map<string, number[]> = new Map();
 
+  private isConfigured: boolean = false;
+
   constructor(private configService: ConfigService) {
     this.aiProvider = (this.configService.get('AI_PROVIDER') || 'openai') as 'openai' | 'anthropic';
     this.openaiApiKey = this.configService.get('OPENAI_API_KEY') || '';
     this.anthropicApiKey = this.configService.get('ANTHROPIC_API_KEY') || '';
 
+    // AI is optional - just log a warning if not configured
     if (!this.openaiApiKey && !this.anthropicApiKey) {
-      throw new Error(
-        'No AI API keys configured. Please set OPENAI_API_KEY or ANTHROPIC_API_KEY in .env',
-      );
+      console.warn('AI Theme Generator: No API keys configured. AI features will be disabled.');
+      this.isConfigured = false;
+    } else {
+      this.isConfigured = true;
     }
+  }
+
+  /**
+   * Check if AI is configured
+   */
+  isAvailable(): boolean {
+    return this.isConfigured;
   }
 
   /**
@@ -56,6 +67,12 @@ export class AiThemeGeneratorService {
    * Generate theme using AI
    */
   async generateTheme(dto: GenerateAiThemeDto, userId: string) {
+    if (!this.isConfigured) {
+      throw new ServiceUnavailableException(
+        'AI Theme Generator is not configured. Please set OPENAI_API_KEY or ANTHROPIC_API_KEY in .env',
+      );
+    }
+
     if (!this.checkRateLimit(userId)) {
       throw new BadRequestException('Rate limit exceeded. Please try again later.');
     }
