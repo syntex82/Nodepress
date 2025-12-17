@@ -77,6 +77,7 @@ jobs:
         working-directory: admin
         run: |
           rm -rf node_modules package-lock.json
+          npm cache clean --force
           npm install
 
       - name: 🏗️ Build Frontend (Vite)
