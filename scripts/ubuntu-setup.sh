@@ -1,17 +1,17 @@
 #!/bin/bash
 #═══════════════════════════════════════════════════════════════════════════════
 # WordPress Node CMS - Ubuntu Server Setup Script
+# Run this from inside the cloned repository folder
+# Usage: sudo ./scripts/ubuntu-setup.sh
 #═══════════════════════════════════════════════════════════════════════════════
 
 set -e
 
-RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+RED='\033[0;31m'
 NC='\033[0m'
 
-REPO_URL="https://github.com/syntex82/WordPress-Node.git"
 DB_NAME="wordpress_node"
 DB_USER="wpnode"
 DB_PASSWORD="wpnode123"
@@ -27,39 +27,38 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Get the directory where the script is located (the repo root)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(dirname "$SCRIPT_DIR")"
 ACTUAL_USER=${SUDO_USER:-$USER}
-USER_HOME=$(eval echo ~$ACTUAL_USER)
-APP_DIR="${USER_HOME}/wordpress-node"
 
-echo -e "${GREEN}Installing to: ${APP_DIR}${NC}"
+echo -e "${GREEN}Project directory: ${APP_DIR}${NC}"
 
 # ══════════════════════════════════════════════════════════════
 # STEP 1: System packages
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[1/8] Installing system packages...${NC}"
+echo -e "${BLUE}[1/7] Installing system packages...${NC}"
 apt update
 apt install -y curl wget git build-essential ca-certificates gnupg lsb-release
 
 # ══════════════════════════════════════════════════════════════
 # STEP 2: Node.js 20
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[2/8] Installing Node.js 20...${NC}"
+echo -e "${BLUE}[2/7] Installing Node.js 20...${NC}"
 if ! command -v node &> /dev/null; then
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt install -y nodejs
 fi
-node -v
-npm -v
+echo -e "${GREEN}Node $(node -v), npm $(npm -v)${NC}"
 
 # ══════════════════════════════════════════════════════════════
 # STEP 3: PostgreSQL
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[3/8] Installing PostgreSQL...${NC}"
+echo -e "${BLUE}[3/7] Installing PostgreSQL...${NC}"
 apt install -y postgresql postgresql-contrib
 systemctl start postgresql
 systemctl enable postgresql
 
-# Create database and user
 sudo -u postgres psql <<EOF
 DROP DATABASE IF EXISTS ${DB_NAME};
 DROP USER IF EXISTS ${DB_USER};
@@ -67,12 +66,12 @@ CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';
 CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 EOF
-echo -e "${GREEN}✓ PostgreSQL ready${NC}"
+echo -e "${GREEN}✓ PostgreSQL ready (db: ${DB_NAME}, user: ${DB_USER})${NC}"
 
 # ══════════════════════════════════════════════════════════════
 # STEP 4: Redis
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[4/8] Installing Redis...${NC}"
+echo -e "${BLUE}[4/7] Installing Redis...${NC}"
 apt install -y redis-server
 systemctl start redis-server
 systemctl enable redis-server
@@ -81,25 +80,16 @@ echo -e "${GREEN}✓ Redis ready${NC}"
 # ══════════════════════════════════════════════════════════════
 # STEP 5: Nginx
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[5/8] Installing Nginx...${NC}"
+echo -e "${BLUE}[5/7] Installing Nginx...${NC}"
 apt install -y nginx
 systemctl start nginx
 systemctl enable nginx
 echo -e "${GREEN}✓ Nginx ready${NC}"
 
 # ══════════════════════════════════════════════════════════════
-# STEP 6: Clone repository
+# STEP 6: Create .env file
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[6/8] Cloning repository...${NC}"
-rm -rf ${APP_DIR}
-git clone ${REPO_URL} ${APP_DIR}
-chown -R ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}
-echo -e "${GREEN}✓ Repository cloned${NC}"
-
-# ══════════════════════════════════════════════════════════════
-# STEP 7: Create .env file FIRST (before npm install)
-# ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[7/8] Creating .env file...${NC}"
+echo -e "${BLUE}[6/7] Creating .env file...${NC}"
 cat > ${APP_DIR}/.env << EOF
 DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public
 DIRECT_DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public
@@ -130,42 +120,38 @@ chown ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}/.env
 echo -e "${GREEN}✓ .env created${NC}"
 
 # ══════════════════════════════════════════════════════════════
-# STEP 8: Install dependencies and setup database
+# STEP 7: Install dependencies and setup database
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[8/8] Installing dependencies...${NC}"
+echo -e "${BLUE}[7/7] Installing npm dependencies...${NC}"
 
 cd ${APP_DIR}
 
-# Backend dependencies
+# Backend
 su - ${ACTUAL_USER} -c "cd ${APP_DIR} && npm install"
-
-# Generate Prisma client
 su - ${ACTUAL_USER} -c "cd ${APP_DIR} && npx prisma generate"
 
-# Admin dependencies
+# Admin
 su - ${ACTUAL_USER} -c "cd ${APP_DIR}/admin && npm install"
 
-# Run migrations
+# Database
 echo -e "${BLUE}Running migrations...${NC}"
 su - ${ACTUAL_USER} -c "cd ${APP_DIR} && npx prisma migrate deploy"
 
-# Seed database
 echo -e "${BLUE}Seeding database...${NC}"
 su - ${ACTUAL_USER} -c "cd ${APP_DIR} && npx prisma db seed"
 
-# Create uploads folder
+# Uploads folder
 mkdir -p ${APP_DIR}/uploads
 chown -R ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}/uploads
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}       ✓ INSTALLATION COMPLETE!                                ${NC}"
+echo -e "${GREEN}              ✓ INSTALLATION COMPLETE!                         ${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "To start: ${BLUE}cd ${APP_DIR} && npm run dev${NC}"
-echo ""
-echo -e "Admin Panel: ${BLUE}http://localhost:3000/admin${NC}"
-echo -e "Email: ${BLUE}${ADMIN_EMAIL}${NC}"
-echo -e "Password: ${BLUE}${ADMIN_PASSWORD}${NC}"
+echo -e "Run:       ${BLUE}npm run dev${NC}"
+echo -e "Admin:     ${BLUE}http://localhost:3000/admin${NC}"
+echo -e "Email:     ${BLUE}${ADMIN_EMAIL}${NC}"
+echo -e "Password:  ${BLUE}${ADMIN_PASSWORD}${NC}"
 echo ""
 
