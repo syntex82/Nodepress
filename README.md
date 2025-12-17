@@ -480,11 +480,9 @@ JWT_SECRET="your-super-secret-jwt-key-min-32-characters"
 SESSION_SECRET="your-session-secret-key"
 
 # Admin Account for seeding (required)
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="YourSecureP@ssw0rd!"
+ADMIN_EMAIL="admin@starter.dev"
+ADMIN_PASSWORD="Admin123!"
 ```
-
-> ⚠️ **Important:** The `ADMIN_PASSWORD` must meet security requirements (see below). The seed script will fail if the password is too weak.
 
 > 💡 **See the [Complete Configuration Guide](#️-complete-configuration-guide) below for all available options including SMTP, Stripe, AI, and more.**
 
@@ -653,8 +651,8 @@ JWT_EXPIRES_IN=7d
 SESSION_SECRET="your-super-secret-session-key-change-in-production"
 
 # Admin Account for Database Seeding (required for first run)
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="YourSecureP@ssw0rd!"
+ADMIN_EMAIL="admin@starter.dev"
+ADMIN_PASSWORD="Admin123!"
 ```
 
 | Variable | Required | Default | Description |
@@ -663,25 +661,9 @@ ADMIN_PASSWORD="YourSecureP@ssw0rd!"
 | `JWT_EXPIRES_IN` | ❌ | `7d` | Token expiration (e.g., `1h`, `7d`, `30d`) |
 | `SESSION_SECRET` | ✅ | - | Secret for session encryption |
 | `ADMIN_EMAIL` | ✅ | - | Default admin email (used in seed) |
-| `ADMIN_PASSWORD` | ✅ | - | Admin password - **must meet security requirements** (see below) |
+| `ADMIN_PASSWORD` | ✅ | - | Admin password |
 
 > ⚠️ **Security Warning:** Always use strong, unique secrets in production. Never commit real secrets to version control!
-
-#### 🔒 Admin Password Requirements
-
-The `ADMIN_PASSWORD` **must** meet the following security requirements or the seed script will fail:
-
-| Requirement | Description |
-|-------------|-------------|
-| **Length** | Minimum 12 characters |
-| **Uppercase** | At least one uppercase letter (A-Z) |
-| **Lowercase** | At least one lowercase letter (a-z) |
-| **Number** | At least one digit (0-9) |
-| **Special Character** | At least one special character (`!@#$%^&*()_+-=[]{};\':"\|,.<>/?~`) |
-
-**Example of a valid password:** `MySecureP@ssw0rd!2024`
-
-If the password doesn't meet these requirements, the seed script will display an error message explaining which requirements are not met.
 
 <br />
 
@@ -909,10 +891,9 @@ SESSION_SECRET=your-super-secret-session-key-change-this-in-production
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 👤 ADMIN ACCOUNT (for seeding)
-# IMPORTANT: Password must be 12+ chars with uppercase, lowercase, number, and special char
 # ═══════════════════════════════════════════════════════════════════════════
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=YourSecureP@ssw0rd!
+ADMIN_EMAIL=admin@starter.dev
+ADMIN_PASSWORD=Admin123!
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 📁 FILE UPLOAD
@@ -1026,8 +1007,8 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@example.com",
-  "password": "YourSecureP@ssw0rd!"
+  "email": "admin@starter.dev",
+  "password": "Admin123!"
 }
 ```
 
@@ -1037,7 +1018,7 @@ Content-Type: application/json
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "uuid",
-    "email": "admin@example.com",
+    "email": "admin@starter.dev",
     "name": "Admin User",
     "role": "ADMIN"
   }
@@ -1058,7 +1039,7 @@ Authorization: Bearer <token>
 ```json
 {
   "id": "uuid",
-  "email": "admin@example.com",
+  "email": "admin@starter.dev",
   "name": "Admin User",
   "role": "ADMIN",
   "avatar": "/uploads/avatar.jpg"
@@ -1268,19 +1249,6 @@ Having issues? Check these common problems and solutions:
 | **Check spam folder** | Emails may be in recipient's spam/junk folder |
 
 <br />
-
-### ❌ Seed Script Fails
-
-**Problem:** `npx prisma db seed` fails with password errors.
-
-**Solution:** Ensure your `ADMIN_PASSWORD` meets these requirements:
-- ✅ Minimum 12 characters
-- ✅ At least one uppercase letter (A-Z)
-- ✅ At least one lowercase letter (a-z)
-- ✅ At least one number (0-9)
-- ✅ At least one special character (!@#$%^&*...)
-
-**Example valid password:** `Admin123!`
 
 <br />
 

@@ -81,8 +81,8 @@ APP_URL=http://localhost:3000
 JWT_SECRET=${JWT}
 JWT_EXPIRES_IN=7d
 SESSION_SECRET=${SESSION}
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=SecureP@ssw0rd!2024
+ADMIN_EMAIL=admin@starter.dev
+ADMIN_PASSWORD=Admin123!
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
@@ -121,7 +121,7 @@ echo -e "  Terminal 1: ${BLUE}npm run dev${NC}        (backend)"
 echo -e "  Terminal 2: ${BLUE}npm run admin:dev${NC}  (admin panel)"
 echo ""
 echo -e "Admin: ${BLUE}http://localhost:5173/admin${NC}"
-echo -e "Email: ${YELLOW}admin@example.com${NC}"
-echo -e "Password: ${YELLOW}SecureP@ssw0rd!2024${NC}"
+echo -e "Email: ${YELLOW}admin@starter.dev${NC}"
+echo -e "Password: ${YELLOW}Admin123!${NC}"
 echo ""
 
