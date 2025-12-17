@@ -392,9 +392,7 @@ Before you begin, ensure you have the following installed:
 
 </div>
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/syntex82/WordPress-Node/main/scripts/ubuntu-setup.sh | sudo bash
-```
+
 
 <details>
 <summary><strong>📋 What the script installs automatically</strong></summary>
