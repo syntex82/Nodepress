@@ -1,11 +1,130 @@
-(function(){
+// Cart page functionality
+(function() {
   'use strict';
-  var API='/api/shop/cart';
-  document.addEventListener('DOMContentLoaded',function(){loadCart();});
-  async function loadCart(){var items=document.getElementById('cartItems'),empty=document.getElementById('emptyCart'),content=document.getElementById('cartContent');if(!items)return;try{var r=await fetch(API,{credentials:'include',headers:getAuthHeaders()});if(!r.ok)throw new Error();var cart=await r.json();if(!cart.items||cart.items.length===0){if(content)content.style.display='none';if(empty)empty.style.display='block';return;}if(content)content.style.display='grid';if(empty)empty.style.display='none';renderItems(cart.items);updateSummary(cart);}catch(e){items.innerHTML='<p>Failed to load cart</p>';}}
-  function renderItems(items){var el=document.getElementById('cartItems');if(!el)return;el.innerHTML=items.map(i=>{var isCourse=i.type==='COURSE';var img=i.product?.images?.[0]||i.course?.thumbnail||'/placeholder.jpg';var title=i.product?.name||i.course?.title||'Item';var price=i.product?.price||i.course?.price||0;return '<div class="cart-item" data-item-id="'+i.id+'"><img src="'+img+'" alt="'+title+'" style="width:100px;height:100px;object-fit:cover;border-radius:8px;"><div style="flex:1;"><div style="font-weight:600;">'+title+'</div><div style="font-size:0.8rem;color:var(--color-primary);">'+(isCourse?'Course':'Product')+'</div><div style="color:var(--color-text-muted);">$'+parseFloat(price).toFixed(2)+'</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">'+(isCourse?'':'<div style="display:flex;align-items:center;gap:0.5rem;"><button onclick="updateQuantity(\''+i.id+'\','+(i.quantity-1)+')" style="width:32px;height:32px;border:1px solid var(--color-border);background:var(--color-background);border-radius:4px;cursor:pointer;">-</button><span>'+i.quantity+'</span><button onclick="updateQuantity(\''+i.id+'\','+(i.quantity+1)+')" style="width:32px;height:32px;border:1px solid var(--color-border);background:var(--color-background);border-radius:4px;cursor:pointer;">+</button></div>')+'<button onclick="removeItem(\''+i.id+'\')" style="background:none;border:none;color:var(--color-error);cursor:pointer;">Remove</button></div></div>';}).join('');}
-  function updateSummary(cart){var sub=cart.items.reduce((s,i)=>{var p=i.product?.price||i.course?.price||0;return s+(parseFloat(p)*i.quantity);},0);var tax=sub*0.1;document.getElementById('subtotal').textContent='$'+sub.toFixed(2);document.getElementById('tax').textContent='$'+tax.toFixed(2);document.getElementById('total').textContent='$'+(sub+tax).toFixed(2);}
-  window.updateQuantity=async function(id,qty){if(qty<1){removeItem(id);return;}try{await fetch(API+'/item/'+id,{method:'PUT',headers:{'Content-Type':'application/json',...getAuthHeaders()},body:JSON.stringify({quantity:qty}),credentials:'include'});loadCart();if(window.updateCartCount)window.updateCartCount();}catch(e){}};
-  window.removeItem=async function(id){try{await fetch(API+'/item/'+id,{method:'DELETE',headers:getAuthHeaders(),credentials:'include'});loadCart();if(window.updateCartCount)window.updateCartCount();}catch(e){}};
-  function getAuthHeaders(){var t=localStorage.getItem('access_token');return t?{'Authorization':'Bearer '+t}:{};}
+  var API = '/api/shop/cart';
+
+  function getAuthHeaders() {
+    var token = localStorage.getItem('access_token');
+    return token ? { 'Authorization': 'Bearer ' + token } : {};
+  }
+
+  async function loadCart() {
+    var itemsContainer = document.getElementById('cartItems');
+    var emptyCart = document.getElementById('emptyCart');
+    var cartContent = document.getElementById('cartContent');
+    var checkoutBtn = document.getElementById('checkoutBtn');
+
+    if (!itemsContainer) return;
+
+    try {
+      var r = await fetch(API, { credentials: 'include', headers: getAuthHeaders() });
+      if (!r.ok) throw new Error('Failed to load cart');
+      var cart = await r.json();
+
+      if (!cart.items || cart.items.length === 0) {
+        if (cartContent) cartContent.style.display = 'none';
+        if (emptyCart) emptyCart.style.display = 'block';
+        return;
+      }
+
+      if (cartContent) cartContent.style.display = 'grid';
+      if (emptyCart) emptyCart.style.display = 'none';
+      renderItems(cart.items);
+      updateSummary(cart);
+    } catch (e) {
+      console.error('Cart load error:', e);
+      itemsContainer.innerHTML = '<div class="loading-state" style="color: var(--color-error);">Failed to load cart. Please refresh the page.</div>';
+    }
+  }
+
+  function renderItems(items) {
+    var container = document.getElementById('cartItems');
+    if (!container) return;
+
+    container.innerHTML = items.map(function(item) {
+      var isCourse = item.type === 'COURSE';
+      // Fix: Use featuredImage for courses, not thumbnail
+      var img = item.product?.images?.[0] || item.course?.featuredImage || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop';
+      var title = item.product?.name || item.course?.title || 'Item';
+      var price = item.product?.salePrice || item.product?.price || item.course?.price || 0;
+
+      var qtyHtml = isCourse ? '' :
+        '<div class="qty-controls">' +
+          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity - 1) + ')">−</button>' +
+          '<span class="qty-value">' + item.quantity + '</span>' +
+          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity + 1) + ')">+</button>' +
+        '</div>';
+
+      return '<div class="cart-item" data-item-id="' + item.id + '">' +
+        '<img src="' + img + '" alt="' + title + '" class="cart-item-image" onerror="this.src=\'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop\'">' +
+        '<div class="cart-item-details">' +
+          '<div class="cart-item-title">' + title + '</div>' +
+          '<span class="cart-item-type ' + (isCourse ? 'course' : 'product') + '">' + (isCourse ? '📚 Course' : '📦 Product') + '</span>' +
+          '<div class="cart-item-price">$' + parseFloat(price).toFixed(2) + (isCourse ? '' : ' × ' + item.quantity) + '</div>' +
+        '</div>' +
+        '<div class="cart-item-actions">' +
+          qtyHtml +
+          '<button class="remove-btn" onclick="removeItem(\'' + item.id + '\')">🗑️ Remove</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function updateSummary(cart) {
+    var subtotal = cart.items.reduce(function(sum, item) {
+      var price = item.product?.salePrice || item.product?.price || item.course?.price || 0;
+      return sum + (parseFloat(price) * item.quantity);
+    }, 0);
+    var tax = subtotal * 0.1;
+    var total = subtotal + tax;
+
+    var subtotalEl = document.getElementById('subtotal');
+    var taxEl = document.getElementById('tax');
+    var totalEl = document.getElementById('total');
+
+    if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
+    if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
+    if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+  }
+
+  window.updateQuantity = async function(id, qty) {
+    if (qty < 1) {
+      removeItem(id);
+      return;
+    }
+
+    try {
+      await fetch(API + '/item/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ quantity: qty }),
+        credentials: 'include'
+      });
+      loadCart();
+      if (window.updateCartCount) window.updateCartCount();
+    } catch (e) {
+      console.error('Update quantity error:', e);
+    }
+  };
+
+  window.removeItem = async function(id) {
+    try {
+      await fetch(API + '/item/' + id, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      loadCart();
+      if (window.updateCartCount) window.updateCartCount();
+    } catch (e) {
+      console.error('Remove item error:', e);
+    }
+  };
+
+  // Initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadCart);
+  } else {
+    loadCart();
+  }
 })();

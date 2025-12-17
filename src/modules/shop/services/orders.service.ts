@@ -22,19 +22,59 @@ export class OrdersService {
 
   // Create order from cart
   async createFromCart(dto: CreateOrderDto, userId?: string, sessionId?: string) {
-    // Get cart with products and courses
-    const cart = await this.prisma.cart.findFirst({
-      where: userId ? { userId } : { sessionId },
-      include: {
-        items: {
-          include: {
-            product: true,
-            variant: true,
-            course: true,
-          },
+    const cartInclude = {
+      items: {
+        include: {
+          product: true,
+          variant: true,
+          course: true,
         },
       },
-    });
+    };
+
+    // Try to find cart by userId first
+    let cart = userId
+      ? await this.prisma.cart.findFirst({ where: { userId }, include: cartInclude })
+      : null;
+
+    // If user has a cart but it's empty, also check session cart
+    if (userId && sessionId && (!cart || cart.items.length === 0)) {
+      const sessionCart = await this.prisma.cart.findFirst({
+        where: { sessionId },
+        include: cartInclude,
+      });
+
+      if (sessionCart && sessionCart.items.length > 0) {
+        // If user has no cart, transfer the session cart
+        if (!cart) {
+          cart = await this.prisma.cart.update({
+            where: { id: sessionCart.id },
+            data: { userId, sessionId: null },
+            include: cartInclude,
+          });
+        } else {
+          // User has an empty cart - move items from session cart to user cart
+          for (const item of sessionCart.items) {
+            await this.prisma.cartItem.update({
+              where: { id: item.id },
+              data: { cartId: cart.id },
+            });
+          }
+          // Delete empty session cart
+          await this.prisma.cart.delete({ where: { id: sessionCart.id } });
+          // Refresh user cart with items
+          cart = await this.prisma.cart.findFirst({ where: { userId }, include: cartInclude });
+        }
+      }
+    }
+
+    // If still no cart, try session cart (for non-logged-in users)
+    if (!cart && sessionId) {
+      cart = await this.prisma.cart.findFirst({
+        where: { sessionId },
+        include: cartInclude,
+      });
+    }
 
     if (!cart || cart.items.length === 0) {
       throw new BadRequestException('Cart is empty');
@@ -125,10 +165,15 @@ export class OrdersService {
       country: '',
     };
 
+    // Ensure email is provided (should be validated by controller)
+    if (!dto.email) {
+      throw new BadRequestException('Email is required for checkout');
+    }
+
     const order = await this.prisma.order.create({
       data: {
         orderNumber: this.generateOrderNumber(),
-        userId,
+        userId: userId || null,
         email: dto.email,
         subtotal,
         tax,

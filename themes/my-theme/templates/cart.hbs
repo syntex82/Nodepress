@@ -1,27 +1,82 @@
 {{> header}}
-<section class="cart-section" style="padding: var(--section-padding) 0;">
+<style>
+  .cart-section { padding: var(--section-padding) 0; min-height: 70vh; }
+  .cart-header { margin-bottom: 2rem; }
+  .cart-header h1 { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0; }
+
+  .cart-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; }
+  .cart-items { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; }
+  .cart-item { display: flex; gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid var(--color-border); }
+  .cart-item:first-child { padding-top: 0; }
+  .cart-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .cart-item-image { width: 100px; height: 100px; object-fit: cover; border-radius: var(--border-radius-sm); background: var(--color-background); }
+  .cart-item-details { flex: 1; }
+  .cart-item-title { font-weight: 600; margin-bottom: 0.25rem; color: var(--color-heading); }
+  .cart-item-type { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; }
+  .cart-item-type.course { background: rgba(99, 102, 241, 0.15); color: var(--color-primary); }
+  .cart-item-type.product { background: rgba(139, 92, 246, 0.15); color: var(--color-secondary); }
+  .cart-item-price { color: var(--color-text-muted); font-size: 0.95rem; }
+  .cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; }
+  .qty-controls { display: flex; align-items: center; gap: 0.5rem; }
+  .qty-btn { width: 32px; height: 32px; border: 1px solid var(--color-border); background: var(--color-background); border-radius: var(--border-radius-sm); cursor: pointer; color: var(--color-text); font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+  .qty-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .qty-value { min-width: 24px; text-align: center; font-weight: 500; }
+  .remove-btn { background: none; border: none; color: var(--color-error); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; padding: 0.25rem 0.5rem; border-radius: 4px; }
+  .remove-btn:hover { background: rgba(239, 68, 68, 0.1); }
+
+  .cart-summary { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content; position: sticky; top: 100px; }
+  .cart-summary h3 { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
+  .summary-row { display: flex; justify-content: space-between; padding: 0.75rem 0; color: var(--color-text-muted); }
+  .summary-row.total { font-size: 1.25rem; font-weight: 700; color: var(--color-heading); border-top: 2px solid var(--color-border); margin-top: 0.5rem; padding-top: 1rem; }
+  .checkout-btn { width: 100%; justify-content: center; margin-top: 1.5rem; padding: 1rem; font-size: 1.1rem; }
+  .continue-btn { width: 100%; justify-content: center; margin-top: 0.75rem; }
+
+  .empty-cart { display: none; text-align: center; padding: 4rem 2rem; }
+  .empty-cart .icon { font-size: 5rem; margin-bottom: 1.5rem; }
+  .empty-cart h2 { margin-bottom: 0.5rem; }
+  .empty-cart p { color: var(--color-text-muted); margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .empty-cart .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  .loading-state { text-align: center; padding: 3rem; color: var(--color-text-muted); }
+
+  @media (max-width: 1024px) {
+    .cart-layout { grid-template-columns: 1fr; }
+    .cart-summary { position: static; }
+  }
+  @media (max-width: 768px) {
+    .cart-item { flex-wrap: wrap; }
+    .cart-item-image { width: 80px; height: 80px; }
+    .cart-item-actions { flex-direction: row; width: 100%; justify-content: space-between; margin-top: 0.5rem; }
+  }
+</style>
+
+<section class="cart-section">
   <div class="container">
-    <h1>Shopping Cart</h1>
-    <div class="cart-layout" id="cartContent" style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
-      <div class="cart-items" id="cartItems" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem;">
-        <div class="loading-state" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">Loading cart...</div>
+    <div class="cart-header">
+      <h1>🛒 Shopping Cart</h1>
+    </div>
+
+    <div class="cart-layout" id="cartContent">
+      <div class="cart-items" id="cartItems">
+        <div class="loading-state">⏳ Loading cart...</div>
       </div>
-      <div class="cart-summary" id="cartSummary" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content;">
-        <h3 style="margin-bottom: 1rem;">Order Summary</h3>
-        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
-        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);"><span>Tax</span><span id="tax">$0.00</span></div>
-        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 600; font-size: 1.1rem;"><span>Total</span><span id="total">$0.00</span></div>
-        <a href="/checkout" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Proceed to Checkout</a>
-        <a href="/shop" class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 0.5rem;">Continue Shopping</a>
+      <div class="cart-summary" id="cartSummary">
+        <h3>Order Summary</h3>
+        <div class="summary-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+        <div class="summary-row"><span>Tax (10%)</span><span id="tax">$0.00</span></div>
+        <div class="summary-row total"><span>Total</span><span id="total">$0.00</span></div>
+        <a href="/checkout" class="btn btn-primary checkout-btn" id="checkoutBtn">🔒 Proceed to Checkout</a>
+        <a href="/shop" class="btn btn-outline continue-btn">Continue Shopping</a>
       </div>
     </div>
-    <div class="empty-cart" id="emptyCart" style="display: none; text-align: center; padding: 4rem 2rem;">
-      <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+
+    <div class="empty-cart" id="emptyCart">
+      <div class="icon">🛒</div>
       <h2>Your cart is empty</h2>
-      <p style="color: var(--color-text-muted); margin-bottom: 2rem;">Looks like you haven't added anything yet.</p>
-      <div style="display: flex; gap: 1rem; justify-content: center;">
-        <a href="/shop" class="btn btn-primary">Browse Products</a>
-        <a href="/courses" class="btn btn-outline">Explore Courses</a>
+      <p>Looks like you haven't added anything yet. Start exploring our products and courses!</p>
+      <div class="actions">
+        <a href="/shop" class="btn btn-primary">🛍️ Browse Products</a>
+        <a href="/courses" class="btn btn-outline">📚 Explore Courses</a>
       </div>
     </div>
   </div>

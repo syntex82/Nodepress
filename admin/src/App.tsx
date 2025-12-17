@@ -88,109 +88,120 @@ function App() {
       <Toaster />
       <BrowserRouter basename="/admin">
         <Routes>
+          {/* ==================== PUBLIC ROUTES (No auth required) ==================== */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Public Storefront Routes */}
-          <Route path="/shop" element={<StorefrontShop />} />
-          <Route path="/shop/product/:slug" element={<StorefrontProduct />} />
-          <Route path="/shop/cart" element={<StorefrontCart />} />
-          <Route path="/cart" element={<StorefrontCart />} />
-          <Route path="/shop/checkout" element={<StorefrontCheckout />} />
-          <Route path="/checkout" element={<StorefrontCheckout />} />
-          <Route path="/shop/order-success" element={<StorefrontOrderSuccess />} />
-          <Route path="/order-success" element={<StorefrontOrderSuccess />} />
-
-          {/* Public LMS Routes */}
-          <Route path="/lms/catalog" element={<LmsCourseCatalog />} />
-          <Route path="/lms/course/:slug" element={<LmsCourseLanding />} />
-
-          {/* Public Profile Routes */}
+          {/* Public Profile */}
           <Route path="/u/:identifier" element={<PublicProfile />} />
 
-          {/* Theme Customizer - Full screen experience, outside Layout */}
-          {isAuthenticated && (
-            <Route path="/customize" element={<ProtectedRoute feature="themes"><ThemeCustomizer /></ProtectedRoute>} />
-          )}
-
+          {/* ==================== AUTHENTICATED ROUTES ==================== */}
           {isAuthenticated ? (
-            <Route path="/" element={<Layout />}>
-              {/* Dashboard - accessible to all */}
-              <Route index element={<ProtectedRoute feature="dashboard"><Dashboard /></ProtectedRoute>} />
+            <>
+              {/* Theme Customizer - Full screen, outside Layout */}
+              <Route path="/customize" element={<ProtectedRoute feature="themes"><ThemeCustomizer /></ProtectedRoute>} />
 
-              {/* Content Management */}
-              <Route path="posts" element={<ProtectedRoute feature="posts"><Posts /></ProtectedRoute>} />
-              <Route path="posts/new" element={<ProtectedRoute feature="posts" action="canCreate"><PostEditor /></ProtectedRoute>} />
-              <Route path="posts/edit/:id" element={<ProtectedRoute feature="posts" action="canEdit"><PostEditor /></ProtectedRoute>} />
-              <Route path="pages" element={<ProtectedRoute feature="pages"><Pages /></ProtectedRoute>} />
-              <Route path="pages/new" element={<ProtectedRoute feature="pages" action="canCreate"><PageEditor /></ProtectedRoute>} />
-              <Route path="pages/edit/:id" element={<ProtectedRoute feature="pages" action="canEdit"><PageEditor /></ProtectedRoute>} />
-              <Route path="media" element={<ProtectedRoute feature="media"><Media /></ProtectedRoute>} />
+              {/* Main Layout with Sidebar */}
+              <Route path="/" element={<Layout />}>
+                {/* Dashboard */}
+                <Route index element={<ProtectedRoute feature="dashboard"><Dashboard /></ProtectedRoute>} />
 
-              {/* User Management */}
-              <Route path="users" element={<ProtectedRoute feature="users" requiredRole="ADMIN"><Users /></ProtectedRoute>} />
+                {/* Analytics & SEO */}
+                <Route path="analytics" element={<ProtectedRoute feature="analytics" requiredRole="ADMIN"><Analytics /></ProtectedRoute>} />
+                <Route path="seo" element={<ProtectedRoute feature="seo" requiredRole="EDITOR"><Seo /></ProtectedRoute>} />
 
-              {/* Messaging - accessible to all authenticated users */}
-              <Route path="messages" element={<ProtectedRoute feature="messages"><Messages /></ProtectedRoute>} />
+                {/* Posts - specific routes before parameterized */}
+                <Route path="posts" element={<ProtectedRoute feature="posts"><Posts /></ProtectedRoute>} />
+                <Route path="posts/new" element={<ProtectedRoute feature="posts" action="canCreate"><PostEditor /></ProtectedRoute>} />
+                <Route path="posts/edit/:id" element={<ProtectedRoute feature="posts" action="canEdit"><PostEditor /></ProtectedRoute>} />
 
-              {/* Groups */}
-              <Route path="groups" element={<ProtectedRoute feature="groups"><Groups /></ProtectedRoute>} />
-              <Route path="groups/:id/chat" element={<ProtectedRoute feature="groups"><GroupChat /></ProtectedRoute>} />
+                {/* Pages - specific routes before parameterized */}
+                <Route path="pages" element={<ProtectedRoute feature="pages"><Pages /></ProtectedRoute>} />
+                <Route path="pages/new" element={<ProtectedRoute feature="pages" action="canCreate"><PageEditor /></ProtectedRoute>} />
+                <Route path="pages/edit/:id" element={<ProtectedRoute feature="pages" action="canEdit"><PageEditor /></ProtectedRoute>} />
 
-              {/* Theme Management */}
-              <Route path="theme-builder" element={<ProtectedRoute feature="themes"><ThemeBuilder /></ProtectedRoute>} />
-              <Route path="theme-designer" element={<ProtectedRoute feature="themes"><ThemeDesigner /></ProtectedRoute>} />
-              <Route path="menus" element={<ProtectedRoute feature="menus"><MenuManager /></ProtectedRoute>} />
+                {/* Media */}
+                <Route path="media" element={<ProtectedRoute feature="media"><Media /></ProtectedRoute>} />
 
-              {/* Shop routes */}
-              <Route path="shop/products" element={<ProtectedRoute feature="shop"><ShopProducts /></ProtectedRoute>} />
-              <Route path="shop/products/new" element={<ProtectedRoute feature="shop" action="canCreate"><ShopProductEditor /></ProtectedRoute>} />
-              <Route path="shop/products/:id" element={<ProtectedRoute feature="shop" action="canEdit"><ShopProductEditor /></ProtectedRoute>} />
-              <Route path="shop/orders" element={<ProtectedRoute feature="shop"><ShopOrders /></ProtectedRoute>} />
-              <Route path="shop/orders/:id" element={<ProtectedRoute feature="shop"><ShopOrderDetail /></ProtectedRoute>} />
-              <Route path="shop/categories" element={<ProtectedRoute feature="shop"><ShopCategories /></ProtectedRoute>} />
+                {/* User Management */}
+                <Route path="users" element={<ProtectedRoute feature="users" requiredRole="ADMIN"><Users /></ProtectedRoute>} />
 
-              {/* LMS admin routes */}
-              <Route path="lms" element={<ProtectedRoute feature="lms"><LmsAdminDashboard /></ProtectedRoute>} />
-              <Route path="lms/courses" element={<ProtectedRoute feature="lms"><LmsCourses /></ProtectedRoute>} />
-              <Route path="lms/courses/new" element={<ProtectedRoute feature="lms" action="canCreate"><LmsCourseEditor /></ProtectedRoute>} />
-              <Route path="lms/courses/:id" element={<ProtectedRoute feature="lms" action="canEdit"><LmsCourseEditor /></ProtectedRoute>} />
-              <Route path="lms/courses/:courseId/lessons" element={<ProtectedRoute feature="lms" action="canEdit"><LmsLessons /></ProtectedRoute>} />
-              <Route path="lms/courses/:courseId/quizzes" element={<ProtectedRoute feature="lms" action="canEdit"><LmsQuizzes /></ProtectedRoute>} />
-              <Route path="lms/courses/:courseId/quizzes/:quizId/questions" element={<ProtectedRoute feature="lms" action="canEdit"><LmsQuizQuestions /></ProtectedRoute>} />
-              <Route path="lms/categories" element={<ProtectedRoute feature="lms"><LmsCourseCategories /></ProtectedRoute>} />
+                {/* Messaging */}
+                <Route path="messages" element={<ProtectedRoute feature="messages"><Messages /></ProtectedRoute>} />
 
-              {/* LMS student routes (authenticated) - accessible to all */}
-              <Route path="lms/dashboard" element={<LmsStudentDashboard />} />
-              <Route path="lms/learn/:courseId" element={<LmsLearningPlayer />} />
-              <Route path="lms/learn/:courseId/lesson/:lessonId" element={<LmsLearningPlayer />} />
-              <Route path="lms/quiz/:courseId/:quizId" element={<LmsQuizPlayer />} />
-              <Route path="lms/certificate/:courseId" element={<LmsCertificate />} />
+                {/* Groups - specific routes before parameterized */}
+                <Route path="groups" element={<ProtectedRoute feature="groups"><Groups /></ProtectedRoute>} />
+                <Route path="groups/:id/chat" element={<ProtectedRoute feature="groups"><GroupChat /></ProtectedRoute>} />
 
-              {/* Profile routes - accessible to all */}
-              <Route path="profile" element={<MyProfile />} />
-              <Route path="profile/:identifier" element={<PublicProfile />} />
+                {/* Theme Management */}
+                <Route path="menus" element={<ProtectedRoute feature="menus"><MenuManager /></ProtectedRoute>} />
+                <Route path="theme-builder" element={<ProtectedRoute feature="themes"><ThemeBuilder /></ProtectedRoute>} />
+                <Route path="theme-designer" element={<ProtectedRoute feature="themes"><ThemeDesigner /></ProtectedRoute>} />
 
-              {/* Analytics */}
-              <Route path="analytics" element={<ProtectedRoute feature="analytics" requiredRole="ADMIN"><Analytics /></ProtectedRoute>} />
+                {/* Shop Admin - specific routes before parameterized */}
+                <Route path="shop/products" element={<ProtectedRoute feature="shop"><ShopProducts /></ProtectedRoute>} />
+                <Route path="shop/products/new" element={<ProtectedRoute feature="shop" action="canCreate"><ShopProductEditor /></ProtectedRoute>} />
+                <Route path="shop/products/:id" element={<ProtectedRoute feature="shop" action="canEdit"><ShopProductEditor /></ProtectedRoute>} />
+                <Route path="shop/orders" element={<ProtectedRoute feature="shop"><ShopOrders /></ProtectedRoute>} />
+                <Route path="shop/orders/:id" element={<ProtectedRoute feature="shop"><ShopOrderDetail /></ProtectedRoute>} />
+                <Route path="shop/categories" element={<ProtectedRoute feature="shop"><ShopCategories /></ProtectedRoute>} />
 
-              {/* SEO */}
-              <Route path="seo" element={<ProtectedRoute feature="seo" requiredRole="EDITOR"><Seo /></ProtectedRoute>} />
+                {/* LMS Admin - IMPORTANT: specific routes MUST come before parameterized routes */}
+                <Route path="lms" element={<ProtectedRoute feature="lms"><LmsAdminDashboard /></ProtectedRoute>} />
+                <Route path="lms/categories" element={<ProtectedRoute feature="lms"><LmsCourseCategories /></ProtectedRoute>} />
+                <Route path="lms/catalog" element={<LmsCourseCatalog />} />
+                <Route path="lms/dashboard" element={<LmsStudentDashboard />} />
+                <Route path="lms/courses" element={<ProtectedRoute feature="lms"><LmsCourses /></ProtectedRoute>} />
+                <Route path="lms/courses/new" element={<ProtectedRoute feature="lms" action="canCreate"><LmsCourseEditor /></ProtectedRoute>} />
+                <Route path="lms/courses/:id" element={<ProtectedRoute feature="lms" action="canEdit"><LmsCourseEditor /></ProtectedRoute>} />
+                <Route path="lms/courses/:courseId/lessons" element={<ProtectedRoute feature="lms" action="canEdit"><LmsLessons /></ProtectedRoute>} />
+                <Route path="lms/courses/:courseId/quizzes" element={<ProtectedRoute feature="lms" action="canEdit"><LmsQuizzes /></ProtectedRoute>} />
+                <Route path="lms/courses/:courseId/quizzes/:quizId/questions" element={<ProtectedRoute feature="lms" action="canEdit"><LmsQuizQuestions /></ProtectedRoute>} />
+                <Route path="lms/course/:slug" element={<LmsCourseLanding />} />
+                <Route path="lms/learn/:courseId" element={<LmsLearningPlayer />} />
+                <Route path="lms/learn/:courseId/lesson/:lessonId" element={<LmsLearningPlayer />} />
+                <Route path="lms/quiz/:courseId/:quizId" element={<LmsQuizPlayer />} />
+                <Route path="lms/certificate/:courseId" element={<LmsCertificate />} />
 
-              {/* Security - Admin only */}
-              <Route path="security/*" element={<ProtectedRoute feature="security" requiredRole="ADMIN"><Security /></ProtectedRoute>} />
+                {/* Profile */}
+                <Route path="profile" element={<MyProfile />} />
+                <Route path="profile/:identifier" element={<PublicProfile />} />
 
-              {/* Email - Admin only */}
-              <Route path="email/templates" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplates /></ProtectedRoute>} />
-              <Route path="email/designer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplateDesigner /></ProtectedRoute>} />
-              <Route path="email/composer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailComposer /></ProtectedRoute>} />
-              <Route path="email/logs" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailLogs /></ProtectedRoute>} />
+                {/* Security */}
+                <Route path="security/*" element={<ProtectedRoute feature="security" requiredRole="ADMIN"><Security /></ProtectedRoute>} />
 
-              {/* Settings */}
-              <Route path="settings" element={<ProtectedRoute feature="settings" requiredRole="ADMIN"><Settings /></ProtectedRoute>} />
-            </Route>
+                {/* Email - specific routes before parameterized */}
+                <Route path="email/templates" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplates /></ProtectedRoute>} />
+                <Route path="email/designer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailTemplateDesigner /></ProtectedRoute>} />
+                <Route path="email/composer" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailComposer /></ProtectedRoute>} />
+                <Route path="email/logs" element={<ProtectedRoute feature="email" requiredRole="ADMIN"><EmailLogs /></ProtectedRoute>} />
+
+                {/* Settings */}
+                <Route path="settings" element={<ProtectedRoute feature="settings" requiredRole="ADMIN"><Settings /></ProtectedRoute>} />
+
+                {/* Catch-all for authenticated users - redirect to dashboard */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+
+              {/* Public Storefront (accessible when logged in too) */}
+              <Route path="/storefront" element={<StorefrontShop />} />
+              <Route path="/storefront/product/:slug" element={<StorefrontProduct />} />
+              <Route path="/storefront/cart" element={<StorefrontCart />} />
+              <Route path="/storefront/checkout" element={<StorefrontCheckout />} />
+              <Route path="/storefront/order-success" element={<StorefrontOrderSuccess />} />
+            </>
           ) : (
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <>
+              {/* Public Storefront Routes (when not logged in) */}
+              <Route path="/storefront" element={<StorefrontShop />} />
+              <Route path="/storefront/product/:slug" element={<StorefrontProduct />} />
+              <Route path="/storefront/cart" element={<StorefrontCart />} />
+              <Route path="/storefront/checkout" element={<StorefrontCheckout />} />
+              <Route path="/storefront/order-success" element={<StorefrontOrderSuccess />} />
+
+              {/* Redirect all other routes to login */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </>
           )}
         </Routes>
       </BrowserRouter>

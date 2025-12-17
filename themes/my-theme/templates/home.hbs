@@ -1,130 +1,191 @@
 {{> header}}
-<section class="hero-block" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://picsum.photos/1920/800'); background-size: cover; background-position: center; padding: 6rem 0; text-align: center; color: #fff;">
-  <div class="container">
-    <h1 style="font-size: 3rem; margin-bottom: 1rem; color: #fff;">Welcome to Our Platform</h1>
-    <p style="font-size: 1.25rem; max-width: 600px; margin: 0 auto 2rem;">Build something amazing with our tools</p>
-    <a href="#" class="btn btn-primary" style="background: #fff; color: #6366F1;">Get Started</a>
-  </div>
-</section>
+<style>
+  .hero-section { position: relative; min-height: 80vh; display: flex; align-items: center; overflow: hidden; }
+  .hero-bg { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(236, 72, 153, 0.1) 100%); }
+  .hero-bg::before { content: ''; position: absolute; top: -50%; right: -25%; width: 100%; height: 200%; background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.2) 0%, transparent 60%); }
+  .hero-content { position: relative; z-index: 1; max-width: 700px; }
+  .hero-content h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-content p { font-size: 1.25rem; color: var(--color-text-muted); margin-bottom: 2rem; line-height: 1.6; }
+  .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .hero-stats { display: flex; gap: 3rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
+  .hero-stat { text-align: center; }
+  .hero-stat .number { font-size: 2rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-stat .label { font-size: 0.9rem; color: var(--color-text-muted); }
 
-<section class="features-block" style="padding: var(--section-padding) 0;">
+  .features-section { padding: var(--section-padding) 0; }
+  .section-header { text-align: center; margin-bottom: 3rem; }
+  .section-header h2 { font-size: 2.25rem; margin-bottom: 0.75rem; }
+  .section-header p { color: var(--color-text-muted); max-width: 600px; margin: 0 auto; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+  .feature-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 2rem; text-align: center; transition: all 0.3s ease; }
+  .feature-card:hover { transform: translateY(-5px); border-color: var(--color-primary); box-shadow: 0 15px 40px rgba(99, 102, 241, 0.15); }
+  .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .feature-card h3 { margin-bottom: 0.5rem; }
+  .feature-card p { color: var(--color-text-muted); font-size: 0.95rem; margin: 0; }
+
+  .cta-section { padding: var(--section-padding) 0; background: var(--gradient-primary); text-align: center; position: relative; overflow: hidden; }
+  .cta-section::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  .cta-content { position: relative; z-index: 1; }
+  .cta-section h2 { color: white; font-size: 2.25rem; margin-bottom: 1rem; }
+  .cta-section p { color: rgba(255,255,255,0.9); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .cta-section .btn { background: white; color: var(--color-primary); }
+  .cta-section .btn:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px); }
+
+  .content-section { padding: var(--section-padding) 0; }
+  .content-section h2 { margin-bottom: 2rem; }
+  .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+  .content-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); overflow: hidden; transition: all 0.3s ease; }
+  .content-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(99, 102, 241, 0.15); border-color: var(--color-primary); }
+  .content-card-image { aspect-ratio: 16/9; overflow: hidden; background: var(--color-background); }
+  .content-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .content-card:hover .content-card-image img { transform: scale(1.05); }
+  .content-card-body { padding: 1.25rem; }
+  .content-card-body h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+  .content-card-body h3 a { color: var(--color-heading); transition: color 0.2s; }
+  .content-card-body h3 a:hover { color: var(--color-primary); }
+  .content-card-body p { color: var(--color-text-muted); font-size: 0.9rem; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .content-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+  .content-card-price { font-weight: 700; color: var(--color-primary); }
+  .content-card-meta { font-size: 0.85rem; color: var(--color-text-muted); }
+
+  @media (max-width: 768px) {
+    .hero-content h1 { font-size: 2.5rem; }
+    .hero-stats { flex-wrap: wrap; gap: 1.5rem; }
+    .features-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<section class="hero-section">
+  <div class="hero-bg"></div>
   <div class="container">
-    <h2 style="text-align: center; margin-bottom: 3rem;">Why Choose Us</h2>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
-      
-      <div class="feature-item" style="text-align: center; padding: 2rem;">
-        <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚡</div>
-        <h3 style="margin-bottom: 0.5rem;">Lightning Fast</h3>
-        <p style="color: var(--color-text-muted);">Optimized for speed and performance</p>
+    <div class="hero-content">
+      <h1>Learn, Shop & Grow with Our Platform</h1>
+      <p>Access world-class courses, premium products, and everything you need to succeed. Start your journey today.</p>
+      <div class="hero-buttons">
+        <a href="/courses" class="btn btn-primary">📚 Explore Courses</a>
+        <a href="/shop" class="btn btn-outline">🛍️ Browse Shop</a>
       </div>
-      <div class="feature-item" style="text-align: center; padding: 2rem;">
-        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔒</div>
-        <h3 style="margin-bottom: 0.5rem;">Secure</h3>
-        <p style="color: var(--color-text-muted);">Enterprise-grade security built in</p>
-      </div>
-      <div class="feature-item" style="text-align: center; padding: 2rem;">
-        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎨</div>
-        <h3 style="margin-bottom: 0.5rem;">Customizable</h3>
-        <p style="color: var(--color-text-muted);">Fully customizable to your brand</p>
-      </div>
-      <div class="feature-item" style="text-align: center; padding: 2rem;">
-        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📱</div>
-        <h3 style="margin-bottom: 0.5rem;">Responsive</h3>
-        <p style="color: var(--color-text-muted);">Works perfectly on all devices</p>
-      </div>
-      <div class="feature-item" style="text-align: center; padding: 2rem;">
-        <div style="font-size: 2.5rem; margin-bottom: 1rem;">💬</div>
-        <h3 style="margin-bottom: 0.5rem;">24/7 Support</h3>
-        <p style="color: var(--color-text-muted);">We're here whenever you need us</p>
-      </div>
-      <div class="feature-item" style="text-align: center; padding: 2rem;">
-        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📈</div>
-        <h3 style="margin-bottom: 0.5rem;">Analytics</h3>
-        <p style="color: var(--color-text-muted);">Deep insights into your performance</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="number">10K+</div><div class="label">Students</div></div>
+        <div class="hero-stat"><div class="number">500+</div><div class="label">Courses</div></div>
+        <div class="hero-stat"><div class="number">99%</div><div class="label">Satisfaction</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="testimonial-block" style="padding: var(--section-padding) 0; background: var(--color-surface);">
-  <div class="container" style="max-width: 800px;">
-    <blockquote style="font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 2rem; color: var(--color-heading);">"This platform transformed our business. The results have been incredible!"</blockquote>
-    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
-      <img src="https://i.pravatar.cc/100?1" alt="Sarah Johnson" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
-      <div>
-        <div style="font-weight: 600;">Sarah Johnson</div>
-        <div style="color: var(--color-text-muted); font-size: 0.9rem;">CEO, TechCorp</div>
-      </div>
+<section class="features-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Why Choose Us</h2>
+      <p>Everything you need to learn and grow, all in one place</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">⚡</div><h3>Lightning Fast</h3><p>Optimized for speed and performance</p></div>
+      <div class="feature-card"><div class="feature-icon">🔒</div><h3>Secure</h3><p>Enterprise-grade security built in</p></div>
+      <div class="feature-card"><div class="feature-icon">🎨</div><h3>Customizable</h3><p>Fully customizable to your needs</p></div>
+      <div class="feature-card"><div class="feature-icon">📱</div><h3>Responsive</h3><p>Works perfectly on all devices</p></div>
+      <div class="feature-card"><div class="feature-icon">💬</div><h3>24/7 Support</h3><p>We're here whenever you need us</p></div>
+      <div class="feature-card"><div class="feature-icon">📈</div><h3>Analytics</h3><p>Track your progress and growth</p></div>
     </div>
   </div>
 </section>
 
-<section class="stats-block" style="padding: var(--section-padding) 0; background: var(--color-surface);">
-  <div class="container">
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;">
-      
-      <div style="text-align: center; padding: 1.5rem;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">10K+</div>
-        <div style="color: var(--color-text-muted);">Happy Users</div>
-      </div>
-      <div style="text-align: center; padding: 1.5rem;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">99.9%</div>
-        <div style="color: var(--color-text-muted);">Uptime</div>
-      </div>
-      <div style="text-align: center; padding: 1.5rem;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">24/7</div>
-        <div style="color: var(--color-text-muted);">Support</div>
-      </div>
-      <div style="text-align: center; padding: 1.5rem;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">50+</div>
-        <div style="color: var(--color-text-muted);">Countries</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="cta-block" style="padding: var(--section-padding) 0; background: linear-gradient(135deg, #6366F1, #8B5CF6); text-align: center; color: #fff;">
-  <div class="container">
-    <h2 style="margin-bottom: 1rem; color: #fff;">Ready to Get Started?</h2>
-    <p style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Join thousands of satisfied customers today.</p>
-    <a href="#" class="btn btn-primary" style="background: #fff; color: #6366F1;">Start Free Trial</a>
+<section class="cta-section">
+  <div class="cta-content">
+    <h2>Ready to Get Started?</h2>
+    <p>Join thousands of satisfied learners and customers today.</p>
+    <a href="/register" class="btn">🚀 Start Free Today</a>
   </div>
 </section>
 
 <!-- Dynamic content sections -->
-{{#if featuredProducts.length}}
-<section class="posts-section">
+
+{{#if featuredCourses.length}}
+<section class="content-section">
   <div class="container">
-    <h2>Featured Products</h2>
-    <div class="posts-grid">
-      {{#each featuredProducts}}
-      <article class="post-card">
-        {{#if images.[0]}}<img src="{{images.[0]}}" alt="{{name}}" class="post-image">{{/if}}
-        <div class="post-content">
-          <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
-          <p style="color: var(--color-primary); font-weight: 600;">{{#if salePrice}}<s style="color: var(--color-text-muted);">${{price}}</s> ${{salePrice}}{{else}}${{price}}{{/if}}</p>
+    <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+      <h2>📚 Featured Courses</h2>
+    </div>
+    <div class="content-grid">
+      {{#each featuredCourses}}
+      <article class="content-card">
+        <div class="content-card-image">
+          {{#if featuredImage}}<img src="{{featuredImage}}" alt="{{title}}" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop'">
+          {{else}}<img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop" alt="{{title}}">{{/if}}
+        </div>
+        <div class="content-card-body">
+          <h3><a href="/courses/{{slug}}">{{title}}</a></h3>
+          <p>{{shortDescription}}</p>
+          <div class="content-card-footer">
+            <span class="content-card-price">{{#if (eq priceType 'FREE')}}Free{{else}}${{price}}{{/if}}</span>
+            <span class="content-card-meta">{{level}}</span>
+          </div>
         </div>
       </article>
       {{/each}}
+    </div>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/courses" class="btn btn-outline">View All Courses →</a>
     </div>
   </div>
 </section>
 {{/if}}
 
-<section class="posts-section">
+{{#if featuredProducts.length}}
+<section class="content-section" style="background: var(--color-surface);">
   <div class="container">
-    <h2>Latest Posts</h2>
-    <div class="posts-grid">
+    <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+      <h2>🛍️ Featured Products</h2>
+    </div>
+    <div class="content-grid">
+      {{#each featuredProducts}}
+      <article class="content-card">
+        <div class="content-card-image">
+          {{#if images.[0]}}<img src="{{images.[0]}}" alt="{{name}}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=225&fit=crop'">
+          {{else}}<img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=225&fit=crop" alt="{{name}}">{{/if}}
+        </div>
+        <div class="content-card-body">
+          <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
+          <div class="content-card-footer">
+            <span class="content-card-price">{{#if salePrice}}${{salePrice}}{{else}}${{price}}{{/if}}</span>
+            {{#if salePrice}}<span class="content-card-meta" style="text-decoration: line-through;">${{price}}</span>{{/if}}
+          </div>
+        </div>
+      </article>
+      {{/each}}
+    </div>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/shop" class="btn btn-outline">View All Products →</a>
+    </div>
+  </div>
+</section>
+{{/if}}
+
+{{#if posts.length}}
+<section class="content-section">
+  <div class="container">
+    <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+      <h2>📝 Latest Posts</h2>
+    </div>
+    <div class="content-grid">
       {{#each posts}}
-      <article class="post-card">
-        {{#if this.featuredImage}}<img src="{{this.featuredImage}}" alt="{{this.title}}" class="post-image">{{/if}}
-        <div class="post-content">
+      <article class="content-card">
+        <div class="content-card-image">
+          {{#if this.featuredImage}}<img src="{{this.featuredImage}}" alt="{{this.title}}" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=225&fit=crop'">
+          {{else}}<img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=225&fit=crop" alt="{{this.title}}">{{/if}}
+        </div>
+        <div class="content-card-body">
           <h3><a href="/post/{{this.slug}}">{{this.title}}</a></h3>
           <p>{{this.excerpt}}</p>
         </div>
       </article>
       {{/each}}
     </div>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/blog" class="btn btn-outline">View All Posts →</a>
+    </div>
   </div>
 </section>
+{{/if}}
 {{> footer}}

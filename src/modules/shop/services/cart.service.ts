@@ -37,14 +37,68 @@ export class CartService {
       },
     };
 
-    // If user is logged in, prioritize finding by userId
-    let cart = await this.prisma.cart.findFirst({
-      where: userId ? { userId } : { sessionId },
-      include: cartInclude,
-    });
+    // If user is logged in, try to find their user cart first
+    let cart = userId
+      ? await this.prisma.cart.findFirst({ where: { userId }, include: cartInclude })
+      : null;
 
+    // If user is logged in, check for session cart to merge
+    if (userId && sessionId) {
+      const sessionCart = await this.prisma.cart.findFirst({
+        where: { sessionId },
+        include: cartInclude,
+      });
+
+      if (sessionCart && sessionCart.items.length > 0) {
+        if (!cart) {
+          // No user cart - transfer session cart to user
+          cart = await this.prisma.cart.update({
+            where: { id: sessionCart.id },
+            data: { userId, sessionId: null },
+            include: cartInclude,
+          });
+        } else {
+          // User already has a cart - merge items from session cart
+          for (const item of sessionCart.items) {
+            // Check if same item already exists in user cart
+            const existingItem = cart.items.find(
+              (ci) =>
+                ci.productId === item.productId &&
+                ci.variantId === item.variantId &&
+                ci.courseId === item.courseId,
+            );
+            if (existingItem) {
+              // Update quantity
+              await this.prisma.cartItem.update({
+                where: { id: existingItem.id },
+                data: { quantity: existingItem.quantity + item.quantity },
+              });
+            } else {
+              // Move item to user cart
+              await this.prisma.cartItem.update({
+                where: { id: item.id },
+                data: { cartId: cart.id },
+              });
+            }
+          }
+          // Delete empty session cart
+          await this.prisma.cart.delete({ where: { id: sessionCart.id } });
+          // Refresh user cart with merged items
+          cart = await this.prisma.cart.findFirst({ where: { userId }, include: cartInclude });
+        }
+      }
+    }
+
+    // If still no cart, try session cart (for non-logged-in users)
+    if (!cart && sessionId) {
+      cart = await this.prisma.cart.findFirst({
+        where: { sessionId },
+        include: cartInclude,
+      });
+    }
+
+    // Create new cart if none exists
     if (!cart) {
-      // Create cart with ONLY userId OR sessionId, not both (to avoid unique constraint issues)
       cart = await this.prisma.cart.create({
         data: userId ? { userId } : { sessionId },
         include: cartInclude,

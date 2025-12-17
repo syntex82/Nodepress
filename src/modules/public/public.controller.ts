@@ -83,39 +83,88 @@ export class PublicController {
   }
 
   /**
-   * Learn course page - redirects to React LMS player
+   * Learn course page - theme rendered learning player
    * GET /learn/:courseId
    */
   @Get('learn/:courseId')
-  async learnCourse(@Param('courseId') courseId: string, @Res() res: Response) {
-    res.redirect(`http://localhost:5173/admin/lms/learn/${courseId}`);
+  @UseGuards(OptionalJwtAuthGuard)
+  async learnCourse(
+    @Req() req: Request,
+    @Param('courseId') courseId: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const user = (req as any).user;
+      const html = await this.themeRenderer.renderLearn(courseId, user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering learn page:', error);
+      res.status(500).send(`Error rendering learn page: ${error.message}`);
+    }
   }
 
   /**
-   * My Courses page - redirects to React LMS student dashboard
+   * My Courses page - theme rendered
    * GET /my-courses
    */
   @Get('my-courses')
-  async myCourses(@Res() res: Response) {
-    res.redirect('http://localhost:5173/admin/lms/dashboard');
+  @UseGuards(OptionalJwtAuthGuard)
+  async myCourses(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      const html = await this.themeRenderer.renderMyCourses(user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering my courses page:', error);
+      res.status(500).send(`Error rendering my courses page: ${error.message}`);
+    }
   }
 
   /**
-   * My Account page - redirects to React profile settings
+   * My Account page - theme rendered
    * GET /my-account
    */
   @Get('my-account')
-  async myAccount(@Res() res: Response) {
-    res.redirect('http://localhost:5173/admin/settings/profile');
+  @UseGuards(OptionalJwtAuthGuard)
+  async myAccount(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      const html = await this.themeRenderer.renderMyAccount(user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering my account page:', error);
+      res.status(500).send(`Error rendering my account page: ${error.message}`);
+    }
   }
 
   /**
-   * Orders page - redirects to React orders list
+   * Orders page - redirects to my-account orders tab
    * GET /orders
    */
   @Get('orders')
   async ordersPage(@Res() res: Response) {
-    res.redirect('http://localhost:5173/admin/shop/orders');
+    res.redirect('/my-account#orders');
+  }
+
+  /**
+   * Theme Designer page - visual theme customization
+   * GET /theme-designer
+   */
+  @Get('theme-designer')
+  @UseGuards(OptionalJwtAuthGuard)
+  async themeDesigner(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      // Require admin role for theme designer
+      if (!user || user.role !== 'ADMIN') {
+        return res.redirect('/login?redirect=/theme-designer');
+      }
+      const html = await this.themeRenderer.renderThemeDesigner(user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering theme designer:', error);
+      res.status(500).send(`Error rendering theme designer: ${error.message}`);
+    }
   }
 
   /**

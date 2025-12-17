@@ -1629,9 +1629,8 @@ ${renderedHomeBlocks}
         <form id="checkoutForm">
           <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
             <h3 style="margin-bottom: 1rem;">Contact Information</h3>
-            {{#if user}}<p style="color: var(--color-text-muted);">Logged in as <strong>{{user.email}}</strong></p>{{else}}
-            <div style="margin-bottom: 1rem;"><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email</label><input type="email" name="email" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
-            {{/if}}
+            {{#if user}}<p style="color: var(--color-text-muted); margin-bottom: 1rem;">Logged in as <strong>{{user.email}}</strong></p>{{/if}}
+            <div style="margin-bottom: 1rem;"><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email *</label><input type="email" name="email" id="checkoutEmail" required value="{{#if user}}{{user.email}}{{/if}}" style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
           </div>
           <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
             <h3 style="margin-bottom: 1rem;">Billing Address</h3>

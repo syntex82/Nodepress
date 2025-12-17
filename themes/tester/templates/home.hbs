@@ -49,6 +49,36 @@
 </section>
 
 <!-- Dynamic content sections -->
+
+{{#if featuredCourses.length}}
+<section class="posts-section">
+  <div class="container">
+    <h2>Featured Courses</h2>
+    <div class="posts-grid">
+      {{#each featuredCourses}}
+      <article class="post-card">
+        {{#if featuredImage}}<img src="{{featuredImage}}" alt="{{title}}" class="post-image">{{/if}}
+        <div class="post-content">
+          <h3><a href="/courses/{{slug}}">{{title}}</a></h3>
+          <p>{{shortDescription}}</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+            <span style="color: var(--color-primary); font-weight: 600;">
+              {{#if (eq priceType 'FREE')}}Free{{else}}${{priceAmount}}{{/if}}
+            </span>
+            <span style="font-size: 0.85rem; color: var(--color-text-muted);">{{level}}</span>
+          </div>
+          <a href="/courses/{{slug}}" class="btn btn-sm btn-primary" style="margin-top: 0.75rem;">Enroll Now</a>
+        </div>
+      </article>
+      {{/each}}
+    </div>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/courses" class="btn btn-outline">View All Courses</a>
+    </div>
+  </div>
+</section>
+{{/if}}
+
 {{#if featuredProducts.length}}
 <section class="posts-section">
   <div class="container">
@@ -63,6 +93,9 @@
         </div>
       </article>
       {{/each}}
+    </div>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/shop" class="btn btn-outline">View All Products</a>
     </div>
   </div>
 </section>

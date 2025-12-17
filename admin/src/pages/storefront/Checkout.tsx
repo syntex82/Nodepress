@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { cartApi, checkoutApi, Cart } from '../../services/api';
+import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 
 let stripePromise: Promise<any> | null = null;
@@ -66,6 +67,7 @@ function CheckoutForm({ orderId, total }: { orderId: string; total: number }) {
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -77,7 +79,11 @@ export default function Checkout() {
   useEffect(() => {
     loadCart();
     initStripe();
-  }, []);
+    // Pre-fill email from logged-in user
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const initStripe = async () => {
     try {
@@ -183,10 +189,17 @@ export default function Checkout() {
                     </div>
                     Contact Information
                   </h2>
+                  {user?.email && (
+                    <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+                      <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span className="text-emerald-700">Logged in as <strong>{user.email}</strong></span>
+                    </div>
+                  )}
                   <div className="mb-6">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address *</label>
                     <input
                       type="email"
+                      name="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-violet-500 transition-colors text-lg"
@@ -197,7 +210,7 @@ export default function Checkout() {
                   </div>
                   <button
                     type="submit"
-                    disabled={creatingOrder}
+                    disabled={creatingOrder || !email}
                     className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-xl font-semibold text-lg shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all flex items-center justify-center gap-3"
                   >
                     {creatingOrder ? (

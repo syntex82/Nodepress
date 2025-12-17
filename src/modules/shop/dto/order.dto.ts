@@ -60,8 +60,9 @@ export class AddressDto {
 }
 
 export class CreateOrderDto {
+  @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @ValidateNested()

@@ -82,11 +82,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     menus: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     users: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     messages: { canView: true, canCreate: true, canEdit: true, canDelete: true },
-    groups: { canView: true, canCreate: true, canEdit: false, canDelete: false },
+    groups: { canView: true, canCreate: true, canEdit: true, canDelete: false }, // Own groups
     security: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     settings: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     shop: { canView: false, canCreate: false, canEdit: false, canDelete: false },
-    lms: { canView: true, canCreate: false, canEdit: false, canDelete: false }, // View courses
+    lms: { canView: true, canCreate: true, canEdit: true, canDelete: false }, // Own courses only
     themes: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     plugins: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     email: { canView: false, canCreate: false, canEdit: false, canDelete: false },

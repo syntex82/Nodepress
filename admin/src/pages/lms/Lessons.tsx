@@ -1,13 +1,14 @@
 /**
  * LMS Lessons Management Page
- * Enhanced with video upload and drag-drop reordering
+ * Enhanced with video upload, drag-drop reordering, and auto-save
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { lmsAdminApi, Lesson, Course } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
-import { FiUpload, FiVideo, FiLink, FiTrash2, FiEdit2, FiMove, FiEye, FiCheck } from 'react-icons/fi';
+import RichTextEditor from '../../components/RichTextEditor';
+import { FiUpload, FiVideo, FiLink, FiTrash2, FiEdit2, FiMove, FiEye, FiCheck, FiSave } from 'react-icons/fi';
 
 export default function Lessons() {
   const { courseId } = useParams();
@@ -22,7 +23,22 @@ export default function Lessons() {
   const [videoLesson, setVideoLesson] = useState<Lesson | null>(null);
   const [externalVideoUrl, setExternalVideoUrl] = useState('');
   const [externalVideoProvider, setExternalVideoProvider] = useState('YOUTUBE');
+  const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Warn before closing browser/tab with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (showModal && isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [showModal, isDirty]);
 
   useEffect(() => {
     loadData();
@@ -44,34 +60,64 @@ export default function Lessons() {
   };
 
   const handleSave = async () => {
-    if (!editingLesson?.title) return;
+    if (!editingLesson?.title?.trim()) {
+      toast.error('Lesson title is required');
+      return;
+    }
+    setSaving(true);
     try {
       if (editingLesson.id) {
         await lmsAdminApi.updateLesson(courseId!, editingLesson.id, editingLesson);
+        toast.success('Lesson updated successfully!');
       } else {
         await lmsAdminApi.createLesson(courseId!, editingLesson);
+        toast.success('Lesson created successfully!');
       }
+      setIsDirty(false);
       setShowModal(false);
       setEditingLesson(null);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save lesson:', error);
+      const message = error.response?.data?.message || 'Failed to save lesson';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this lesson?')) return;
+    if (!confirm('Delete this lesson? This action cannot be undone.')) return;
     try {
       await lmsAdminApi.deleteLesson(courseId!, id);
+      toast.success('Lesson deleted');
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete lesson:', error);
+      toast.error('Failed to delete lesson');
     }
   };
 
   const openModal = (lesson?: Lesson) => {
     setEditingLesson(lesson || { title: '', type: 'VIDEO', content: '', isPreview: false, isRequired: true });
+    setIsDirty(false);
     setShowModal(true);
+  };
+
+  const updateEditingLesson = useCallback((updates: Partial<Lesson>) => {
+    setEditingLesson(prev => prev ? { ...prev, ...updates } : null);
+    setIsDirty(true);
+  }, []);
+
+  const handleCloseModal = () => {
+    if (isDirty) {
+      if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
+        return;
+      }
+    }
+    setIsDirty(false);
+    setShowModal(false);
+    setEditingLesson(null);
   };
 
   const openVideoModal = (lesson: Lesson) => {
@@ -240,19 +286,35 @@ export default function Lessons() {
 
       {showModal && editingLesson && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">{editingLesson.id ? 'Edit Lesson' : 'Add Lesson'}</h2>
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">{editingLesson.id ? 'Edit Lesson' : 'Add Lesson'}</h2>
+              {isDirty && (
+                <span className="flex items-center gap-1 text-amber-600 text-sm">
+                  <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                  Unsaved changes
+                </span>
+              )}
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Title *</label>
-                <input type="text" value={editingLesson.title || ''} onChange={(e) => setEditingLesson({ ...editingLesson, title: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2" />
+                <input
+                  type="text"
+                  value={editingLesson.title || ''}
+                  onChange={(e) => updateEditingLesson({ title: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter lesson title..."
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Type</label>
-                  <select value={editingLesson.type} onChange={(e) => setEditingLesson({ ...editingLesson, type: e.target.value as any })}
-                    className="w-full border rounded-lg px-3 py-2">
+                  <select
+                    value={editingLesson.type}
+                    onChange={(e) => updateEditingLesson({ type: e.target.value as any })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
                     <option value="VIDEO">Video</option>
                     <option value="ARTICLE">Article</option>
                     <option value="QUIZ">Quiz</option>
@@ -261,29 +323,61 @@ export default function Lessons() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Duration (minutes)</label>
-                  <input type="number" value={editingLesson.estimatedMinutes || ''} onChange={(e) => setEditingLesson({ ...editingLesson, estimatedMinutes: parseInt(e.target.value) || undefined })}
-                    className="w-full border rounded-lg px-3 py-2" min="0" />
+                  <input
+                    type="number"
+                    value={editingLesson.estimatedMinutes || ''}
+                    onChange={(e) => updateEditingLesson({ estimatedMinutes: parseInt(e.target.value) || undefined })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    min="0"
+                    placeholder="e.g., 15"
+                  />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Content</label>
-                <textarea value={editingLesson.content || ''} onChange={(e) => setEditingLesson({ ...editingLesson, content: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 h-32" />
+                <RichTextEditor
+                  content={editingLesson.content || ''}
+                  onChange={(content) => updateEditingLesson({ content })}
+                  placeholder="Write your lesson content here..."
+                />
               </div>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" checked={editingLesson.isPreview} onChange={(e) => setEditingLesson({ ...editingLesson, isPreview: e.target.checked })} />
-                  <span className="text-sm">Free Preview</span>
+              <div className="flex gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingLesson.isPreview}
+                    onChange={(e) => updateEditingLesson({ isPreview: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm">Free Preview (visible to non-enrolled users)</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" checked={editingLesson.isRequired} onChange={(e) => setEditingLesson({ ...editingLesson, isRequired: e.target.checked })} />
-                  <span className="text-sm">Required</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingLesson.isRequired}
+                    onChange={(e) => updateEditingLesson({ isRequired: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm">Required for completion</span>
                 </label>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || !editingLesson.title?.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiSave />
+                {saving ? 'Saving...' : 'Save Lesson'}
+              </button>
             </div>
           </div>
         </div>

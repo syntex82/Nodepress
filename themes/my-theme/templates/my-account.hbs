@@ -1,0 +1,155 @@
+{{> header}}
+<style>
+  .account-section { padding: var(--section-padding) 0; min-height: 70vh; }
+  .account-header { margin-bottom: 2rem; }
+  .account-header h1 { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0; }
+
+  .account-layout { display: grid; grid-template-columns: 260px 1fr; gap: 2rem; }
+  .account-sidebar { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content; position: sticky; top: 100px; }
+  .account-nav { display: flex; flex-direction: column; gap: 0.5rem; }
+  .account-nav-link { padding: 0.875rem 1rem; border-radius: var(--border-radius-sm); color: var(--color-text); text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem; background: none; border: none; font-size: 1rem; cursor: pointer; text-align: left; width: 100%; }
+  .account-nav-link:hover { background: var(--color-background); color: var(--color-primary); }
+  .account-nav-link.active { background: var(--color-primary); color: white; }
+  .nav-divider { height: 1px; background: var(--color-border); margin: 0.5rem 0; }
+  .logout-btn { color: var(--color-error) !important; }
+  .logout-btn:hover { background: rgba(239, 68, 68, 0.1) !important; }
+
+  .account-content { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 2rem; }
+  .tab-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
+  .tab-header h2 { margin: 0; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .form-group { margin-bottom: 1.25rem; }
+  .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--color-text); }
+  .form-input { width: 100%; padding: 0.875rem 1rem; border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background); color: var(--color-text); font-size: 1rem; transition: border-color 0.2s; }
+  .form-input:focus { outline: none; border-color: var(--color-primary); }
+  .form-input:disabled { opacity: 0.6; cursor: not-allowed; }
+  .form-input.textarea { resize: vertical; min-height: 100px; }
+  .form-hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.25rem; }
+
+  .profile-form { max-width: 500px; }
+  .message { padding: 1rem; border-radius: var(--border-radius-sm); margin-top: 1rem; }
+  .message.success { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--color-success); color: var(--color-success); }
+  .message.error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-error); color: var(--color-error); }
+
+  /* Orders */
+  .orders-list { display: flex; flex-direction: column; gap: 1rem; }
+  .order-card { background: var(--color-background); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); padding: 1.25rem; }
+  .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+  .order-id { font-weight: 600; color: var(--color-heading); }
+  .order-date { font-size: 0.875rem; color: var(--color-text-muted); }
+  .order-status { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .order-status.completed { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
+  .order-status.pending { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); }
+  .order-status.failed { background: rgba(239, 68, 68, 0.15); color: var(--color-error); }
+  .order-items { margin-bottom: 1rem; }
+  .order-item { display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); }
+  .order-item:last-child { border-bottom: none; }
+  .order-item-image { width: 60px; height: 60px; object-fit: cover; border-radius: var(--border-radius-sm); }
+  .order-item-details { flex: 1; }
+  .order-item-name { font-weight: 500; margin-bottom: 0.25rem; }
+  .order-item-meta { font-size: 0.875rem; color: var(--color-text-muted); }
+  .order-total { display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--color-border); font-weight: 600; }
+
+  .empty-state { text-align: center; padding: 3rem 2rem; color: var(--color-text-muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+  #notLoggedIn { display: none; text-align: center; padding: 4rem 2rem; }
+  #notLoggedIn .icon { font-size: 4rem; margin-bottom: 1rem; }
+  #notLoggedIn p { color: var(--color-text-muted); margin-bottom: 2rem; }
+
+  @media (max-width: 1024px) {
+    .account-layout { grid-template-columns: 1fr; }
+    .account-sidebar { position: static; }
+    .account-nav { flex-direction: row; flex-wrap: wrap; }
+    .account-nav-link { flex: 1; min-width: 100px; justify-content: center; }
+  }
+</style>
+
+<section class="account-section">
+  <div class="container">
+    <div class="account-header">
+      <h1>👤 My Account</h1>
+    </div>
+
+    <div id="accountContent" class="account-layout">
+      <!-- Sidebar -->
+      <div class="account-sidebar">
+        <nav class="account-nav">
+          <a href="#profile" class="account-nav-link active" data-tab="profile">👤 Profile</a>
+          <a href="#orders" class="account-nav-link" data-tab="orders">📦 Orders</a>
+          <a href="#security" class="account-nav-link" data-tab="security">🔒 Security</a>
+          <div class="nav-divider"></div>
+          <a href="/my-courses" class="account-nav-link">📚 My Courses</a>
+          <button id="logoutBtn" class="account-nav-link logout-btn">🚪 Sign Out</button>
+        </nav>
+      </div>
+
+      <!-- Content Area -->
+      <div class="account-content">
+        <!-- Profile Tab -->
+        <div id="profileTab" class="tab-content active">
+          <div class="tab-header"><h2>Profile Information</h2></div>
+          <form id="profileForm" class="profile-form">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="profileName" class="form-input" placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="profileEmail" class="form-input" disabled>
+              <p class="form-hint">Email cannot be changed</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bio</label>
+              <textarea id="profileBio" class="form-input textarea" placeholder="Tell us about yourself..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+          <div id="profileMessage" class="message" style="display: none;"></div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="ordersTab" class="tab-content">
+          <div class="tab-header"><h2>Order History</h2></div>
+          <div id="ordersList" class="orders-list">
+            <div class="loading-state">⏳ Loading orders...</div>
+          </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="securityTab" class="tab-content">
+          <div class="tab-header"><h2>Security Settings</h2></div>
+          <form id="passwordForm" class="profile-form">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" id="currentPassword" class="form-input" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" id="newPassword" class="form-input" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" id="confirmPassword" class="form-input" placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Password</button>
+          </form>
+          <div id="passwordMessage" class="message" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not logged in state -->
+    <div id="notLoggedIn">
+      <div class="icon">🔐</div>
+      <h2>Please Sign In</h2>
+      <p>You need to be logged in to view your account.</p>
+      <a href="/login?redirect=/my-account" class="btn btn-primary">Sign In</a>
+    </div>
+  </div>
+</section>
+<script src="/themes/my-theme/assets/js/my-account.js"></script>
+{{> footer}}
+

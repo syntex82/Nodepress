@@ -1,34 +1,78 @@
 {{> header}}
-<section class="auth-section" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: var(--section-padding) 0;">
-  <div class="container" style="max-width: 420px;">
-    <div class="auth-card" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 2.5rem;">
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <h1 style="margin-bottom: 0.5rem;">Create Account</h1>
-        <p style="color: var(--color-text-muted); margin: 0;">Join us and start learning</p>
+<style>
+  .auth-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--gap-lg) var(--gap-md); background: var(--color-background); position: relative; overflow: hidden; }
+  .auth-section::before { content: ''; position: absolute; top: -50%; left: -25%; width: 100%; height: 200%; background: radial-gradient(ellipse at center, rgba(139,92,246,0.08) 0%, transparent 60%); pointer-events: none; }
+  .auth-section::after { content: ''; position: absolute; bottom: -50%; right: -25%; width: 100%; height: 200%; background: radial-gradient(ellipse at center, rgba(16,185,129,0.08) 0%, transparent 60%); pointer-events: none; }
+  .auth-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius-lg); padding: 2.5rem; width: 100%; max-width: 420px; position: relative; z-index: 1; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+  .auth-header { text-align: center; margin-bottom: 2rem; }
+  .auth-header .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .auth-header h1 { margin-bottom: 0.5rem; font-size: 1.75rem; }
+  .auth-header p { color: var(--color-text-muted); margin: 0; }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-label { display: block; font-weight: 500; margin-bottom: 0.5rem; color: var(--color-text); }
+  .form-input { width: 100%; padding: 0.875rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); color: var(--color-text); font-size: 1rem; transition: all 0.2s; }
+  .form-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+  .form-input::placeholder { color: var(--color-text-muted); }
+  .password-hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.25rem; }
+  .submit-btn { width: 100%; justify-content: center; padding: 0.875rem; font-size: 1rem; }
+  .submit-btn .loading { display: none; }
+  .submit-btn.loading .text { display: none; }
+  .submit-btn.loading .loading { display: inline; }
+  .auth-footer { text-align: center; margin-top: 1.75rem; padding-top: 1.75rem; border-top: 1px solid var(--color-border); }
+  .auth-footer p { margin: 0; color: var(--color-text-muted); }
+  .auth-footer a { color: var(--color-primary); font-weight: 500; }
+  .auth-footer a:hover { color: var(--color-link-hover); }
+  .alert { padding: 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-error); color: var(--color-error); }
+  .benefits { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; padding: 1rem; background: var(--color-background); border-radius: var(--border-radius-sm); }
+  .benefit { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--color-text-muted); }
+  .benefit .check { color: var(--color-success); }
+</style>
+
+<section class="auth-section">
+  <div class="auth-card">
+    <div class="auth-header">
+      <span class="icon">🚀</span>
+      <h1>Create Account</h1>
+      <p>Join us and start your learning journey</p>
+    </div>
+
+    <div class="benefits">
+      <div class="benefit"><span class="check">✓</span> Access to all courses</div>
+      <div class="benefit"><span class="check">✓</span> Track your progress</div>
+      <div class="benefit"><span class="check">✓</span> Get certificates</div>
+    </div>
+
+    {{#if error}}
+    <div class="alert alert-error">⚠️ {{error}}</div>
+    {{/if}}
+
+    <form id="registerForm" method="POST" action="/register">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="name" class="form-input" required placeholder="John Doe" autocomplete="name">
       </div>
-      {{#if error}}<div class="alert alert-error" style="padding: 1rem; background: rgba(239,68,68,0.1); border: 1px solid var(--color-error); color: var(--color-error); border-radius: 8px; margin-bottom: 1.5rem;">{{error}}</div>{{/if}}
-      <form id="registerForm" method="POST" action="/register">
-        <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Full Name</label>
-          <input type="text" name="name" required placeholder="John Doe" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
-        </div>
-        <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email</label>
-          <input type="email" name="email" required placeholder="you@example.com" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
-        </div>
-        <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Password</label>
-          <input type="password" name="password" required placeholder="••••••••" minlength="8" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
-        </div>
-        <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Confirm Password</label>
-          <input type="password" name="confirmPassword" required placeholder="••••••••" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);">
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="submitBtn"><span class="btn-text">Create Account</span><span class="btn-loading" style="display: none;">Creating...</span></button>
-      </form>
-      <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
-        <p style="margin: 0; color: var(--color-text-muted);">Already have an account? <a href="/login">Sign in</a></p>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-input" required placeholder="you@example.com" autocomplete="email">
       </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-input" required placeholder="••••••••" minlength="8" autocomplete="new-password">
+        <p class="password-hint">Must be at least 8 characters</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="confirmPassword" class="form-input" required placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">
+        <span class="text">Create Account</span>
+        <span class="loading">⏳ Creating...</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a href="/login">Sign in</a></p>
     </div>
   </div>
 </section>

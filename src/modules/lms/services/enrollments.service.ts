@@ -31,6 +31,7 @@ export class EnrollmentsService {
       data: {
         courseId,
         userId,
+        status: 'ACTIVE',
         paymentId: dto.paymentId,
       },
       include: {

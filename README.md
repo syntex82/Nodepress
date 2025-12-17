@@ -382,7 +382,63 @@ Before you begin, ensure you have the following installed:
 
 <br />
 
-### 🚀 Quick Start
+---
+
+### 🐧 Ubuntu Server - One-Command Install
+
+<div align="center">
+
+**Deploy WordPress Node CMS on Ubuntu Server with a single command!**
+
+</div>
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/syntex82/WordPress-Node/main/scripts/ubuntu-setup.sh | sudo bash
+```
+
+<details>
+<summary><strong>📋 What the script installs automatically</strong></summary>
+
+<br />
+
+| Component | Version | Purpose |
+|-----------|---------|---------|
+| **Node.js** | 20.x | JavaScript runtime |
+| **npm** | Latest | Package manager |
+| **PostgreSQL** | 16 | Database server |
+| **Redis** | Latest | Caching & sessions |
+| **Nginx** | Latest | Reverse proxy |
+| **Git** | Latest | Repository cloning |
+
+The script also:
+- ✅ Clones the repository to `~/wordpress-node`
+- ✅ Creates PostgreSQL database and user
+- ✅ Generates secure secrets for JWT and sessions
+- ✅ Creates `.env` file with all configuration
+- ✅ Installs all npm dependencies (backend + admin)
+- ✅ Runs database migrations
+- ✅ Seeds admin user
+
+</details>
+
+<br />
+
+**After installation completes:**
+
+```bash
+cd ~/wordpress-node
+npm run dev
+```
+
+**Then open:** `http://your-server-ip:3000/admin`
+
+**Login:** `admin@example.com` / `Admin123!`
+
+<br />
+
+---
+
+### 🚀 Quick Start (Manual)
 
 ```bash
 # 1️⃣ Clone the repository

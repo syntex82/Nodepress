@@ -1,23 +1,182 @@
 {{> header}}
-<section class="posts-section">
+<style>
+  .shop-section { padding: var(--section-padding) 0; min-height: 70vh; }
+  .shop-header { margin-bottom: 2.5rem; }
+  .shop-header h1 { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+  .shop-header p { color: var(--color-text-muted); margin: 0; }
+  .shop-filters { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center; }
+  .filter-btn { padding: 0.6rem 1.25rem; border-radius: 25px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
+  .filter-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+  .search-box { flex: 1; min-width: 200px; max-width: 300px; }
+  .search-input { width: 100%; padding: 0.6rem 1rem; padding-left: 2.5rem; border-radius: 25px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+  .search-input:focus { outline: none; border-color: var(--color-primary); }
+  .search-wrapper { position: relative; }
+  .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); }
+
+  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+  .product-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); overflow: hidden; transition: all 0.3s ease; }
+  .product-card:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(99, 102, 241, 0.15); border-color: var(--color-primary); }
+  .product-image-wrapper { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--color-background); }
+  .product-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .product-card:hover .product-image { transform: scale(1.08); }
+  .product-badge { position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+  .product-badge.sale { background: #EF4444; color: white; }
+  .product-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 50%, rgba(0,0,0,0.7)); opacity: 0; transition: opacity 0.3s; display: flex; align-items: flex-end; padding: 1rem; }
+  .product-card:hover .product-overlay { opacity: 1; }
+  .product-content { padding: 1.25rem; }
+  .product-title { font-size: 1.1rem; margin: 0 0 0.5rem; line-height: 1.4; }
+  .product-title a { color: var(--color-heading); transition: color 0.2s; }
+  .product-title a:hover { color: var(--color-primary); }
+  .product-price { font-size: 1.25rem; font-weight: 700; color: var(--color-primary); margin-bottom: 1rem; }
+  .product-price .original { font-size: 0.9rem; color: var(--color-text-muted); text-decoration: line-through; margin-right: 0.5rem; font-weight: 400; }
+  .product-actions { display: flex; gap: 0.5rem; }
+
+  .empty-state { text-align: center; padding: 4rem 2rem; grid-column: 1 / -1; }
+  .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+
+  @media (max-width: 768px) {
+    .shop-filters { flex-direction: column; align-items: stretch; }
+    .search-box { max-width: none; }
+    .products-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<section class="shop-section">
   <div class="container">
-    <h1>Shop</h1>
-    <div class="posts-grid">
+    <div class="shop-header">
+      <h1>🛍️ Shop</h1>
+      <p>Explore our collection of premium products</p>
+    </div>
+
+    <div class="shop-filters">
+      <button class="filter-btn active" data-filter="all">All Products</button>
+      <button class="filter-btn" data-filter="physical">Physical</button>
+      <button class="filter-btn" data-filter="digital">Digital</button>
+      <div class="search-box">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="productSearch" placeholder="Search products...">
+        </div>
+      </div>
+    </div>
+
+    <div class="products-grid" id="productsGrid">
       {{#each products}}
-      <article class="post-card">
-        {{#if images.[0]}}
-        <img src="{{images.[0]}}" alt="{{name}}" class="post-image">
-        {{/if}}
-        <div class="post-content">
-          <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
-          <p style="color: var(--color-primary); font-weight: 600;">
-            {{#if salePrice}}<s style="color: var(--color-text-muted);">${{price}}</s> ${{salePrice}}{{else}}${{price}}{{/if}}
-          </p>
-          <a href="/shop/product/{{slug}}" class="btn btn-sm btn-primary">View Product</a>
+      <article class="product-card" data-type="{{type}}" data-name="{{name}}">
+        <div class="product-image-wrapper">
+          {{#if images.[0]}}
+          <img src="{{images.[0]}}" alt="{{name}}" class="product-image" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop'">
+          {{else}}
+          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop" alt="{{name}}" class="product-image">
+          {{/if}}
+          {{#if salePrice}}<span class="product-badge sale">SALE</span>{{/if}}
+          <div class="product-overlay">
+            <button class="btn btn-primary btn-sm btn-full add-to-cart-btn" data-product-id="{{id}}" data-product-name="{{name}}">
+              🛒 Add to Cart
+            </button>
+          </div>
+        </div>
+        <div class="product-content">
+          <h3 class="product-title"><a href="/shop/product/{{slug}}">{{name}}</a></h3>
+          <div class="product-price">
+            {{#if salePrice}}
+            <span class="original">${{price}}</span>${{salePrice}}
+            {{else}}
+            ${{price}}
+            {{/if}}
+          </div>
+          <div class="product-actions">
+            <a href="/shop/product/{{slug}}" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center;">View Details</a>
+          </div>
         </div>
       </article>
+      {{else}}
+      <div class="empty-state">
+        <div class="icon">🛍️</div>
+        <h2>No Products Yet</h2>
+        <p style="color: var(--color-text-muted);">Check back soon for new products!</p>
+      </div>
       {{/each}}
     </div>
   </div>
 </section>
+
+<script>
+(function() {
+  // Add to cart functionality
+  document.querySelectorAll('.add-to-cart-btn').forEach(function(btn) {
+    btn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      var productId = this.dataset.productId;
+      var productName = this.dataset.productName;
+      var originalText = this.innerHTML;
+
+      this.innerHTML = '⏳ Adding...';
+      this.disabled = true;
+
+      try {
+        var token = localStorage.getItem('access_token');
+        var headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        var r = await fetch('/api/shop/cart/add', {
+          method: 'POST',
+          headers: headers,
+          credentials: 'include',
+          body: JSON.stringify({ productId: productId, quantity: 1 })
+        });
+
+        if (!r.ok) throw new Error('Failed to add');
+
+        this.innerHTML = '✓ Added!';
+        this.style.background = 'var(--color-success)';
+
+        // Update cart count
+        if (window.updateCartCount) window.updateCartCount();
+
+        setTimeout(function() {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.disabled = false;
+        }, 2000);
+      } catch (err) {
+        this.innerHTML = '✗ Failed';
+        this.style.background = 'var(--color-error)';
+        setTimeout(function() {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.disabled = false;
+        }, 2000);
+      }
+    });
+  });
+
+  // Filter functionality
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      var filter = this.dataset.filter;
+
+      document.querySelectorAll('.product-card').forEach(function(card) {
+        if (filter === 'all' || card.dataset.type.toLowerCase() === filter) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Search functionality
+  document.getElementById('productSearch').addEventListener('input', function() {
+    var query = this.value.toLowerCase();
+    document.querySelectorAll('.product-card').forEach(function(card) {
+      var name = card.dataset.name.toLowerCase();
+      card.style.display = name.includes(query) ? '' : 'none';
+    });
+  });
+})();
+</script>
 {{> footer}}

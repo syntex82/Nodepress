@@ -1,13 +1,14 @@
 /**
  * LMS Course Editor Page
  * Complete course creation and editing with all fields
+ * Includes auto-save and dirty state tracking to prevent data loss
  */
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { lmsAdminApi, Course } from '../../services/api';
 import MediaPickerModal from '../../components/MediaPickerModal';
 import RichTextEditor from '../../components/RichTextEditor';
-import { FiImage, FiX, FiSave, FiArrowLeft, FiList, FiHelpCircle } from 'react-icons/fi';
+import { FiImage, FiX, FiSave, FiArrowLeft, FiList, FiHelpCircle, FiAlertTriangle } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 
 const defaultCourse: Partial<Course> = {
@@ -40,6 +41,74 @@ export default function CourseEditor() {
   const [requirementsText, setRequirementsText] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [activeTab, setActiveTab] = useState<'basic' | 'content' | 'pricing' | 'settings'>('basic');
+  const [isDirty, setIsDirty] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadRef = useRef(true);
+
+  // Warn before closing browser/tab with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  // Track changes to mark as dirty
+  useEffect(() => {
+    if (initialLoadRef.current) return;
+    setIsDirty(true);
+  }, [course, whatYouLearnText, requirementsText]);
+
+  // Auto-save every 30 seconds if dirty (for existing courses only)
+  useEffect(() => {
+    if (!isNew && isDirty && !saving && course.title?.trim()) {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = setTimeout(() => {
+        handleAutoSave();
+      }, 30000); // 30 seconds
+    }
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [isDirty, course, whatYouLearnText, requirementsText]);
+
+  const handleAutoSave = useCallback(async () => {
+    if (isNew || !isDirty || saving || !course.title?.trim()) return;
+
+    try {
+      const data = {
+        title: course.title,
+        description: course.description,
+        shortDescription: course.shortDescription,
+        category: course.category || newCategory || undefined,
+        level: course.level,
+        featuredImage: course.featuredImage,
+        priceType: course.priceType,
+        priceAmount: course.priceType === 'PAID' ? Number(course.priceAmount) || 0 : undefined,
+        status: course.status,
+        passingScorePercent: Number(course.passingScorePercent) || 80,
+        certificateEnabled: course.certificateEnabled,
+        estimatedHours: Number(course.estimatedHours) || 0,
+        whatYouLearn: whatYouLearnText.split('\n').filter(Boolean),
+        requirements: requirementsText.split('\n').filter(Boolean),
+      };
+
+      await lmsAdminApi.updateCourse(id!, data);
+      setIsDirty(false);
+      setLastSaved(new Date());
+      toast.success('Auto-saved', { duration: 2000, icon: '💾' });
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  }, [id, isNew, isDirty, saving, course, whatYouLearnText, requirementsText, newCategory]);
 
   useEffect(() => {
     loadCategories();
@@ -61,6 +130,10 @@ export default function CourseEditor() {
       setCourse(data);
       setWhatYouLearnText((data.whatYouLearn || []).join('\n'));
       setRequirementsText((data.requirements || []).join('\n'));
+      // Mark initial load complete after state is set
+      setTimeout(() => {
+        initialLoadRef.current = false;
+      }, 100);
     } catch (error) {
       console.error('Failed to load course:', error);
       toast.error('Failed to load course');
@@ -98,10 +171,13 @@ export default function CourseEditor() {
 
       if (isNew) {
         const { data: newCourse } = await lmsAdminApi.createCourse(data);
+        setIsDirty(false);
         toast.success('Course created successfully!');
         navigate(`/lms/courses/${newCourse.id}`);
       } else {
         await lmsAdminApi.updateCourse(id!, data);
+        setIsDirty(false);
+        setLastSaved(new Date());
         toast.success('Course saved successfully!');
       }
     } catch (error: any) {
@@ -128,8 +204,73 @@ export default function CourseEditor() {
     { id: 'settings', label: 'Settings' },
   ] as const;
 
+  // Handle navigation with unsaved changes check
+  const handleNavigation = (path: string) => {
+    if (isDirty && !saving) {
+      setPendingNavigation(path);
+      setShowUnsavedModal(true);
+    } else {
+      navigate(path);
+    }
+  };
+
+  const confirmNavigation = () => {
+    if (pendingNavigation) {
+      setShowUnsavedModal(false);
+      setIsDirty(false); // Reset dirty state before navigating
+      navigate(pendingNavigation);
+    }
+  };
+
+  const cancelNavigation = () => {
+    setShowUnsavedModal(false);
+    setPendingNavigation(null);
+  };
+
   return (
     <div className="p-6">
+      {/* Unsaved Changes Modal */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md shadow-xl">
+            <div className="flex items-center gap-3 text-amber-600 mb-4">
+              <FiAlertTriangle size={24} />
+              <h3 className="text-lg font-semibold">Unsaved Changes</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelNavigation}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Stay on Page
+              </button>
+              <button
+                onClick={confirmNavigation}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Leave Without Saving
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dirty State Indicator */}
+      {isDirty && (
+        <div className="fixed bottom-4 right-4 bg-amber-100 text-amber-800 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-40">
+          <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+          <span className="text-sm font-medium">Unsaved changes</span>
+          {lastSaved && (
+            <span className="text-xs text-amber-600">
+              (Last saved: {lastSaved.toLocaleTimeString()})
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
@@ -152,20 +293,20 @@ export default function CourseEditor() {
         {/* Quick Actions for existing course */}
         {!isNew && (
           <div className="flex items-center gap-2">
-            <Link
-              to={`/lms/courses/${id}/lessons`}
+            <button
+              onClick={() => handleNavigation(`/lms/courses/${id}/lessons`)}
               className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FiList size={16} />
               Lessons ({course._count?.lessons || 0})
-            </Link>
-            <Link
-              to={`/lms/courses/${id}/quizzes`}
+            </button>
+            <button
+              onClick={() => handleNavigation(`/lms/courses/${id}/quizzes`)}
               className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FiHelpCircle size={16} />
               Quizzes ({course._count?.quizzes || 0})
-            </Link>
+            </button>
           </div>
         )}
       </div>
@@ -390,26 +531,26 @@ export default function CourseEditor() {
                 <div className="bg-white rounded-lg shadow p-6">
                   <h3 className="font-medium text-gray-900 mb-4">Course Curriculum</h3>
                   <div className="space-y-3">
-                    <Link
-                      to={`/lms/courses/${id}/lessons`}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    <button
+                      onClick={() => handleNavigation(`/lms/courses/${id}/lessons`)}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors w-full text-left"
                     >
                       <div className="flex items-center gap-3">
                         <FiList className="text-green-600" />
                         <span>Lessons</span>
                       </div>
                       <span className="text-gray-500">{course._count?.lessons || 0}</span>
-                    </Link>
-                    <Link
-                      to={`/lms/courses/${id}/quizzes`}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    </button>
+                    <button
+                      onClick={() => handleNavigation(`/lms/courses/${id}/quizzes`)}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors w-full text-left"
                     >
                       <div className="flex items-center gap-3">
                         <FiHelpCircle className="text-purple-600" />
                         <span>Quizzes</span>
                       </div>
                       <span className="text-gray-500">{course._count?.quizzes || 0}</span>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}

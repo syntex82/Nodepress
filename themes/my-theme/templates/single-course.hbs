@@ -1,27 +1,162 @@
 {{> header}}
-<div class="page-content">
+<style>
+  .course-hero { background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(236, 72, 153, 0.1) 100%); padding: 3rem 0; border-bottom: 1px solid var(--color-border); }
+  .course-hero-content { display: grid; grid-template-columns: 1fr 400px; gap: 3rem; align-items: start; }
+  .course-hero-image { border-radius: var(--border-radius); overflow: hidden; aspect-ratio: 16/9; background: var(--color-surface); }
+  .course-hero-image img { width: 100%; height: 100%; object-fit: cover; }
+  .course-hero-info h1 { font-size: 2.25rem; margin-bottom: 1rem; line-height: 1.3; }
+  .course-hero-info .description { color: var(--color-text-muted); font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; }
+  .course-meta-badges { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .meta-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 25px; font-size: 0.9rem; }
+  .course-instructor { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .instructor-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.25rem; }
+  .instructor-info { font-size: 0.9rem; }
+  .instructor-info .name { font-weight: 600; color: var(--color-heading); }
+  .instructor-info .role { color: var(--color-text-muted); }
+
+  .course-sidebar { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; position: sticky; top: 100px; }
+  .course-price { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+  .course-price.free { color: var(--color-success); }
+  .course-price.paid { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .enroll-btn { width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem; margin-bottom: 1rem; }
+  .course-features { list-style: none; padding: 0; margin: 0; }
+  .course-features li { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.95rem; }
+  .course-features li:last-child { border-bottom: none; }
+  .course-features .icon { color: var(--color-primary); }
+
+  .course-content-section { padding: 3rem 0; }
+  .course-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem; }
+  .course-tab { padding: 1rem 1.5rem; background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .course-tab:hover { color: var(--color-text); }
+  .course-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .curriculum-module { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); margin-bottom: 1rem; overflow: hidden; }
+  .module-header { padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .module-header:hover { background: var(--color-background); }
+  .module-lessons { border-top: 1px solid var(--color-border); }
+  .lesson-row { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--color-border); }
+  .lesson-row:last-child { border-bottom: none; }
+  .lesson-icon { color: var(--color-text-muted); }
+  .lesson-title { flex: 1; }
+  .lesson-duration { font-size: 0.85rem; color: var(--color-text-muted); }
+
+  @media (max-width: 1024px) {
+    .course-hero-content { grid-template-columns: 1fr; }
+    .course-sidebar { position: static; }
+  }
+</style>
+
+<section class="course-hero">
   <div class="container">
-    {{#if course.thumbnail}}
-    <img src="{{course.thumbnail}}" alt="{{course.title}}" class="featured-image">
-    {{/if}}
-    <h1>{{course.title}}</h1>
-    <div class="post-meta">
-      <span>Level: {{course.level}}</span>
-      {{#if course.estimatedHours}} &bull; <span>{{course.estimatedHours}} hours</span>{{/if}}
-    </div>
-    <div class="post-body">
-      {{{course.description}}}
-    </div>
-    <div style="margin-top: 2rem;">
-      <p style="font-size: 1.5rem; color: var(--color-primary); font-weight: 600;">
-        {{#if (eq course.priceType 'FREE')}}Free{{else}}${{course.priceAmount}}{{/if}}
-      </p>
-      {{#if (eq course.priceType 'FREE')}}
-      <button class="btn btn-primary btn-lg" data-enroll-course="{{course.id}}" style="margin-top: 1rem;">Enroll Now - Free</button>
-      {{else}}
-      <button class="btn btn-primary btn-lg" data-add-course="{{course.id}}" style="margin-top: 1rem;">Add to Cart</button>
-      {{/if}}
+    <div class="course-hero-content">
+      <div class="course-hero-info">
+        <h1>{{course.title}}</h1>
+        <p class="description">{{course.shortDescription}}</p>
+
+        <div class="course-meta-badges">
+          {{#if course.level}}<span class="meta-badge">📊 {{course.level}}</span>{{/if}}
+          {{#if course.estimatedHours}}<span class="meta-badge">⏱️ {{course.estimatedHours}} hours</span>{{/if}}
+          <span class="meta-badge">📖 {{course._count.lessons}} lessons</span>
+          {{#if course._count.enrollments}}<span class="meta-badge">👥 {{course._count.enrollments}} students</span>{{/if}}
+        </div>
+
+        {{#if course.instructor}}
+        <div class="course-instructor">
+          <div class="instructor-avatar">{{substring course.instructor.name 0 1}}</div>
+          <div class="instructor-info">
+            <div class="name">{{course.instructor.name}}</div>
+            <div class="role">Instructor</div>
+          </div>
+        </div>
+        {{/if}}
+      </div>
+
+      <div class="course-sidebar">
+        <div class="course-hero-image">
+          {{#if course.featuredImage}}
+          <img src="{{course.featuredImage}}" alt="{{course.title}}" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&h=280&fit=crop'">
+          {{else if course.thumbnail}}
+          <img src="{{course.thumbnail}}" alt="{{course.title}}" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&h=280&fit=crop'">
+          {{else}}
+          <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&h=280&fit=crop" alt="{{course.title}}">
+          {{/if}}
+        </div>
+
+        <div class="course-price {{#if (eq course.priceType 'FREE')}}free{{else}}paid{{/if}}">
+          {{#if (eq course.priceType 'FREE')}}Free{{else}}${{course.price}}{{/if}}
+        </div>
+
+        {{#if isEnrolled}}
+        <a href="/learn/{{course.id}}" class="btn btn-primary enroll-btn">🎓 Continue Learning</a>
+        {{else}}
+          {{#if (eq course.priceType 'FREE')}}
+          <button class="btn btn-primary enroll-btn" data-enroll-course="{{course.id}}">🚀 Enroll Now - Free</button>
+          {{else}}
+          <button class="btn btn-primary enroll-btn" data-add-course="{{course.id}}">🛒 Add to Cart</button>
+          {{/if}}
+        {{/if}}
+
+        <ul class="course-features">
+          <li><span class="icon">✓</span> Full lifetime access</li>
+          <li><span class="icon">✓</span> Access on mobile and desktop</li>
+          <li><span class="icon">✓</span> Certificate of completion</li>
+          {{#if course.estimatedHours}}<li><span class="icon">✓</span> {{course.estimatedHours}} hours of content</li>{{/if}}
+        </ul>
+      </div>
     </div>
   </div>
-</div>
+</section>
+
+<section class="course-content-section">
+  <div class="container">
+    <div class="course-tabs">
+      <button class="course-tab active" data-tab="overview">Overview</button>
+      <button class="course-tab" data-tab="curriculum">Curriculum</button>
+    </div>
+
+    <div class="tab-content active" id="overviewTab">
+      <div class="post-body">
+        {{{course.description}}}
+      </div>
+    </div>
+
+    <div class="tab-content" id="curriculumTab">
+      {{#each course.modules}}
+      <div class="curriculum-module">
+        <div class="module-header">
+          <span>{{this.title}}</span>
+          <span style="color: var(--color-text-muted); font-size: 0.9rem;">{{this.lessons.length}} lessons</span>
+        </div>
+        <div class="module-lessons">
+          {{#each this.lessons}}
+          <div class="lesson-row">
+            <span class="lesson-icon">📹</span>
+            <span class="lesson-title">{{this.title}}</span>
+            {{#if this.duration}}<span class="lesson-duration">{{this.duration}}</span>{{/if}}
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{else}}
+      <p style="color: var(--color-text-muted); text-align: center; padding: 2rem;">Curriculum coming soon...</p>
+      {{/each}}
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  // Tab switching
+  document.querySelectorAll('.course-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.course-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      this.classList.add('active');
+      document.getElementById(this.dataset.tab + 'Tab').classList.add('active');
+    });
+  });
+})();
+</script>
 {{> footer}}

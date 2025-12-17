@@ -1,0 +1,90 @@
+{{> header}}
+<style>
+  .my-courses-section { padding: var(--section-padding) 0; min-height: 70vh; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+  .page-header h1 { margin: 0; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* Filter Buttons */
+  #courseFilters { display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .filter-btn { padding: 0.6rem 1.25rem; border-radius: 25px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
+  .filter-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+
+  /* Courses Grid */
+  #coursesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+
+  /* Course Card */
+  .course-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+  .course-card:hover { transform: translateY(-4px); box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15); border-color: var(--color-primary); }
+  .course-image-wrapper { position: relative; overflow: hidden; }
+  .course-image { width: 100%; height: 180px; object-fit: cover; transition: transform 0.3s; }
+  .course-card:hover .course-image { transform: scale(1.05); }
+  .course-badge-wrapper { position: absolute; top: 0.75rem; right: 0.75rem; }
+  .course-badge { padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; backdrop-filter: blur(10px); }
+  .course-badge.completed { background: rgba(16, 185, 129, 0.9); color: white; }
+  .course-badge.in-progress { background: rgba(99, 102, 241, 0.9); color: white; }
+  .course-content { padding: 1.25rem; }
+  .course-title { margin: 0 0 0.5rem; font-size: 1.1rem; line-height: 1.4; color: var(--color-heading); }
+  .course-lessons { color: var(--color-text-muted); font-size: 0.875rem; margin: 0 0 1rem; }
+  .progress-wrapper { margin-bottom: 1rem; }
+  .progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--color-text-muted); }
+  .progress-bar { background: var(--color-border); border-radius: 6px; height: 8px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--color-primary), var(--color-accent)); height: 100%; transition: width 0.3s; border-radius: 6px; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* States */
+  .loading-state, .error-state { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--color-text-muted); }
+  .error-state { color: var(--color-error); }
+  #emptyState, #notLoggedIn { display: none; text-align: center; padding: 4rem 2rem; }
+  #emptyState .icon, #notLoggedIn .icon { font-size: 4rem; margin-bottom: 1rem; }
+  #emptyState h2, #notLoggedIn h2 { margin-bottom: 0.5rem; }
+  #emptyState p, #notLoggedIn p { color: var(--color-text-muted); margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto; }
+
+  @media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: flex-start; }
+    #coursesGrid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<section class="my-courses-section">
+  <div class="container">
+    <div class="page-header">
+      <h1>📚 My Learning Dashboard</h1>
+      <a href="/courses" class="btn btn-outline">Browse More Courses</a>
+    </div>
+
+    <!-- Course Filters -->
+    <div id="courseFilters">
+      <button class="filter-btn active" data-filter="all">All Courses</button>
+      <button class="filter-btn" data-filter="in-progress">In Progress</button>
+      <button class="filter-btn" data-filter="completed">Completed</button>
+    </div>
+
+    <!-- Enrolled Courses Grid -->
+    <div id="coursesGrid">
+      <div class="loading-state">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+        Loading your courses...
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState">
+      <div class="icon">📚</div>
+      <h2>No Courses Yet</h2>
+      <p>You haven't enrolled in any courses yet. Start your learning journey today!</p>
+      <a href="/courses" class="btn btn-primary">Explore Courses</a>
+    </div>
+
+    <!-- Not logged in state -->
+    <div id="notLoggedIn">
+      <div class="icon">🔐</div>
+      <h2>Please Sign In</h2>
+      <p>You need to be logged in to view your courses.</p>
+      <a href="/login?redirect=/my-courses" class="btn btn-primary">Sign In</a>
+    </div>
+  </div>
+</section>
+<script src="/themes/my-theme/assets/js/my-courses.js"></script>
+{{> footer}}
+

@@ -47,10 +47,21 @@ export class CheckoutController {
     @Req() req: Request,
     @Res({ passthrough: true }) _res: Response,
   ) {
-    const userId = (req as any).user?.id;
+    const user = (req as any).user;
+    const userId = user?.id;
     const sessionId = req.cookies?.cart_session;
 
-    console.log('Creating order for session:', sessionId, 'user:', userId);
+    // Use authenticated user's email if not provided in dto
+    if (!dto.email && user?.email) {
+      dto.email = user.email;
+    }
+
+    // If still no email, return error
+    if (!dto.email) {
+      throw new Error('Email is required for checkout');
+    }
+
+    console.log('Creating order for session:', sessionId, 'user:', userId, 'email:', dto.email);
 
     try {
       // Create order

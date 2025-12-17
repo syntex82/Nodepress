@@ -682,8 +682,8 @@ export const cartApi = {
 
 export const checkoutApi = {
   getConfig: () => api.get<{ publishableKey: string }>('/shop/checkout/config'),
-  createOrder: (data: { email: string; shippingAddress?: object; billingAddress?: object }) =>
-    api.post<{ order: Order; clientSecret: string; paymentIntentId: string }>('/shop/checkout/create-order', data),
+  createOrder: (data?: { email?: string; shippingAddress?: object; billingAddress?: object }) =>
+    api.post<{ order: Order; clientSecret: string; paymentIntentId: string }>('/shop/checkout/create-order', data || {}),
   getOrder: (id: string) => api.get<Order>(`/shop/orders/${id}`),
 };
 

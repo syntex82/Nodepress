@@ -1,4 +1,5 @@
 {{> header}}
+<script src="https://js.stripe.com/v3/"></script>
 <section class="checkout-section" style="padding: var(--section-padding) 0;">
   <div class="container">
     <h1>Checkout</h1>
@@ -7,9 +8,8 @@
         <form id="checkoutForm">
           <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
             <h3 style="margin-bottom: 1rem;">Contact Information</h3>
-            {{#if user}}<p style="color: var(--color-text-muted);">Logged in as <strong>{{user.email}}</strong></p>{{else}}
-            <div style="margin-bottom: 1rem;"><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email</label><input type="email" name="email" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
-            {{/if}}
+            {{#if user}}<p style="color: var(--color-text-muted); margin-bottom: 1rem;">Logged in as <strong>{{user.email}}</strong></p>{{/if}}
+            <div style="margin-bottom: 1rem;"><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Email *</label><input type="email" name="email" id="checkoutEmail" required value="{{#if user}}{{user.email}}{{/if}}" style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"></div>
           </div>
           <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
             <h3 style="margin-bottom: 1rem;">Billing Address</h3>
@@ -27,7 +27,12 @@
               <div><label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Country</label><select name="country" required style="width: 100%; padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text);"><option value="">Select</option><option value="US">United States</option><option value="CA">Canada</option><option value="GB">United Kingdom</option></select></div>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" id="placeOrderBtn"><span class="btn-text">Place Order</span><span class="btn-loading" style="display: none;">Processing...</span></button>
+          <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border);">
+            <h3 style="margin-bottom: 1rem;">Payment Details</h3>
+            <div id="card-element" style="padding: 0.75rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px;"></div>
+            <div id="card-errors" style="color: #dc2626; margin-top: 0.5rem; font-size: 0.875rem;"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" id="placeOrderBtn"><span class="btn-text">Pay Now</span><span class="btn-loading" style="display: none;">Processing...</span></button>
         </form>
       </div>
       <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content;">

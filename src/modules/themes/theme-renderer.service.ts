@@ -368,4 +368,63 @@ export class ThemeRendererService {
       user,
     );
   }
+
+  /**
+   * Render my account page
+   */
+  async renderMyAccount(user?: { id: string; role: string; name?: string; email?: string } | null) {
+    return this.render(
+      'my-account',
+      {
+        user,
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render my courses page
+   */
+  async renderMyCourses(user?: { id: string; role: string; name?: string } | null) {
+    return this.render(
+      'my-courses',
+      {
+        user,
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render course learning page
+   */
+  async renderLearn(
+    courseId: string,
+    user?: { id: string; role: string; name?: string } | null,
+  ) {
+    return this.render(
+      'learn',
+      {
+        courseId,
+        user,
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render theme designer page
+   */
+  async renderThemeDesigner(
+    user?: { id: string; role: string; name?: string } | null,
+  ) {
+    return this.render(
+      'theme-designer',
+      {
+        user,
+        isAdmin: user?.role === 'ADMIN',
+      },
+      user,
+    );
+  }
 }
