@@ -90,9 +90,9 @@ echo -e "${GREEN}✓ Nginx ready${NC}"
 # STEP 6: Create .env file
 # ══════════════════════════════════════════════════════════════
 echo -e "${BLUE}[6/7] Creating .env file...${NC}"
-cat > ${APP_DIR}/.env << EOF
-DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public
-DIRECT_DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public
+cat > ${APP_DIR}/.env << 'ENVEOF'
+DATABASE_URL="postgresql://wpnode:wpnode123@localhost:5432/wordpress_node?schema=public"
+DIRECT_DATABASE_URL="postgresql://wpnode:wpnode123@localhost:5432/wordpress_node?schema=public"
 NODE_ENV=development
 PORT=3000
 HOST=0.0.0.0
@@ -100,8 +100,8 @@ APP_URL=http://localhost:3000
 JWT_SECRET=supersecretjwtkey123456789012345678901234567890
 JWT_EXPIRES_IN=7d
 SESSION_SECRET=supersessionsecret12345678901234567890123456789
-ADMIN_EMAIL=${ADMIN_EMAIL}
-ADMIN_PASSWORD=${ADMIN_PASSWORD}
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="SecureAdmin@2024!"
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
@@ -112,10 +112,10 @@ MAX_FILE_SIZE=104857600
 UPLOAD_DIR=./uploads
 STORAGE_PROVIDER=local
 STORAGE_LOCAL_URL=/uploads
-SITE_NAME=WordPress Node
-SITE_DESCRIPTION=A modern CMS built with Node.js
+SITE_NAME="WordPress Node"
+SITE_DESCRIPTION="A modern CMS built with Node.js"
 ACTIVE_THEME=default
-EOF
+ENVEOF
 chown ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}/.env
 echo -e "${GREEN}✓ .env created${NC}"
 
