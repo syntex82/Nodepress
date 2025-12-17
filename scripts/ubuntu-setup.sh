@@ -143,9 +143,9 @@ sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR}/admin && npm install"
 echo -e "${BLUE}Running database migrations...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma migrate deploy"
 
-# Seed database - pass env vars explicitly
+# Seed database - source .env and run seed
 echo -e "${BLUE}Seeding database...${NC}"
-sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && ADMIN_EMAIL='${ADMIN_EMAIL}' ADMIN_PASSWORD='${ADMIN_PASSWORD}' npx prisma db seed"
+sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && export \$(cat .env | grep -v '^#' | xargs) && npx prisma db seed"
 
 # Uploads folder
 mkdir -p ${APP_DIR}/uploads
