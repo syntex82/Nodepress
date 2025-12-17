@@ -39,45 +39,10 @@ APP_DIR="${USER_HOME}/wordpress-node"
 echo -e "${GREEN}Installing to: ${APP_DIR}${NC}"
 echo ""
 
-# Prompt for admin credentials (use /dev/tty for piped execution)
-echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}                    Admin Account Setup                         ${NC}"
-echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-echo ""
-echo -n "Admin Email [admin@example.com]: "
-read ADMIN_EMAIL < /dev/tty
-ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
-
-echo -e "${YELLOW}Password must be 12+ chars with uppercase, lowercase, number & special char${NC}"
-while true; do
-    echo -n "Admin Password: "
-    stty -echo < /dev/tty
-    read ADMIN_PASSWORD < /dev/tty
-    stty echo < /dev/tty
-    echo ""
-    if [ ${#ADMIN_PASSWORD} -lt 12 ]; then
-        echo -e "${RED}Password must be at least 12 characters${NC}"
-        continue
-    fi
-    if ! echo "$ADMIN_PASSWORD" | grep -q '[A-Z]'; then
-        echo -e "${RED}Password must contain an uppercase letter${NC}"
-        continue
-    fi
-    if ! echo "$ADMIN_PASSWORD" | grep -q '[a-z]'; then
-        echo -e "${RED}Password must contain a lowercase letter${NC}"
-        continue
-    fi
-    if ! echo "$ADMIN_PASSWORD" | grep -q '[0-9]'; then
-        echo -e "${RED}Password must contain a number${NC}"
-        continue
-    fi
-    if ! echo "$ADMIN_PASSWORD" | grep -q '[!@#$%^&*()_+\-=\[\]{};:\",.<>?/\\|`~]'; then
-        echo -e "${RED}Password must contain a special character${NC}"
-        continue
-    fi
-    break
-done
-echo ""
+# Default admin credentials
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="SecureAdmin@2024!"
+echo -e "${GREEN}Admin: ${ADMIN_EMAIL}${NC}"
 
 # Generate secure secrets (these are auto-generated, never stored in repo)
 DB_PASSWORD=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)
@@ -201,7 +166,7 @@ echo -e "  cd ${APP_DIR}"
 echo -e "  ${BLUE}npm run dev${NC}"
 echo ""
 echo -e "${YELLOW}Admin Panel:${NC} http://localhost:3000/admin"
-echo -e "${YELLOW}Login:${NC} ${ADMIN_EMAIL}"
+echo -e "${YELLOW}Login:${NC} ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}"
 echo ""
 echo -e "${YELLOW}Installed:${NC}"
 echo -e "  • Node.js $(node -v)"
