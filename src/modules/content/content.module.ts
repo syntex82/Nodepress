@@ -4,6 +4,7 @@
  */
 
 import { Module } from '@nestjs/common';
+import { PrismaModule } from '../../database/prisma.module';
 import { PostsService } from './services/posts.service';
 import { PagesService } from './services/pages.service';
 import { ContentTypesService } from './services/content-types.service';
@@ -12,6 +13,7 @@ import { PagesController } from './controllers/pages.controller';
 import { ContentTypesController } from './controllers/content-types.controller';
 
 @Module({
+  imports: [PrismaModule],
   providers: [PostsService, PagesService, ContentTypesService],
   controllers: [PostsController, PagesController, ContentTypesController],
   exports: [PostsService, PagesService, ContentTypesService],

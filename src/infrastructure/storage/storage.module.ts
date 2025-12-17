@@ -40,4 +40,3 @@ import { S3StorageProvider } from './providers/s3.provider';
   exports: [StorageService, 'STORAGE_CONFIG'],
 })
 export class StorageModule {}
-

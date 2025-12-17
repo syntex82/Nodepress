@@ -37,6 +37,8 @@ export default function Login() {
 
       const { access_token, user } = response.data;
       login(user, access_token);
+      // Small delay to ensure Zustand persists to localStorage before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
@@ -54,6 +56,8 @@ export default function Login() {
       const response = await authApi.verify2FA(tempToken, twoFactorCode);
       const { access_token, user } = response.data;
       login(user, access_token);
+      // Small delay to ensure Zustand persists to localStorage before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || '2FA verification failed');

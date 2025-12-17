@@ -303,7 +303,7 @@ export class ThemesService {
             const parts = entry.entryName.split('/');
             rootFolder = parts.length > 1 ? parts[0] : null;
             themeSlug = rootFolder || file.originalname.replace('.zip', '');
-          } catch (parseError) {
+          } catch (_parseError) {
             errors.push('theme.json contains invalid JSON');
             return { valid: false, errors, warnings };
           }

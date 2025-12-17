@@ -23,7 +23,9 @@ export class FallbackQueueService {
   private readonly logger = new Logger('FallbackQueueService');
 
   constructor() {
-    this.logger.warn('⚠️ Queue system running in fallback mode (no Redis). Jobs will be processed synchronously.');
+    this.logger.warn(
+      '⚠️ Queue system running in fallback mode (no Redis). Jobs will be processed synchronously.',
+    );
   }
 
   async addEmailJob(data: any) {
@@ -72,7 +74,9 @@ export class QueueModule {
 
     // If Redis is not configured, use fallback mode
     if (!isRedisConfigured()) {
-      logger.warn('⚠️ Redis not configured - Queue system disabled. Set REDIS_HOST to enable background jobs.');
+      logger.warn(
+        '⚠️ Redis not configured - Queue system disabled. Set REDIS_HOST to enable background jobs.',
+      );
       return {
         module: QueueModule,
         imports: [ConfigModule],
@@ -132,11 +136,7 @@ export class QueueModule {
           },
           inject: [ConfigService],
         }),
-        BullModule.registerQueue(
-          { name: 'email' },
-          { name: 'image' },
-          { name: 'notifications' },
-        ),
+        BullModule.registerQueue({ name: 'email' }, { name: 'image' }, { name: 'notifications' }),
       ],
       providers: [
         {
@@ -150,4 +150,3 @@ export class QueueModule {
     };
   }
 }
-

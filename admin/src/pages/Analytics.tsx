@@ -53,14 +53,14 @@ export default function Analytics() {
         analyticsApi.getDevices(period),
         analyticsApi.getRealtime(),
       ]);
-      setStats(dashRes.data);
-      setPageViews(viewsRes.data);
-      setTopPages(pagesRes.data);
-      setDevices(devicesRes.data);
-      setRealtime(realtimeRes.data);
-    } catch (error) {
-      toast.error('Failed to load analytics data');
-      console.error(error);
+      setStats(dashRes.data || {});
+      setPageViews(viewsRes.data || []);
+      setTopPages(pagesRes.data || []);
+      setDevices(devicesRes.data || []);
+      setRealtime(realtimeRes.data || { activeVisitors: 0, recentPages: [] });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to load analytics data');
+      console.error('Analytics error:', error);
     } finally {
       setLoading(false);
     }

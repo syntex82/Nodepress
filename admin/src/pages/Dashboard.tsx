@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { postsApi, pagesApi, usersApi } from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -23,12 +24,13 @@ export default function Dashboard() {
         ]);
 
         setStats({
-          posts: postsRes.data.meta.total,
-          pages: pagesRes.data.meta.total,
-          users: usersRes.data.meta.total,
+          posts: postsRes.data.meta?.total || 0,
+          pages: pagesRes.data.meta?.total || 0,
+          users: usersRes.data.meta?.total || 0,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching stats:', error);
+        toast.error(error.response?.data?.message || 'Failed to load dashboard stats');
       }
     };
 

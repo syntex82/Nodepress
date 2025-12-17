@@ -33,7 +33,7 @@ export class CacheService {
 
     const fullKey = this.buildKey(key, options?.prefix);
     const value = await this.redis.get(fullKey);
-    
+
     if (!value) return null;
 
     try {
@@ -57,11 +57,7 @@ export class CacheService {
     }
   }
 
-  async getOrSet<T>(
-    key: string,
-    factory: () => Promise<T>,
-    options?: CacheOptions,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, factory: () => Promise<T>, options?: CacheOptions): Promise<T> {
     const cached = await this.get<T>(key, options);
     if (cached !== null) {
       return cached;
@@ -87,4 +83,3 @@ export class CacheService {
     }
   }
 }
-

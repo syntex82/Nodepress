@@ -27,7 +27,9 @@ export class ImageQueueProcessor extends WorkerHost {
   constructor() {
     super();
     if (!sharpModule) {
-      this.logger.warn('Sharp not installed - image processing will be skipped. Install with: npm install sharp');
+      this.logger.warn(
+        'Sharp not installed - image processing will be skipped. Install with: npm install sharp',
+      );
     }
   }
 
@@ -91,4 +93,3 @@ export class ImageQueueProcessor extends WorkerHost {
     this.logger.error(`Image job ${job.id} failed: ${error.message}`);
   }
 }
-

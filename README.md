@@ -18,13 +18,13 @@
 <br />
 
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-11+-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-6+-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![Prisma](https://img.shields.io/badge/Prisma-5+-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3+-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Vite](https://img.shields.io/badge/Vite-7+-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6+-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 <br />
@@ -242,8 +242,8 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 |------------|---------|
 | **Node.js 20+** | JavaScript runtime |
 | **NestJS 11** | Enterprise-grade framework |
-| **TypeScript 5+** | Type-safe development |
-| **Prisma 6** | Next-generation ORM |
+| **TypeScript 5.9** | Type-safe development |
+| **Prisma 5** | Next-generation ORM |
 | **PostgreSQL 15+** | Relational database |
 | **Redis** | Caching, sessions, job queues |
 | **BullMQ** | Background job processing |
@@ -262,9 +262,9 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 
 | Technology | Purpose |
 |------------|---------|
-| **React 18+** | UI library |
-| **TypeScript 5+** | Type-safe development |
-| **Vite 7** | Build tool & dev server |
+| **React 18** | UI library |
+| **TypeScript 5.9** | Type-safe development |
+| **Vite 6** | Build tool & dev server |
 | **Tailwind CSS 3+** | Utility-first styling |
 | **Zustand** | State management |
 | **React Router 6+** | Client-side routing |
@@ -410,7 +410,7 @@ npx prisma db seed
 
 # 8️⃣ Start development servers
 # Terminal 1 - Backend API (port 3000)
-npm run start:dev
+npm run dev
 
 # Terminal 2 - Admin Panel (port 5173)
 cd admin && npm run dev
@@ -432,8 +432,10 @@ SESSION_SECRET="your-session-secret-key"
 
 # Admin Account for seeding (required)
 ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="admin123"
+ADMIN_PASSWORD="YourSecureP@ssw0rd!"
 ```
+
+> ⚠️ **Important:** The `ADMIN_PASSWORD` must meet security requirements (see below). The seed script will fail if the password is too weak.
 
 > 💡 **See the [Complete Configuration Guide](#️-complete-configuration-guide) below for all available options including SMTP, Stripe, AI, and more.**
 
@@ -445,22 +447,27 @@ Once running, access the application at:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Public Site** | http://localhost:3000 | Public-facing website |
-| **Admin Panel** | http://localhost:5173/admin | Administration dashboard |
+| **Admin Panel** | http://localhost:3000/admin | Administration dashboard |
 | **API** | http://localhost:3000/api | RESTful API endpoints |
-| **Storefront** | http://localhost:5173/admin/storefront | E-commerce storefront |
-| **Course Catalog** | http://localhost:5173/admin/lms/catalog | LMS course browsing |
+| **Public Site** | http://localhost:3000 | Public-facing website (with theme) |
+| **Storefront** | http://localhost:3000/admin/storefront | E-commerce storefront |
+| **Course Catalog** | http://localhost:3000/admin/lms/catalog | LMS course browsing |
+| **Health Check** | http://localhost:3000/health | Server health status |
+
+> 💡 **Development Mode:** If running `cd admin && npm run dev` separately, the admin panel will be on http://localhost:5173
 
 <br />
 
 ### 🔑 Default Login
 
-After seeding the database, use these credentials:
+After seeding the database, use these default credentials:
 
 ```
-Email:    admin@example.com
-Password: admin123
+📧 Email:    admin@example.com
+🔑 Password: SecureAdmin@2024!
 ```
+
+> 💡 **Tip:** You can customize these in your `.env` file using `ADMIN_EMAIL` and `ADMIN_PASSWORD` before running the seed command.
 
 <br />
 
@@ -598,7 +605,7 @@ SESSION_SECRET="your-super-secret-session-key-change-in-production"
 
 # Admin Account for Database Seeding (required for first run)
 ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="admin123"
+ADMIN_PASSWORD="YourSecureP@ssw0rd!"
 ```
 
 | Variable | Required | Default | Description |
@@ -607,9 +614,25 @@ ADMIN_PASSWORD="admin123"
 | `JWT_EXPIRES_IN` | ❌ | `7d` | Token expiration (e.g., `1h`, `7d`, `30d`) |
 | `SESSION_SECRET` | ✅ | - | Secret for session encryption |
 | `ADMIN_EMAIL` | ✅ | - | Default admin email (used in seed) |
-| `ADMIN_PASSWORD` | ✅ | - | Default admin password (used in seed) |
+| `ADMIN_PASSWORD` | ✅ | - | Admin password - **must meet security requirements** (see below) |
 
 > ⚠️ **Security Warning:** Always use strong, unique secrets in production. Never commit real secrets to version control!
+
+#### 🔒 Admin Password Requirements
+
+The `ADMIN_PASSWORD` **must** meet the following security requirements or the seed script will fail:
+
+| Requirement | Description |
+|-------------|-------------|
+| **Length** | Minimum 12 characters |
+| **Uppercase** | At least one uppercase letter (A-Z) |
+| **Lowercase** | At least one lowercase letter (a-z) |
+| **Number** | At least one digit (0-9) |
+| **Special Character** | At least one special character (`!@#$%^&*()_+-=[]{};\':"\|,.<>/?~`) |
+
+**Example of a valid password:** `MySecureP@ssw0rd!2024`
+
+If the password doesn't meet these requirements, the seed script will display an error message explaining which requirements are not met.
 
 <br />
 
@@ -757,6 +780,29 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
 <br />
 
+### 🔴 Redis Configuration (Optional)
+
+Redis is used for caching, session storage, rate limiting, and background job queues. The app works without Redis but with reduced performance.
+
+```env
+# Redis Connection
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+```
+
+| Variable | Required | Default | Description |
+|----------|:--------:|---------|-------------|
+| `REDIS_HOST` | ❌ | `localhost` | Redis server hostname |
+| `REDIS_PORT` | ❌ | `6379` | Redis server port |
+| `REDIS_PASSWORD` | ❌ | - | Redis password (if required) |
+| `REDIS_DB` | ❌ | `0` | Redis database number |
+
+> 💡 **Local Development:** Install Redis locally or use Docker: `docker run -d -p 6379:6379 redis:alpine`
+
+<br />
+
 ### 🤖 AI Theme Designer Configuration
 
 Configure AI-powered theme generation.
@@ -814,9 +860,10 @@ SESSION_SECRET=your-super-secret-session-key-change-this-in-production
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 👤 ADMIN ACCOUNT (for seeding)
+# IMPORTANT: Password must be 12+ chars with uppercase, lowercase, number, and special char
 # ═══════════════════════════════════════════════════════════════════════════
 ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin123
+ADMIN_PASSWORD=YourSecureP@ssw0rd!
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 📁 FILE UPLOAD
@@ -931,7 +978,7 @@ Content-Type: application/json
 
 {
   "email": "admin@example.com",
-  "password": "admin123"
+  "password": "YourSecureP@ssw0rd!"
 }
 ```
 
@@ -1037,7 +1084,7 @@ Authorization: Bearer <token>
 # ═══════════════════════════════════════════════════════════
 # 🚀 DEVELOPMENT
 # ═══════════════════════════════════════════════════════════
-npm run start:dev          # Start backend in development mode
+npm run dev                # Start backend in development mode (with watch)
 cd admin && npm run dev    # Start admin panel dev server
 
 # ═══════════════════════════════════════════════════════════
@@ -1068,6 +1115,148 @@ npm run test:e2e           # Run end-to-end tests
 npm run lint               # Run ESLint
 npm run format             # Format code with Prettier
 cd admin && npx tsc --noEmit  # Type check admin panel
+```
+
+<br />
+
+---
+
+## 🔧 Troubleshooting
+
+Having issues? Check these common problems and solutions:
+
+<br />
+
+### ❌ 401 Unauthorized Errors
+
+**Problem:** API requests return 401 Unauthorized after login, even though you're logged in.
+
+**Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| **Old JWT token in cookies** | Clear browser cookies: DevTools (F12) → Application → Cookies → Clear all |
+| **Old token in localStorage** | Clear localStorage: DevTools (F12) → Console → `localStorage.clear()` → Refresh |
+| **JWT_SECRET changed** | Restart the server after changing JWT_SECRET, then login again |
+| **Server using cached secret** | Stop all node processes and restart: `Get-Process -Name node \| Stop-Process -Force` then `npm run dev` |
+
+<br />
+
+### ❌ ERR_CONNECTION_REFUSED
+
+**Problem:** Browser shows "ERR_CONNECTION_REFUSED" when accessing the app.
+
+**Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| **Server not running** | Start the server: `npm run dev` |
+| **Wrong port** | Check your `.env` PORT setting (default: 3000) |
+| **Server crashed** | Check terminal for errors, restart with `npm run dev` |
+| **Port already in use** | Kill existing process: `netstat -ano \| findstr :3000` then kill the PID |
+
+<br />
+
+### ❌ Database Connection Errors
+
+**Problem:** Prisma errors or "Cannot connect to database" messages.
+
+**Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| **PostgreSQL not running** | Start PostgreSQL service |
+| **Wrong DATABASE_URL** | Verify connection string in `.env` matches your database |
+| **Database doesn't exist** | Create the database: `createdb wordpress_node` |
+| **Migrations not run** | Run migrations: `npx prisma migrate dev` |
+| **Prisma client outdated** | Regenerate: `npx prisma generate` |
+
+<br />
+
+### ❌ Admin Panel Not Loading
+
+**Problem:** `/admin` shows blank page or errors.
+
+**Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| **Admin not built** | Build admin: `cd admin && npm run build` |
+| **Dependencies missing** | Install: `cd admin && npm install` |
+| **TypeScript errors** | Check types: `cd admin && npx tsc --noEmit` |
+| **Vite dev server** | For development, run `cd admin && npm run dev` separately on port 5173 |
+
+<br />
+
+### ❌ File Upload Errors
+
+**Problem:** Media uploads fail or show errors.
+
+**Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| **Upload folder missing** | Create it: `mkdir uploads` |
+| **Permission denied** | Check folder permissions (chmod 755 on Linux/Mac) |
+| **File too large** | Increase `MAX_FILE_SIZE` in `.env` (default: 10MB) |
+| **Wrong upload path** | Verify `UPLOAD_DIR` in `.env` |
+
+<br />
+
+### ❌ Email Not Sending
+
+**Problem:** Password reset or notification emails not arriving.
+
+**Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| **SMTP not configured** | Add SMTP settings to `.env` |
+| **Gmail blocking** | Enable "Less secure apps" or use App Password with 2FA |
+| **Wrong credentials** | Verify SMTP_USER and SMTP_PASS in `.env` |
+| **Check spam folder** | Emails may be in recipient's spam/junk folder |
+
+<br />
+
+### ❌ Seed Script Fails
+
+**Problem:** `npx prisma db seed` fails with password errors.
+
+**Solution:** Ensure your `ADMIN_PASSWORD` meets these requirements:
+- ✅ Minimum 12 characters
+- ✅ At least one uppercase letter (A-Z)
+- ✅ At least one lowercase letter (a-z)
+- ✅ At least one number (0-9)
+- ✅ At least one special character (!@#$%^&*...)
+
+**Example valid password:** `SecureAdmin@2024!`
+
+<br />
+
+### 🔄 Quick Reset
+
+If all else fails, try a complete reset:
+
+```bash
+# 1. Stop all processes
+Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force  # Windows
+pkill -f node  # Linux/Mac
+
+# 2. Clear browser data
+# DevTools (F12) → Application → Clear Storage → Clear site data
+
+# 3. Reset database
+npx prisma migrate reset --force
+
+# 4. Regenerate and seed
+npx prisma generate
+npx prisma db seed
+
+# 5. Rebuild admin
+cd admin && npm run build && cd ..
+
+# 6. Start fresh
+npm run dev
 ```
 
 <br />
@@ -1116,7 +1305,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ```
 MIT License
 
-Copyright (c) 2024 WordPress Node CMS
+Copyright (c) 2025 WordPress Node CMS
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

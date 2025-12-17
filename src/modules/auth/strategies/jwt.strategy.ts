@@ -5,23 +5,23 @@
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
 import { Request } from 'express';
 
 /**
- * Custom JWT extractor that checks both cookies and Authorization header
+ * Custom JWT extractor that checks Authorization header first, then cookies
  */
-const cookieExtractor = (req: Request): string | null => {
-  // First try to get from cookie (for SSR pages)
-  if (req && req.cookies && req.cookies.access_token) {
-    return req.cookies.access_token;
-  }
-  // Fall back to Authorization header (for API calls)
+const tokenExtractor = (req: Request): string | null => {
+  // First try Authorization header (for API calls from admin panel)
   const authHeader = req?.headers?.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
+  }
+  // Fall back to cookie (for SSR pages)
+  if (req && req.cookies && req.cookies.access_token) {
+    return req.cookies.access_token;
   }
   return null;
 };
@@ -32,10 +32,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private configService: ConfigService,
     private usersService: UsersService,
   ) {
+    const jwtSecret = configService.get<string>('JWT_SECRET') || 'default-secret-change-in-production';
     super({
-      jwtFromRequest: cookieExtractor,
+      jwtFromRequest: tokenExtractor,
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'default-secret-change-in-production',
+      secretOrKey: jwtSecret,
     });
   }
 
@@ -50,7 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       const { password: _password, ...result } = user;
       void _password; // Intentionally unused
       return result;
-    } catch {
+    } catch (error) {
       // User not found or other error - token is invalid
       throw new UnauthorizedException();
     }

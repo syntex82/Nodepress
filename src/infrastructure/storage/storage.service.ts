@@ -22,11 +22,7 @@ export class StorageService {
     this.logger.log(`📦 Storage provider: ${this.provider}`);
   }
 
-  async upload(
-    file: Buffer,
-    originalName: string,
-    options?: UploadOptions,
-  ): Promise<StorageFile> {
+  async upload(file: Buffer, originalName: string, options?: UploadOptions): Promise<StorageFile> {
     if (this.provider === 's3' && this.s3.isConfigured()) {
       return this.s3.upload(file, originalName, options);
     }
@@ -54,10 +50,7 @@ export class StorageService {
     return this.local.getUrl(path);
   }
 
-  async getPresignedUrl(
-    path: string,
-    options?: PresignedUrlOptions,
-  ): Promise<string | null> {
+  async getPresignedUrl(path: string, options?: PresignedUrlOptions): Promise<string | null> {
     if (this.provider === 's3' && this.s3.isConfigured()) {
       return this.s3.getPresignedUrl(path, options);
     }
@@ -73,4 +66,3 @@ export class StorageService {
     return this.provider;
   }
 }
-

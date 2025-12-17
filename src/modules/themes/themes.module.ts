@@ -6,6 +6,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PrismaModule } from '../../database/prisma.module';
 import { ThemesService } from './themes.service';
 import { ThemesController } from './themes.controller';
 import { ThemeRendererService } from './theme-renderer.service';
@@ -20,6 +21,7 @@ import { MenusModule } from '../menus/menus.module';
 
 @Module({
   imports: [
+    PrismaModule,
     ContentModule,
     SettingsModule,
     MenusModule,

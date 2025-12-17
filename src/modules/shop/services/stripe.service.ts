@@ -109,7 +109,7 @@ export class StripeService {
     let event: Stripe.Event;
     try {
       event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    } catch (err) {
+    } catch (_err) {
       throw new BadRequestException(`Webhook signature verification failed`);
     }
 

@@ -62,11 +62,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   /**
    * Execute with retry logic for transient failures
    */
-  async executeWithRetry<T>(
-    operation: () => Promise<T>,
-    maxRetries = 3,
-    delay = 1000,
-  ): Promise<T> {
+  async executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 3, delay = 1000): Promise<T> {
     let lastError: Error;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -77,9 +73,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
         // Only retry on connection errors
         if (error.code === 'P2024' || error.code === 'P1001') {
-          this.logger.warn(`Database operation failed (attempt ${attempt}/${maxRetries}): ${error.message}`);
+          this.logger.warn(
+            `Database operation failed (attempt ${attempt}/${maxRetries}): ${error.message}`,
+          );
           if (attempt < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, delay * attempt));
+            await new Promise((resolve) => setTimeout(resolve, delay * attempt));
             continue;
           }
         }

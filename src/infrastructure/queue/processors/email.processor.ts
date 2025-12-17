@@ -92,4 +92,3 @@ export class EmailQueueProcessor extends WorkerHost {
     this.logger.error(`Email job ${job.id} failed: ${error.message}`);
   }
 }
-

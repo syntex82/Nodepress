@@ -4,13 +4,14 @@
  */
 
 import { Module } from '@nestjs/common';
+import { PrismaModule } from '../../database/prisma.module';
 import { MenusController } from './menus.controller';
 import { MenusService } from './menus.service';
-import { PrismaService } from '../../database/prisma.service';
 
 @Module({
+  imports: [PrismaModule],
   controllers: [MenusController],
-  providers: [MenusService, PrismaService],
+  providers: [MenusService],
   exports: [MenusService],
 })
 export class MenusModule {}

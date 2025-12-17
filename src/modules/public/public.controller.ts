@@ -49,11 +49,15 @@ export class PublicController {
         this.coursesService.findPublished({ limit: 6 }).catch(() => ({ courses: [] })),
       ]);
 
-      const html = await this.themeRenderer.renderHome(postsResult.data, {
-        featuredProducts: productsResult.products || [],
-        categories: categories || [],
-        featuredCourses: coursesResult.courses || [],
-      }, user);
+      const html = await this.themeRenderer.renderHome(
+        postsResult.data,
+        {
+          featuredProducts: productsResult.products || [],
+          categories: categories || [],
+          featuredCourses: coursesResult.courses || [],
+        },
+        user,
+      );
       res.send(html);
     } catch (error) {
       console.error('Error rendering home page:', error);
@@ -155,7 +159,7 @@ export class PublicController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       res.redirect(redirect || '/');
-    } catch (error) {
+    } catch (_error) {
       const html = await this.themeRenderer.renderLogin(redirect, 'Invalid email or password');
       res.send(html);
     }
@@ -192,7 +196,11 @@ export class PublicController {
     @Res() res: Response,
   ) {
     try {
-      await this.authService.register({ name: body.name, email: body.email, password: body.password });
+      await this.authService.register({
+        name: body.name,
+        email: body.email,
+        password: body.password,
+      });
       // Auto-login after registration
       const result = await this.authService.login({ email: body.email, password: body.password });
       res.cookie('access_token', result.access_token, {
@@ -275,7 +283,7 @@ export class PublicController {
 
       const html = await this.themeRenderer.renderArchive(result.data, pagination, user);
       res.send(html);
-    } catch (error) {
+    } catch (_error) {
       res.status(500).send('Error rendering blog archive');
     }
   }
@@ -354,7 +362,7 @@ export class PublicController {
 
       const html = await this.themeRenderer.renderProduct(product, user);
       res.send(html);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).send('Product not found');
     }
   }
@@ -427,7 +435,7 @@ export class PublicController {
 
       const html = await this.themeRenderer.renderCourse(course, false, user);
       res.send(html);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).send('Course not found');
     }
   }
@@ -451,7 +459,7 @@ export class PublicController {
       // For free courses, they'll be enrolled directly
       // For paid courses, they'll be redirected to checkout
       res.redirect(`http://localhost:5173/admin/lms/course/${slug}?enroll=true`);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).send('Course not found');
     }
   }
@@ -466,7 +474,7 @@ export class PublicController {
       const result = await this.certificatesService.verify(hash);
       const html = await this.themeRenderer.renderCertificateVerify(result);
       res.send(html);
-    } catch (error) {
+    } catch (_error) {
       res.status(500).send('Error verifying certificate');
     }
   }
@@ -489,7 +497,7 @@ export class PublicController {
 
       const html = await this.themeRenderer.renderPost(post, user);
       res.send(html);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).send('Post not found');
     }
   }
@@ -500,7 +508,11 @@ export class PublicController {
    */
   @Get('u/:identifier')
   @UseGuards(OptionalJwtAuthGuard)
-  async userProfile(@Req() req: Request, @Param('identifier') identifier: string, @Res() res: Response) {
+  async userProfile(
+    @Req() req: Request,
+    @Param('identifier') identifier: string,
+    @Res() res: Response,
+  ) {
     try {
       const user = (req as any).user;
       const profile = await this.profilesService.getPublicProfile(identifier);
@@ -537,7 +549,7 @@ export class PublicController {
 
       const html = await this.themeRenderer.renderPage(page, user);
       res.send(html);
-    } catch (error) {
+    } catch (_error) {
       res.status(404).send('Page not found');
     }
   }

@@ -98,7 +98,7 @@ export class ThemeRendererService {
           const partialPath = this.themesService.getTemplatePath(themeSlug, partial);
           const partialContent = await fs.readFile(partialPath, 'utf-8');
           Handlebars.registerPartial(partial, partialContent);
-        } catch (error) {
+        } catch (_error) {
           // Partial doesn't exist, skip it
         }
       }

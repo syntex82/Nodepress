@@ -12,7 +12,12 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { StorageProvider, StorageFile, UploadOptions, PresignedUrlOptions } from '../storage.interface';
+import {
+  StorageProvider,
+  StorageFile,
+  UploadOptions,
+  PresignedUrlOptions,
+} from '../storage.interface';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -45,11 +50,7 @@ export class S3StorageProvider implements StorageProvider {
     return this.client !== null;
   }
 
-  async upload(
-    file: Buffer,
-    originalName: string,
-    options?: UploadOptions,
-  ): Promise<StorageFile> {
+  async upload(file: Buffer, originalName: string, options?: UploadOptions): Promise<StorageFile> {
     if (!this.client) {
       throw new Error('S3 storage not configured');
     }
@@ -89,7 +90,7 @@ export class S3StorageProvider implements StorageProvider {
         }),
       );
       return true;
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn(`Failed to delete S3 object: ${key}`);
       return false;
     }
@@ -141,4 +142,3 @@ export class S3StorageProvider implements StorageProvider {
     return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
 }
-

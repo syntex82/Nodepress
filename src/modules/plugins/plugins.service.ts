@@ -208,7 +208,7 @@ export class PluginsService {
       let pluginConfig: any;
       try {
         pluginConfig = JSON.parse(pluginJsonEntry.getData().toString('utf8'));
-      } catch (e) {
+      } catch (_e) {
         errors.push('plugin.json is not valid JSON');
         return { valid: false, errors, warnings };
       }

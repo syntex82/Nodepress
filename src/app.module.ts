@@ -5,7 +5,7 @@
  */
 
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -44,11 +44,14 @@ import { EmailModule } from './modules/email/email.module';
       cache: true, // Cache env vars for performance
     }),
 
-    // Serve static files
+    // Serve static files for admin SPA
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'admin', 'dist'),
+      rootPath: join(process.cwd(), 'admin', 'dist'),
       serveRoot: '/admin',
-      exclude: ['/api*', '/uploads*', '/health*'],
+      exclude: ['/api/{*path}', '/uploads/{*path}', '/health/{*path}'],
+      serveStaticOptions: {
+        fallthrough: true,
+      },
     }),
 
     // Infrastructure modules (order matters - Redis before Queue)

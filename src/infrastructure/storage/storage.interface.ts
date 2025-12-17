@@ -24,11 +24,7 @@ export interface PresignedUrlOptions {
 }
 
 export interface StorageProvider {
-  upload(
-    file: Buffer,
-    originalName: string,
-    options?: UploadOptions,
-  ): Promise<StorageFile>;
+  upload(file: Buffer, originalName: string, options?: UploadOptions): Promise<StorageFile>;
 
   delete(path: string): Promise<boolean>;
 
@@ -36,14 +32,10 @@ export interface StorageProvider {
 
   getUrl(path: string): string;
 
-  getPresignedUrl?(
-    path: string,
-    options?: PresignedUrlOptions,
-  ): Promise<string>;
+  getPresignedUrl?(path: string, options?: PresignedUrlOptions): Promise<string>;
 
   getPresignedUploadUrl?(
     path: string,
     options?: PresignedUrlOptions,
   ): Promise<{ url: string; fields?: Record<string, string> }>;
 }
-

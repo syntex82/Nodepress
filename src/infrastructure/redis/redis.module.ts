@@ -46,4 +46,3 @@ const logger = new Logger('RedisModule');
   exports: [RedisService, CacheService, 'REDIS_OPTIONS'],
 })
 export class RedisModule {}
-

@@ -147,27 +147,25 @@ async function bootstrap() {
   });
 
   // Serve static files with caching headers
-  const staticOptions = isProduction
-    ? { maxAge: '1y', etag: true, lastModified: true }
-    : {};
+  const staticOptions = isProduction ? { maxAge: '1y', etag: true, lastModified: true } : {};
 
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
     ...staticOptions,
   });
 
-  app.useStaticAssets(join(__dirname, '..', 'admin', 'dist'), {
+  app.useStaticAssets(join(process.cwd(), 'admin', 'dist'), {
     prefix: '/admin/',
     ...staticOptions,
   });
 
-  app.useStaticAssets(join(__dirname, '..', 'themes'), {
+  app.useStaticAssets(join(process.cwd(), 'themes'), {
     prefix: '/themes/',
     ...staticOptions,
   });
 
   // Set view engine
-  app.setBaseViewsDir(join(__dirname, '..', 'themes'));
+  app.setBaseViewsDir(join(process.cwd(), 'themes'));
   app.setViewEngine('hbs');
 
   // Graceful shutdown

@@ -252,7 +252,7 @@ Ensure all colors are valid hex codes, fonts are web-safe, and values are reason
         name: dto.themeName || `AI Theme ${new Date().toLocaleDateString()}`,
         description: dto.description || `Generated with AI: ${dto.prompt.substring(0, 100)}...`,
       };
-    } catch (error) {
+    } catch (_error) {
       throw new BadRequestException('Failed to parse AI response. Please try again.');
     }
   }

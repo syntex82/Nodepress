@@ -4,7 +4,7 @@
  * This service is only used when Redis is configured
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue, JobsOptions } from 'bullmq';
 
@@ -140,4 +140,3 @@ export class QueueService {
     }
   }
 }
-

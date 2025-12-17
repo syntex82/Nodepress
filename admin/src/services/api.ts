@@ -17,24 +17,23 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
+  console.log('API Request:', config.url, 'Token:', token ? 'present' : 'missing');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Handle auth errors
+// Handle auth errors - but be very careful not to logout during normal operation
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't redirect for public endpoints like cart, shop, lms catalog
-    const publicPaths = ['/shop/cart', '/shop/storefront', '/lms/public'];
-    const isPublicEndpoint = publicPaths.some(path => error.config?.url?.includes(path));
+    console.error('API Error:', error.config?.url, error.response?.status, error.response?.data?.message);
 
-    if (error.response?.status === 401 && !isPublicEndpoint) {
-      useAuthStore.getState().logout();
-      window.location.href = '/admin/login';
-    }
+    // Never auto-logout - let the UI handle auth errors gracefully
+    // The old approach was causing logout loops on initial page load
+    // Users will be redirected to login by the route guards if not authenticated
+
     return Promise.reject(error);
   }
 );

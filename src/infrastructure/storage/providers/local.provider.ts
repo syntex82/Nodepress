@@ -20,11 +20,7 @@ export class LocalStorageProvider implements StorageProvider {
     this.baseUrl = this.config.local.baseUrl;
   }
 
-  async upload(
-    file: Buffer,
-    originalName: string,
-    options?: UploadOptions,
-  ): Promise<StorageFile> {
+  async upload(file: Buffer, originalName: string, options?: UploadOptions): Promise<StorageFile> {
     const ext = path.extname(originalName);
     const filename = options?.filename || `${uuidv4()}${ext}`;
     const folder = options?.folder || this.getDateFolder();
@@ -53,7 +49,7 @@ export class LocalStorageProvider implements StorageProvider {
       const fullPath = path.join(this.uploadDir, filePath);
       await fs.unlink(fullPath);
       return true;
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn(`Failed to delete file: ${filePath}`);
       return false;
     }
@@ -78,4 +74,3 @@ export class LocalStorageProvider implements StorageProvider {
     return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
 }
-

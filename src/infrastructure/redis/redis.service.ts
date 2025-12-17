@@ -3,7 +3,14 @@
  * Core Redis connection and operations
  */
 
-import { Injectable, OnModuleInit, OnModuleDestroy, Inject, Logger, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Inject,
+  Logger,
+  Optional,
+} from '@nestjs/common';
 import Redis, { RedisOptions } from 'ioredis';
 
 @Injectable()
@@ -15,8 +22,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   constructor(@Optional() @Inject('REDIS_OPTIONS') private readonly options: RedisOptions | null) {
     // Check if Redis is actually configured (has a real host)
-    this.redisEnabled = !!(options?.host && options.host !== 'localhost' && options.host !== '127.0.0.1')
-      || !!process.env.REDIS_HOST;
+    this.redisEnabled =
+      !!(options?.host && options.host !== 'localhost' && options.host !== '127.0.0.1') ||
+      !!process.env.REDIS_HOST;
   }
 
   async onModuleInit() {
@@ -155,4 +163,3 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 }
-

@@ -8,23 +8,101 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+/**
+ * Password strength validation
+ * Requirements:
+ * - Minimum 12 characters
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ * - At least one special character
+ */
+function validatePasswordStrength(password: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (!password) {
+    return { valid: false, errors: ['Password is required'] };
+  }
+
+  if (password.length < 12) {
+    errors.push('Password must be at least 12 characters long');
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
+    errors.push('Password must contain at least one special character (!@#$%^&*()_+-=[]{};\':"|,.<>/?`~)');
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 async function main() {
   console.log('🌱 Starting database seed...');
 
+  // Validate ADMIN_PASSWORD environment variable
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.error('\n❌ SECURITY ERROR: ADMIN_PASSWORD environment variable is required!');
+    console.error('');
+    console.error('Please set a strong password in your .env file:');
+    console.error('  ADMIN_PASSWORD=YourSecurePassword123!');
+    console.error('');
+    console.error('Password requirements:');
+    console.error('  • Minimum 12 characters');
+    console.error('  • At least one uppercase letter (A-Z)');
+    console.error('  • At least one lowercase letter (a-z)');
+    console.error('  • At least one number (0-9)');
+    console.error('  • At least one special character (!@#$%^&*()_+-=[]{};\':"|,.<>/?`~)');
+    console.error('');
+    process.exit(1);
+  }
+
+  const passwordValidation = validatePasswordStrength(adminPassword);
+
+  if (!passwordValidation.valid) {
+    console.error('\n❌ SECURITY ERROR: ADMIN_PASSWORD does not meet security requirements!');
+    console.error('');
+    console.error('Issues found:');
+    passwordValidation.errors.forEach(error => {
+      console.error(`  • ${error}`);
+    });
+    console.error('');
+    console.error('Please update ADMIN_PASSWORD in your .env file to meet all requirements.');
+    console.error('');
+    process.exit(1);
+  }
+
+  console.log('✅ Admin password validated - meets security requirements');
+
   // Create admin user
-  const adminPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10);
+  const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
   const admin = await prisma.user.upsert({
     where: { email: process.env.ADMIN_EMAIL || 'admin@example.com' },
-    update: {},
+    update: {
+      password: hashedAdminPassword, // Update password if user exists
+      role: UserRole.ADMIN,
+    },
     create: {
       email: process.env.ADMIN_EMAIL || 'admin@example.com',
       name: 'Admin User',
-      password: adminPassword,
+      password: hashedAdminPassword,
       role: UserRole.ADMIN,
       bio: 'System administrator',
     },
   });
-  console.log('✅ Admin user created:', admin.email);
+  console.log('✅ Admin user created/updated:', admin.email);
 
   // Create sample author
   const authorPassword = await bcrypt.hash('author123', 10);

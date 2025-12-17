@@ -17,4 +17,3 @@ import { PrismaModule } from '../../database/prisma.module';
   exports: [PrismaHealthIndicator, RedisHealthIndicator],
 })
 export class HealthModule {}
-

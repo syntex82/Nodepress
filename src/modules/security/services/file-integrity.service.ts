@@ -213,7 +213,7 @@ export class FileIntegrityService {
           const hash = await this.hashFile(dirPath);
           allHashes.push({ path: dir, hash });
         }
-      } catch (error) {
+      } catch (_error) {
         // File might have been deleted
       }
     }

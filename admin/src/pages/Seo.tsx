@@ -61,11 +61,12 @@ export default function Seo() {
         seoApi.getSitemapEntries(),
         seoApi.getSchemas(),
       ]);
-      setRedirects(rRes.data);
-      setSitemapEntries(sRes.data);
-      setSchemas(scRes.data);
-    } catch (error) {
-      toast.error('Failed to load SEO data');
+      setRedirects(rRes.data || []);
+      setSitemapEntries(sRes.data || []);
+      setSchemas(scRes.data || []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to load SEO data');
+      console.error('SEO data error:', error);
     } finally {
       setLoading(false);
     }

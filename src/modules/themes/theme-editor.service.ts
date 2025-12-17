@@ -113,7 +113,7 @@ export class ThemeEditorService {
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       return { content, path: filePath };
-    } catch (error) {
+    } catch (_error) {
       throw new NotFoundException('File not found');
     }
   }
@@ -245,7 +245,7 @@ export class ThemeEditorService {
       }
 
       return backups.sort((a, b) => b.date.getTime() - a.date.getTime());
-    } catch (error) {
+    } catch (_error) {
       return [];
     }
   }
@@ -303,7 +303,7 @@ export class ThemeEditorService {
         success: true,
         message: 'Backup deleted successfully',
       };
-    } catch (error) {
+    } catch (_error) {
       throw new NotFoundException('Backup not found');
     }
   }

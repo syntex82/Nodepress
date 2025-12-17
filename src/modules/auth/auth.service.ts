@@ -135,7 +135,7 @@ export class AuthService {
   async verifyToken(token: string) {
     try {
       return this.jwtService.verify(token);
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedException('Invalid token');
     }
   }
@@ -156,7 +156,7 @@ export class AuthService {
       if (!payload.temp) {
         throw new Error('Invalid token');
       }
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
