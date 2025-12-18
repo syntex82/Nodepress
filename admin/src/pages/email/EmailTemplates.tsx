@@ -1,14 +1,18 @@
 /**
  * Email Templates Page
- * Manage email templates with visual editor
+ * Beautiful email template management with live preview and test functionality
  */
 
 import { useEffect, useState } from 'react';
 import { emailApi } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import EmailTemplateEditor from '../../components/email/EmailTemplateEditor';
+import EmailTemplatePreview from '../../components/email/EmailTemplatePreview';
+import TemplateVariablesPanel from '../../components/email/TemplateVariablesPanel';
+import TestEmailModal from '../../components/email/TestEmailModal';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiEye, FiMail, FiX, FiCode, FiType } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiEye, FiMail, FiX, FiSend, FiCheck, FiClock } from 'react-icons/fi';
 
 interface EmailTemplate {
   id: string;
@@ -40,9 +44,11 @@ export default function EmailTemplates() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showTestEmail, setShowTestEmail] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
-  const [editorMode, setEditorMode] = useState<'visual' | 'html'>('html');
+  const [testEmailTemplateId, setTestEmailTemplateId] = useState<string>('');
+  const [testEmailTemplateName, setTestEmailTemplateName] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -56,6 +62,7 @@ export default function EmailTemplates() {
     isOpen: false,
     id: null,
   });
+  const [filterType, setFilterType] = useState<string>('ALL');
 
   useEffect(() => {
     fetchTemplates();
@@ -147,6 +154,16 @@ export default function EmailTemplates() {
     }
   };
 
+  const handleOpenTestEmail = (template: EmailTemplate) => {
+    setTestEmailTemplateId(template.id);
+    setTestEmailTemplateName(template.name);
+    setShowTestEmail(true);
+  };
+
+  const filteredTemplates = filterType === 'ALL'
+    ? templates
+    : templates.filter(t => t.type === filterType);
+
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   };
@@ -154,63 +171,179 @@ export default function EmailTemplates() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
-          <p className="text-gray-600">Manage your email templates</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Email Templates
+            </h1>
+            <p className="text-gray-600 text-lg">Create and manage beautiful email templates</p>
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
+          >
+            <FiPlus size={20} />
+            New Template
+          </button>
         </div>
-        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
-          <FiPlus /> New Template
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg p-4 border-l-4 border-indigo-600 shadow-sm">
+            <p className="text-gray-600 text-sm font-medium">Total Templates</p>
+            <p className="text-3xl font-bold text-gray-900">{templates.length}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border-l-4 border-green-600 shadow-sm">
+            <p className="text-gray-600 text-sm font-medium">Active</p>
+            <p className="text-3xl font-bold text-gray-900">{templates.filter(t => t.isActive).length}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border-l-4 border-purple-600 shadow-sm">
+            <p className="text-gray-600 text-sm font-medium">System Templates</p>
+            <p className="text-3xl font-bold text-gray-900">{templates.filter(t => t.isSystem).length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className="mb-6 flex gap-2 flex-wrap">
+        <button
+          onClick={() => setFilterType('ALL')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            filterType === 'ALL'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'bg-white text-gray-700 border border-gray-200 hover:border-indigo-300'
+          }`}
+        >
+          All
         </button>
+        {TEMPLATE_TYPES.map((type) => (
+          <button
+            key={type.value}
+            onClick={() => setFilterType(type.value)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              filterType === type.value
+                ? 'bg-indigo-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-200 hover:border-indigo-300'
+            }`}
+          >
+            {type.label}
+          </button>
+        ))}
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {templates.map((template) => (
-          <div key={template.id} className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  template.isSystem ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {template.type.replace('_', ' ')}
-                </span>
+      {filteredTemplates.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map((template) => (
+            <div
+              key={template.id}
+              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-200 overflow-hidden group"
+            >
+              {/* Card Header */}
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 border-b border-gray-200">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 text-lg">{template.name}</h3>
+                    <p className="text-sm text-gray-600 truncate">{template.subject}</p>
+                  </div>
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full font-semibold whitespace-nowrap ${
+                      template.isSystem
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    {template.isSystem ? '🔒 System' : '✏️ Custom'}
+                  </span>
+                </div>
               </div>
-              <span className={`text-xs px-2 py-1 rounded ${
-                template.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
-                {template.isActive ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 mb-3 truncate">{template.subject}</p>
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span><FiMail className="inline mr-1" />{template._count?.emailLogs || 0} sent</span>
-              <div className="flex gap-2">
-                <button onClick={() => handlePreview(template)} className="p-1 hover:text-indigo-600" title="Preview">
-                  <FiEye />
+
+              {/* Card Body */}
+              <div className="p-4 space-y-3">
+                {/* Type Badge */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                    {template.type.replace('_', ' ')}
+                  </span>
+                  <span
+                    className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                      template.isActive
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {template.isActive ? '🟢 Active' : '🔴 Inactive'}
+                  </span>
+                </div>
+
+                {/* Stats */}
+                <div className="flex items-center gap-4 text-sm text-gray-600 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-1">
+                    <FiMail size={16} className="text-indigo-600" />
+                    <span>{template._count?.emailLogs || 0} sent</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FiClock size={16} className="text-gray-400" />
+                    <span>{new Date(template.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer - Actions */}
+              <div className="bg-gray-50 p-4 border-t border-gray-200 flex gap-2">
+                <button
+                  onClick={() => handlePreview(template)}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all font-medium text-sm"
+                  title="Preview"
+                >
+                  <FiEye size={16} />
+                  Preview
                 </button>
-                <button onClick={() => handleOpenModal(template)} className="p-1 hover:text-indigo-600" title="Edit">
-                  <FiEdit2 />
+                <button
+                  onClick={() => handleOpenModal(template)}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all font-medium text-sm"
+                  title="Edit"
+                >
+                  <FiEdit2 size={16} />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleOpenTestEmail(template)}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-green-50 hover:border-green-300 transition-all font-medium text-sm"
+                  title="Send Test"
+                >
+                  <FiSend size={16} />
+                  Test
                 </button>
                 {!template.isSystem && (
-                  <button onClick={() => setDeleteConfirm({ isOpen: true, id: template.id })} className="p-1 hover:text-red-600" title="Delete">
-                    <FiTrash2 />
+                  <button
+                    onClick={() => setDeleteConfirm({ isOpen: true, id: template.id })}
+                    className="px-3 py-2 bg-white border border-gray-200 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-300 transition-all font-medium text-sm"
+                    title="Delete"
+                  >
+                    <FiTrash2 size={16} />
                   </button>
                 )}
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {templates.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg">
-          <FiMail className="mx-auto text-4xl text-gray-400 mb-4" />
-          <p className="text-gray-600">No email templates yet</p>
-          <button onClick={() => handleOpenModal()} className="mt-4 text-indigo-600 hover:underline">
-            Create your first template
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">
+          <FiMail className="mx-auto text-6xl text-gray-300 mb-4" />
+          <p className="text-gray-600 text-lg font-medium mb-2">No email templates found</p>
+          <p className="text-gray-500 mb-6">
+            {filterType !== 'ALL' ? 'Try changing the filter' : 'Create your first template to get started'}
+          </p>
+          <button
+            onClick={() => handleOpenModal()}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+          >
+            <FiPlus size={20} />
+            Create Template
           </button>
         </div>
       )}
@@ -218,59 +351,142 @@ export default function EmailTemplates() {
       {/* Edit/Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-xl font-semibold">{editingTemplate ? 'Edit Template' : 'New Template'}</h2>
-              <button onClick={handleCloseModal} className="p-2 hover:bg-gray-100 rounded"><FiX /></button>
+          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {editingTemplate ? '✏️ Edit Template' : '📧 New Template'}
+                </h2>
+                <p className="text-indigo-100 text-sm mt-1">
+                  {editingTemplate ? `Editing: ${editingTemplate.name}` : 'Create a new email template'}
+                </p>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-white/20 rounded-lg transition-all"
+              >
+                <FiX size={24} />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Name</label>
-                  <input type="text" value={formData.name} onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value, slug: editingTemplate ? formData.slug : generateSlug(e.target.value) });
-                  }} className="input w-full" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Slug</label>
-                  <input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} className="input w-full" required disabled={editingTemplate?.isSystem} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Type</label>
-                  <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="input w-full" disabled={editingTemplate?.isSystem}>
-                    {TEMPLATE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </div>
-                <div className="flex items-center gap-4 pt-6">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} className="rounded" />
-                    <span className="text-sm">Active</span>
-                  </label>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Subject</label>
-                <input type="text" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} className="input w-full" required placeholder="e.g., Welcome to {{site.name}}!" />
-              </div>
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm font-medium">HTML Content</label>
-                  <div className="flex gap-1">
-                    <button type="button" onClick={() => setEditorMode('html')} className={`px-2 py-1 text-xs rounded ${editorMode === 'html' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100'}`}><FiCode className="inline mr-1" />HTML</button>
-                    <button type="button" onClick={() => setEditorMode('visual')} className={`px-2 py-1 text-xs rounded ${editorMode === 'visual' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100'}`}><FiType className="inline mr-1" />Preview</button>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Settings */}
+                <div className="lg:col-span-1 space-y-4">
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
+                    <h3 className="font-semibold text-gray-900 mb-4">Template Settings</h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Template Name
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              name: e.target.value,
+                              slug: editingTemplate ? formData.slug : generateSlug(e.target.value),
+                            });
+                          }}
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Slug
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.slug}
+                          onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-gray-100"
+                          required
+                          disabled={editingTemplate?.isSystem}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Type
+                        </label>
+                        <select
+                          value={formData.type}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-gray-100"
+                          disabled={editingTemplate?.isSystem}
+                        >
+                          {TEMPLATE_TYPES.map((t) => (
+                            <option key={t.value} value={t.value}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-gray-200 cursor-pointer hover:border-indigo-300 transition-all">
+                        <input
+                          type="checkbox"
+                          checked={formData.isActive}
+                          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="font-medium text-gray-700">Active</span>
+                      </label>
+                    </div>
                   </div>
+
+                  {/* Variables Panel */}
+                  <TemplateVariablesPanel />
                 </div>
-                {editorMode === 'html' ? (
-                  <textarea value={formData.htmlContent} onChange={(e) => setFormData({ ...formData, htmlContent: e.target.value })} className="input w-full font-mono text-sm" rows={12} required />
-                ) : (
-                  <div className="border rounded-lg p-4 bg-gray-50 h-64 overflow-auto" dangerouslySetInnerHTML={{ __html: formData.htmlContent }} />
-                )}
+
+                {/* Right Column - Editor */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                      required
+                      placeholder="e.g., Welcome to {{site.name}}!"
+                    />
+                  </div>
+
+                  {/* Editor */}
+                  <EmailTemplateEditor
+                    htmlContent={formData.htmlContent}
+                    onChange={(content) => setFormData({ ...formData, htmlContent: content })}
+                    previewHtml={previewHtml}
+                  />
+                </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <button type="button" onClick={handleCloseModal} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Save Template</button>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-2 border-2 border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                >
+                  <FiCheck size={18} />
+                  Save Template
+                </button>
               </div>
             </form>
           </div>
@@ -278,21 +494,29 @@ export default function EmailTemplates() {
       )}
 
       {/* Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-xl font-semibold">Email Preview</h2>
-              <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 rounded"><FiX /></button>
-            </div>
-            <div className="flex-1 overflow-auto p-4 bg-gray-100">
-              <div className="bg-white rounded shadow max-w-xl mx-auto" dangerouslySetInnerHTML={{ __html: previewHtml }} />
-            </div>
-          </div>
-        </div>
-      )}
+      <EmailTemplatePreview
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        htmlContent={previewHtml}
+        subject={editingTemplate?.subject}
+        templateName={editingTemplate?.name}
+      />
 
-      <ConfirmDialog isOpen={deleteConfirm.isOpen} title="Delete Template" message="Are you sure you want to delete this template? This action cannot be undone." onConfirm={handleDelete} onCancel={() => setDeleteConfirm({ isOpen: false, id: null })} />
+      {/* Test Email Modal */}
+      <TestEmailModal
+        isOpen={showTestEmail}
+        onClose={() => setShowTestEmail(false)}
+        templateId={testEmailTemplateId}
+        templateName={testEmailTemplateName}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Delete Template"
+        message="Are you sure you want to delete this template? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirm({ isOpen: false, id: null })}
+      />
     </div>
   );
 }
