@@ -409,13 +409,15 @@ Before you begin, ensure you have the following installed:
 | **Git** | Latest | Repository cloning |
 
 The script also:
-- ✅ Clones the repository to `~/wordpress-node`
+- ✅ Installs all npm dependencies (backend + admin)
+- ✅ **Builds the admin frontend** (`npm run build`)
 - ✅ Creates PostgreSQL database and user
 - ✅ Generates secure secrets for JWT and sessions
 - ✅ Creates `.env` file with all configuration
-- ✅ Installs all npm dependencies (backend + admin)
 - ✅ Pushes database schema (`npx prisma db push`)
 - ✅ Seeds admin user with default credentials
+- ✅ Ensures themes directory exists with proper permissions
+- ✅ Includes pre-built themes: **my-theme** (default) and **tester**
 
 </details>
 
@@ -428,9 +430,22 @@ cd ~/wordpress-node
 npm run dev
 ```
 
-**Then open:** `http://your-server-ip:3000/admin`
+**Access the application:**
 
-**Login:** Use the email and password you entered during setup
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | `http://your-server-ip:3000` | Public-facing website with theme |
+| **Admin Panel** | `http://your-server-ip:3000/admin` | Administration dashboard |
+| **API** | `http://your-server-ip:3000/api` | RESTful API endpoints |
+| **Health Check** | `http://your-server-ip:3000/health` | Server health status |
+
+**Default Login Credentials:**
+```
+📧 Email:    admin@starter.dev
+🔑 Password: Admin123!
+```
+
+> 💡 **Tip:** You can customize the admin email and password in the script before running it.
 
 <br />
 

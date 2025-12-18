@@ -3,7 +3,7 @@
  * Handles theme management and activation
  */
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -98,10 +98,22 @@ export interface ThemeDesignConfig {
 }
 
 @Injectable()
-export class ThemesService {
+export class ThemesService implements OnModuleInit {
   private themesDir = path.join(process.cwd(), 'themes');
 
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Lifecycle hook - runs when module is initialized
+   * Automatically scans and loads themes on startup
+   */
+  async onModuleInit() {
+    try {
+      await this.scanThemes();
+    } catch (error) {
+      console.error('Error scanning themes on module init:', error);
+    }
+  }
 
   /**
    * Scan themes directory and register themes

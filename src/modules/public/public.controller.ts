@@ -3,8 +3,9 @@
  * Handles public-facing routes and renders theme templates
  */
 
-import { Controller, Get, Post, Body, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Req, Res, UseGuards, All } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { join } from 'path';
 import { PostsService } from '../content/services/posts.service';
 import { PagesService } from '../content/services/pages.service';
 import { ThemeRendererService } from '../themes/theme-renderer.service';
@@ -31,6 +32,17 @@ export class PublicController {
     private profilesService: ProfilesService,
     private authService: AuthService,
   ) {}
+
+  /**
+   * Admin SPA fallback - serves index.html for all /admin/* routes
+   * This enables the React app to handle its own routing
+   * Must be before the catch-all page route
+   */
+  @All('admin*')
+  async adminSpa(@Res() res: Response) {
+    const adminIndexPath = join(process.cwd(), 'admin', 'dist', 'index.html');
+    res.sendFile(adminIndexPath);
+  }
 
   /**
    * Home page

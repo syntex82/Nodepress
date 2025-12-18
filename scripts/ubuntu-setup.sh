@@ -122,7 +122,7 @@ echo -e "${GREEN}✓ .env created${NC}"
 # ══════════════════════════════════════════════════════════════
 # STEP 7: Install dependencies and setup database
 # ══════════════════════════════════════════════════════════════
-echo -e "${BLUE}[7/7] Installing npm dependencies...${NC}"
+echo -e "${BLUE}[7/7] Installing npm dependencies and building...${NC}"
 
 cd ${APP_DIR}
 chown -R ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}
@@ -139,6 +139,10 @@ sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma generate"
 echo -e "${BLUE}Installing admin dependencies...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR}/admin && npm install"
 
+# Build admin frontend
+echo -e "${BLUE}Building admin frontend...${NC}"
+sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR}/admin && npm run build"
+
 # Push schema to database (simpler than migrations for fresh install)
 echo -e "${BLUE}Pushing database schema...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma db push"
@@ -151,14 +155,30 @@ sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && export \$(cat .env | grep -v '^
 mkdir -p ${APP_DIR}/uploads
 chown -R ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}/uploads
 
+# Ensure themes directory exists and has correct permissions
+mkdir -p ${APP_DIR}/themes
+chown -R ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}/themes
+
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}              ✓ INSTALLATION COMPLETE!                         ${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "Run:       ${BLUE}npm run dev${NC}"
-echo -e "Admin:     ${BLUE}http://localhost:3000/admin${NC}"
-echo -e "Email:     ${BLUE}${ADMIN_EMAIL}${NC}"
-echo -e "Password:  ${BLUE}${ADMIN_PASSWORD}${NC}"
+echo -e "${BLUE}To start the application:${NC}"
+echo -e "  ${BLUE}npm run dev${NC}"
+echo ""
+echo -e "${BLUE}Access URLs:${NC}"
+echo -e "  Frontend:  ${BLUE}http://localhost:3000${NC}"
+echo -e "  Admin:     ${BLUE}http://localhost:3000/admin${NC}"
+echo -e "  API:       ${BLUE}http://localhost:3000/api${NC}"
+echo -e "  Health:    ${BLUE}http://localhost:3000/health${NC}"
+echo ""
+echo -e "${BLUE}Admin Credentials:${NC}"
+echo -e "  Email:     ${BLUE}${ADMIN_EMAIL}${NC}"
+echo -e "  Password:  ${BLUE}${ADMIN_PASSWORD}${NC}"
+echo ""
+echo -e "${BLUE}Themes Included:${NC}"
+echo -e "  • my-theme (default)"
+echo -e "  • tester"
 echo ""
 

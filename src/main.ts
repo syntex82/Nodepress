@@ -157,6 +157,7 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'admin', 'dist'), {
     prefix: '/admin/',
     ...staticOptions,
+    index: false, // Don't serve index.html automatically
   });
 
   app.useStaticAssets(join(process.cwd(), 'themes'), {
