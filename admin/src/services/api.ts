@@ -1086,3 +1086,14 @@ export const customizationExportApi = {
   exportAll: () => api.get('/customizations/export/all'),
   import: (data: any) => api.post('/customizations/import', data),
 };
+
+// Customization Presets API
+export const customizationPresetsApi = {
+  getAllPresets: () => api.get('/customizations/presets'),
+  getPresetsByCategory: (category: 'page' | 'post' | 'both') =>
+    api.get(`/customizations/presets/category/${category}`),
+  getPresetById: (id: string) => api.get(`/customizations/presets/${id}`),
+  getPresetSettings: (id: string) => api.get(`/customizations/presets/${id}/settings`),
+  addPreset: (data: any) => api.post('/customizations/presets', data),
+  removePreset: (id: string) => api.delete(`/customizations/presets/${id}`),
+};

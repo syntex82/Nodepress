@@ -17,6 +17,8 @@ import { PageCustomizationController } from './controllers/page-customization.co
 import { PostCustomizationController } from './controllers/post-customization.controller';
 import { CustomizationExportService } from './services/customization-export.service';
 import { CustomizationExportController } from './controllers/customization-export.controller';
+import { CustomizationPresetsService } from './services/customization-presets.service';
+import { CustomizationPresetsController } from './controllers/customization-presets.controller';
 
 @Module({
   imports: [PrismaModule],
@@ -27,6 +29,7 @@ import { CustomizationExportController } from './controllers/customization-expor
     PageCustomizationService,
     PostCustomizationService,
     CustomizationExportService,
+    CustomizationPresetsService,
   ],
   controllers: [
     PostsController,
@@ -35,6 +38,7 @@ import { CustomizationExportController } from './controllers/customization-expor
     PageCustomizationController,
     PostCustomizationController,
     CustomizationExportController,
+    CustomizationPresetsController,
   ],
   exports: [
     PostsService,
@@ -43,6 +47,7 @@ import { CustomizationExportController } from './controllers/customization-expor
     PageCustomizationService,
     PostCustomizationService,
     CustomizationExportService,
+    CustomizationPresetsService,
   ],
 })
 export class ContentModule {}
