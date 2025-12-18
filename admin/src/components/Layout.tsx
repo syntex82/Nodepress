@@ -1,14 +1,17 @@
 /**
  * Admin Layout Component
- * Provides sidebar navigation and main content area with role-based access control
+ * Beautiful dark theme sidebar with smooth animations
+ * Role-based access control and comprehensive tooltips
  */
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout } from 'react-icons/fi';
+import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { messagesApi } from '../services/api';
 import { canAccess, ROLE_DESCRIPTIONS, type UserRole, type RolePermissions } from '../config/permissions';
+import Tooltip from './Tooltip';
+import { NAV_TOOLTIPS } from '../config/tooltips';
 
 export default function Layout() {
   const location = useLocation();
@@ -16,8 +19,22 @@ export default function Layout() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showRoleInfo, setShowRoleInfo] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    main: true,
+    content: false,
+    system: false,
+    shop: false,
+    lms: false,
+    email: false,
+    theme: false,
+  });
   const userRole = (user?.role || 'VIEWER') as UserRole;
   const roleInfo = ROLE_DESCRIPTIONS[userRole];
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -33,44 +50,54 @@ export default function Layout() {
     }
   }, [userRole]);
 
-  // Navigation items with permission keys
-  const navigation: Array<{ name: string; path: string; icon: any; permission: keyof RolePermissions; badge?: number }> = [
-    { name: 'Dashboard', path: '/', icon: FiHome, permission: 'dashboard' },
-    { name: 'Analytics', path: '/analytics', icon: FiBarChart2, permission: 'analytics' },
-    { name: 'SEO', path: '/seo', icon: FiSearch, permission: 'seo' },
-    { name: 'Posts', path: '/posts', icon: FiFileText, permission: 'posts' },
-    { name: 'Pages', path: '/pages', icon: FiFile, permission: 'pages' },
-    { name: 'Media', path: '/media', icon: FiImage, permission: 'media' },
-    { name: 'Menus', path: '/menus', icon: FiMenu, permission: 'menus' },
-    { name: 'Users', path: '/users', icon: FiUsers, permission: 'users' },
-    { name: 'Messages', path: '/messages', icon: FiMail, permission: 'messages', badge: unreadMessages },
-    { name: 'Groups', path: '/groups', icon: FiMessageSquare, permission: 'groups' },
-    { name: 'Security', path: '/security', icon: FiShield, permission: 'security' },
-    { name: 'Settings', path: '/settings', icon: FiSettings, permission: 'settings' },
+  // Main navigation - just Dashboard
+  const mainNavigation: Array<{ name: string; path: string; icon: any; permission: keyof RolePermissions; badge?: number; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Dashboard', path: '/', icon: FiHome, permission: 'dashboard', tooltipKey: 'dashboard' },
+    { name: 'Analytics', path: '/analytics', icon: FiBarChart2, permission: 'analytics', tooltipKey: 'analytics' },
   ];
 
-  const shopNavigation: Array<{ name: string; path: string; icon: any }> = [
-    { name: 'Products', path: '/shop/products', icon: FiPackage },
-    { name: 'Orders', path: '/shop/orders', icon: FiShoppingCart },
-    { name: 'Categories', path: '/shop/categories', icon: FiTag },
+  // Content navigation group
+  const contentNavigation: Array<{ name: string; path: string; icon: any; permission: keyof RolePermissions; badge?: number; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Posts', path: '/posts', icon: FiFileText, permission: 'posts', tooltipKey: 'posts' },
+    { name: 'Pages', path: '/pages', icon: FiFile, permission: 'pages', tooltipKey: 'pages' },
+    { name: 'Media', path: '/media', icon: FiImage, permission: 'media', tooltipKey: 'media' },
+    { name: 'Menus', path: '/menus', icon: FiMenu, permission: 'menus', tooltipKey: 'menus' },
+    { name: 'SEO', path: '/seo', icon: FiSearch, permission: 'seo', tooltipKey: 'seo' },
   ];
 
-  const lmsNavigation: Array<{ name: string; path: string; icon: any }> = [
-    { name: 'Dashboard', path: '/lms', icon: FiBarChart2 },
-    { name: 'Courses', path: '/lms/courses', icon: FiBook },
-    { name: 'Categories', path: '/lms/categories', icon: FiTag },
-    { name: 'Course Catalog', path: '/lms/catalog', icon: FiBook },
+  // System navigation group
+  const systemNavigation: Array<{ name: string; path: string; icon: any; permission: keyof RolePermissions; badge?: number; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Users', path: '/users', icon: FiUsers, permission: 'users', tooltipKey: 'users' },
+    { name: 'Messages', path: '/messages', icon: FiMail, permission: 'messages', badge: unreadMessages, tooltipKey: 'messages' },
+    { name: 'Groups', path: '/groups', icon: FiMessageSquare, permission: 'groups', tooltipKey: 'groups' },
+    { name: 'Security', path: '/security', icon: FiShield, permission: 'security', tooltipKey: 'security' },
+    { name: 'Settings', path: '/settings', icon: FiSettings, permission: 'settings', tooltipKey: 'settings' },
   ];
 
-  const emailNavigation: Array<{ name: string; path: string; icon: any }> = [
-    { name: 'Templates', path: '/email/templates', icon: FiEdit3 },
-    { name: 'Designer', path: '/email/designer', icon: FiLayout },
-    { name: 'Composer', path: '/email/composer', icon: FiMail },
-    { name: 'Logs', path: '/email/logs', icon: FiInfo },
+  const shopNavigation: Array<{ name: string; path: string; icon: any; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Products', path: '/shop/products', icon: FiPackage, tooltipKey: 'products' },
+    { name: 'Orders', path: '/shop/orders', icon: FiShoppingCart, tooltipKey: 'orders' },
+    { name: 'Categories', path: '/shop/categories', icon: FiTag, tooltipKey: 'shopCategories' },
+  ];
+
+  const lmsNavigation: Array<{ name: string; path: string; icon: any; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Dashboard', path: '/lms', icon: FiBarChart2, tooltipKey: 'lmsDashboard' },
+    { name: 'Courses', path: '/lms/courses', icon: FiBook, tooltipKey: 'courses' },
+    { name: 'Categories', path: '/lms/categories', icon: FiTag, tooltipKey: 'lmsCategories' },
+    { name: 'Course Catalog', path: '/lms/catalog', icon: FiBook, tooltipKey: 'catalog' },
+  ];
+
+  const emailNavigation: Array<{ name: string; path: string; icon: any; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Templates', path: '/email/templates', icon: FiEdit3, tooltipKey: 'emailTemplates' },
+    { name: 'Designer', path: '/email/designer', icon: FiLayout, tooltipKey: 'emailDesigner' },
+    { name: 'Composer', path: '/email/composer', icon: FiMail, tooltipKey: 'emailComposer' },
+    { name: 'Logs', path: '/email/logs', icon: FiInfo, tooltipKey: 'emailLogs' },
   ];
 
   // Filter navigation based on permissions
-  const filteredNavigation = navigation.filter(item => canAccess(userRole, item.permission));
+  const filteredMainNav = mainNavigation.filter(item => canAccess(userRole, item.permission));
+  const filteredContentNav = contentNavigation.filter(item => canAccess(userRole, item.permission));
+  const filteredSystemNav = systemNavigation.filter(item => canAccess(userRole, item.permission));
   const canViewShop = canAccess(userRole, 'shop');
   const canViewLms = canAccess(userRole, 'lms');
   const canViewEmail = userRole === 'ADMIN';
@@ -90,229 +117,467 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold">WordPress Node</h1>
-          <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
+    <div className="flex h-screen bg-slate-900">
+      {/* Beautiful Dark Theme Sidebar */}
+      <aside className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col border-r border-slate-800/50 transition-all duration-300 relative`}>
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-600/5 pointer-events-none" />
+
+        {/* Header with Logo */}
+        <div className="relative p-4 border-b border-slate-800/50">
+          <div className="flex items-center justify-between">
+            <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <span className="text-white font-bold text-lg">W</span>
+              </div>
+              {!sidebarCollapsed && (
+                <div>
+                  <h1 className="text-lg font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">WordPress Node</h1>
+                  <p className="text-xs text-slate-500">Admin Panel</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className={`p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors ${sidebarCollapsed ? 'absolute -right-3 top-6 bg-slate-800 border border-slate-700' : ''}`}
+            >
+              {sidebarCollapsed ? <FiChevronRight size={14} /> : <FiX size={14} />}
+            </button>
+          </div>
         </div>
 
-        <nav className="mt-6 flex-1 overflow-y-auto">
+        <nav className="flex-1 overflow-y-auto py-4 relative custom-scrollbar">
           {/* Role Badge */}
-          <div className="px-6 py-2 mb-2">
-            <button
-              onClick={() => setShowRoleInfo(!showRoleInfo)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${roleInfo.color} hover:opacity-80 transition-opacity`}
-            >
-              <FiLock size={12} />
-              {roleInfo.title}
-              <FiInfo size={12} />
-            </button>
-            {showRoleInfo && (
-              <div className="mt-2 p-3 bg-gray-800 rounded-lg text-xs text-gray-300 border border-gray-700">
-                <p className="font-medium mb-1">{roleInfo.description}</p>
-                <p className="text-gray-500 mt-2">You can only see menu items you have access to.</p>
-              </div>
-            )}
+          {!sidebarCollapsed && (
+            <div className="px-4 mb-4">
+              <button
+                onClick={() => setShowRoleInfo(!showRoleInfo)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium w-full ${roleInfo.color} hover:opacity-90 transition-all shadow-sm`}
+              >
+                <FiLock size={12} />
+                <span className="flex-1 text-left">{roleInfo.title}</span>
+                <FiInfo size={12} />
+              </button>
+              {showRoleInfo && (
+                <div className="mt-2 p-3 bg-slate-800/80 backdrop-blur rounded-lg text-xs text-slate-300 border border-slate-700/50">
+                  <p className="font-medium mb-1">{roleInfo.description}</p>
+                  <p className="text-slate-500 mt-2">You can only see menu items you have access to.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Main Navigation - Always visible */}
+          <div className="px-3 space-y-1">
+            {filteredMainNav.map((item) => {
+              const Icon = item.icon;
+              const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+              const active = isActive(item.path);
+              return (
+                <Tooltip
+                  key={item.path}
+                  title={tooltip.title}
+                  content={tooltip.content}
+                  position="right"
+                  variant="help"
+                  delay={400}
+                  disabled={!sidebarCollapsed}
+                >
+                  <Link
+                    to={item.path}
+                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      active
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                    } ${sidebarCollapsed ? 'justify-center' : ''}`}
+                  >
+                    <Icon size={18} className={active ? 'text-white' : 'text-slate-500 group-hover:text-blue-400 transition-colors'} />
+                    {!sidebarCollapsed && (
+                      <>
+                        <span className="flex-1">{item.name}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">{item.badge}</span>
+                        )}
+                      </>
+                    )}
+                  </Link>
+                </Tooltip>
+              );
+            })}
           </div>
 
-          {filteredNavigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
-                  isActive(item.path)
-                    ? 'bg-gray-800 text-white border-l-4 border-blue-500'
-                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                }`}
+          {/* Collapsible Sections */}
+          {!sidebarCollapsed && (
+            <div className="mt-4 px-3 space-y-2">
+              {/* Content Section */}
+              {filteredContentNav.length > 0 && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('content')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiFileText size={14} className="text-blue-400" />
+                      <span>Content</span>
+                    </div>
+                    {expandedSections.content ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.content && (
+                    <div className="pb-2">
+                      {filteredContentNav.map((item) => {
+                        const Icon = item.icon;
+                        const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+                        const active = isActive(item.path);
+                        return (
+                          <Tooltip key={item.path} title={tooltip.title} content={tooltip.content} position="right" variant="help" delay={400}>
+                            <Link
+                              to={item.path}
+                              className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                active
+                                  ? 'bg-blue-500/20 text-blue-300 border-l-2 border-blue-500'
+                                  : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                              }`}
+                            >
+                              <Icon size={16} className={active ? 'text-blue-400' : 'text-slate-500'} />
+                              {item.name}
+                            </Link>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* System Section */}
+              {filteredSystemNav.length > 0 && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('system')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiSettings size={14} className="text-slate-400" />
+                      <span>System</span>
+                    </div>
+                    {expandedSections.system ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.system && (
+                    <div className="pb-2">
+                      {filteredSystemNav.map((item) => {
+                        const Icon = item.icon;
+                        const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+                        const active = isActive(item.path);
+                        return (
+                          <Tooltip key={item.path} title={tooltip.title} content={tooltip.content} position="right" variant="help" delay={400}>
+                            <Link
+                              to={item.path}
+                              className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                active
+                                  ? 'bg-slate-500/20 text-slate-200 border-l-2 border-slate-400'
+                                  : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                              }`}
+                            >
+                              <Icon size={16} className={active ? 'text-slate-300' : 'text-slate-500'} />
+                              {item.name}
+                              {item.badge !== undefined && item.badge > 0 && (
+                                <span className="ml-auto px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">{item.badge}</span>
+                              )}
+                            </Link>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Shop Section */}
+              {canViewShop && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('shop')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiShoppingCart size={14} className="text-orange-400" />
+                      <span>Shop</span>
+                    </div>
+                    {expandedSections.shop ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.shop && (
+                    <div className="pb-2">
+                      {shopNavigation.map((item) => {
+                        const Icon = item.icon;
+                        const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+                        const active = isActive(item.path);
+                        return (
+                          <Tooltip key={item.path} title={tooltip.title} content={tooltip.content} position="right" variant="help" delay={400}>
+                            <Link
+                              to={item.path}
+                              className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                active
+                                  ? 'bg-orange-500/20 text-orange-300 border-l-2 border-orange-500'
+                                  : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                              }`}
+                            >
+                              <Icon size={16} className={active ? 'text-orange-400' : 'text-slate-500'} />
+                              {item.name}
+                            </Link>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* LMS Section */}
+              {canViewLms && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('lms')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiBook size={14} className="text-green-400" />
+                      <span>LMS</span>
+                    </div>
+                    {expandedSections.lms ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.lms && (
+                    <div className="pb-2">
+                      {lmsNavigation.map((item) => {
+                        const Icon = item.icon;
+                        const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+                        const active = isActive(item.path);
+                        return (
+                          <Tooltip key={item.path} title={tooltip.title} content={tooltip.content} position="right" variant="help" delay={400}>
+                            <Link
+                              to={item.path}
+                              className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                active
+                                  ? 'bg-green-500/20 text-green-300 border-l-2 border-green-500'
+                                  : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                              }`}
+                            >
+                              <Icon size={16} className={active ? 'text-green-400' : 'text-slate-500'} />
+                              {item.name}
+                            </Link>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Email Section */}
+              {canViewEmail && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('email')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiMail size={14} className="text-purple-400" />
+                      <span>Email</span>
+                    </div>
+                    {expandedSections.email ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.email && (
+                    <div className="pb-2">
+                      {emailNavigation.map((item) => {
+                        const Icon = item.icon;
+                        const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+                        const active = isActive(item.path);
+                        return (
+                          <Tooltip key={item.path} title={tooltip.title} content={tooltip.content} position="right" variant="help" delay={400}>
+                            <Link
+                              to={item.path}
+                              className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                active
+                                  ? 'bg-purple-500/20 text-purple-300 border-l-2 border-purple-500'
+                                  : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                              }`}
+                            >
+                              <Icon size={16} className={active ? 'text-purple-400' : 'text-slate-500'} />
+                              {item.name}
+                            </Link>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Theme Section */}
+              {canCustomize && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('theme')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiEdit3 size={14} className="text-pink-400" />
+                      <span>Theme</span>
+                    </div>
+                    {expandedSections.theme ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.theme && (
+                    <div className="pb-2">
+                      <Tooltip title={NAV_TOOLTIPS.styleCustomizer.title} content={NAV_TOOLTIPS.styleCustomizer.content} position="right" variant="help" delay={400}>
+                        <Link
+                          to="/customize"
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                            isActive('/customize')
+                              ? 'bg-pink-500/20 text-pink-300 border-l-2 border-pink-500'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <FiLayout size={16} className={isActive('/customize') ? 'text-pink-400' : 'text-slate-500'} />
+                          Style Customizer
+                        </Link>
+                      </Tooltip>
+                      <Tooltip title={NAV_TOOLTIPS.contentManager.title} content={NAV_TOOLTIPS.contentManager.content} position="right" variant="help" delay={400}>
+                        <Link
+                          to="/theme-content"
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                            isActive('/theme-content')
+                              ? 'bg-pink-500/20 text-pink-300 border-l-2 border-pink-500'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <FiImage size={16} className={isActive('/theme-content') ? 'text-pink-400' : 'text-slate-500'} />
+                          Content Manager
+                        </Link>
+                      </Tooltip>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div className={`mt-4 px-3 pb-4 border-t border-slate-800/50 pt-4 ${sidebarCollapsed ? 'hidden' : ''}`}>
+            <Tooltip title={NAV_TOOLTIPS.viewWebsite.title} content={NAV_TOOLTIPS.viewWebsite.content} position="right" variant="info">
+              <button
+                onClick={handleViewWebsite}
+                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all"
               >
-                <Icon className="mr-3" size={18} />
-                <span className="flex-1">{item.name}</span>
-                {item.badge !== undefined && item.badge > 0 && (
-                  <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">{item.badge}</span>
-                )}
-              </Link>
-            );
-          })}
-
-          {/* Shop Section - Only show if user has shop permission */}
-          {canViewShop && (
-            <div className="mt-4 pt-4 border-t border-gray-800">
-              <div className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Shop
-              </div>
-              {shopNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-gray-800 text-white border-l-4 border-blue-500'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="mr-3" size={18} />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          {/* LMS Section - Only show if user has LMS permission */}
-          {canViewLms && (
-            <div className="mt-4 pt-4 border-t border-gray-800">
-              <div className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                LMS
-              </div>
-              {lmsNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-gray-800 text-white border-l-4 border-blue-500'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="mr-3" size={18} />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Email Section - Only show if user is ADMIN */}
-          {canViewEmail && (
-            <div className="mt-4 pt-4 border-t border-gray-800">
-              <div className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Email
-              </div>
-              {emailNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-gray-800 text-white border-l-4 border-blue-500'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="mr-3" size={18} />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          {/* View Website Link */}
-          <button
-            onClick={handleViewWebsite}
-            className="flex items-center w-full px-6 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors mt-4 border-t border-gray-800"
-          >
-            <FiExternalLink className="mr-3" size={18} />
-            View Website
-          </button>
-
-          {/* Customize Theme Link - Only for ADMIN and EDITOR */}
-          {canCustomize && (
-            <button
-              onClick={handleCustomize}
-              className="flex items-center w-full px-6 py-3 text-sm font-medium text-blue-400 hover:bg-blue-900/30 hover:text-blue-300 transition-colors"
-            >
-              <FiEdit3 className="mr-3" size={18} />
-              Customize Theme
-            </button>
-          )}
+                <FiExternalLink size={18} className="text-slate-500" />
+                View Website
+              </button>
+            </Tooltip>
+            {canCustomize && (
+              <Tooltip title={NAV_TOOLTIPS.customizeTheme.title} content={NAV_TOOLTIPS.customizeTheme.content} position="right" variant="help">
+                <button
+                  onClick={handleCustomize}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-blue-300 hover:from-blue-600/30 hover:to-purple-600/30 transition-all border border-blue-500/20"
+                >
+                  <FiEdit3 size={18} className="text-blue-400" />
+                  Customize Theme
+                </button>
+              </Tooltip>
+            )}
+          </div>
         </nav>
 
         {/* User Profile Section */}
-        <div className="border-t border-gray-800 bg-gray-900">
-          <div className="relative">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center w-full px-6 py-4 hover:bg-gray-800 transition-colors bg-gray-900"
-            >
-              <div className="flex items-center flex-1">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-3 text-white shadow-lg">
-                  <FiUser size={20} />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-gray-400">{user?.role}</p>
-                </div>
+        <div className="relative border-t border-slate-800/50 bg-gradient-to-r from-slate-900 to-slate-800">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className={`flex items-center w-full p-3 hover:bg-slate-800/50 transition-all ${sidebarCollapsed ? 'justify-center' : ''}`}
+          >
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/20 ring-2 ring-slate-700">
+                <FiUser size={18} />
               </div>
-            </button>
-
-            {/* User Dropdown Menu */}
-            {showUserMenu && (
-              <div className="absolute bottom-full left-0 w-full bg-gray-800 border-t border-gray-700 shadow-lg">
-                <Link
-                  to="/profile"
-                  onClick={() => setShowUserMenu(false)}
-                  className="flex items-center w-full px-6 py-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                >
-                  <FiUser className="mr-3" size={16} />
-                  My Profile
-                </Link>
-                <Link
-                  to="/lms/dashboard"
-                  onClick={() => setShowUserMenu(false)}
-                  className="flex items-center w-full px-6 py-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                >
-                  <FiAward className="mr-3" size={16} />
-                  My Learning
-                </Link>
-                <button
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    logout();
-                  }}
-                  className="flex items-center w-full px-6 py-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                >
-                  <FiLogOut className="mr-3" size={16} />
-                  Logout
-                </button>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900"></div>
+            </div>
+            {!sidebarCollapsed && (
+              <div className="text-left ml-3 flex-1">
+                <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                <p className="text-xs text-slate-500">{user?.role}</p>
               </div>
             )}
-          </div>
+          </button>
+
+          {/* User Dropdown Menu */}
+          {showUserMenu && (
+            <div className="absolute bottom-full left-0 w-full bg-slate-800 border border-slate-700/50 rounded-t-xl shadow-2xl overflow-hidden">
+              <div className="p-3 border-b border-slate-700/50 bg-slate-800/50">
+                <p className="text-xs text-slate-400">Signed in as</p>
+                <p className="text-sm font-medium text-white truncate">{user?.email}</p>
+              </div>
+              <Link
+                to="/profile"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+              >
+                <FiUser size={16} className="text-slate-500" />
+                My Profile
+              </Link>
+              <Link
+                to="/lms/dashboard"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+              >
+                <FiAward size={16} className="text-slate-500" />
+                My Learning
+              </Link>
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  logout();
+                }}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border-t border-slate-700/50"
+              >
+                <FiLogOut size={16} />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
 
         {/* About & Copyright */}
-        <div className="px-6 py-4 border-t border-gray-800 bg-gray-950">
-          <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} All rights reserved.
-          </p>
-          <p className="text-xs text-gray-600 mt-1">
-            Developed by <span className="text-blue-400">Michael James Blenkinsop</span>
-          </p>
-          <p className="text-xs text-gray-600">Lead Developer</p>
-          <a
-            href="mailto:m.blenkinsop@yahoo.co.uk"
-            className="text-xs text-gray-600 hover:text-blue-400 transition-colors"
-          >
-            m.blenkinsop@yahoo.co.uk
-          </a>
-        </div>
+        {!sidebarCollapsed && (
+          <div className="px-4 py-3 bg-slate-950/50 border-t border-slate-800/30">
+            <p className="text-xs text-slate-600">
+              © {new Date().getFullYear()} WordPress Node
+            </p>
+            <p className="text-xs text-slate-700 mt-0.5">
+              By <span className="text-blue-400/70">Michael James Blenkinsop</span>
+            </p>
+          </div>
+        )}
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-8">
+      {/* Main Content Area with Dark Theme */}
+      <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="p-8 min-h-full">
           <Outlet />
         </div>
       </main>
+
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(100, 116, 139, 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(100, 116, 139, 0.5);
+        }
+      `}</style>
     </div>
   );
 }

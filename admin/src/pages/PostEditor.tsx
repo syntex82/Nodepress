@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { postsApi } from '../services/api';
 import RichTextEditor from '../components/RichTextEditor';
-import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { FiSave, FiEye, FiArrowLeft } from 'react-icons/fi';
 
@@ -84,131 +83,137 @@ export default function PostEditor() {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center">
-          <button
-            onClick={() => navigate('/posts')}
-            className="mr-4 p-2 hover:bg-gray-200 rounded"
-          >
-            <FiArrowLeft size={20} />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {id ? 'Edit Post' : 'Create New Post'}
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          {id && (
+    <div className="min-h-screen bg-slate-900">
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center">
             <button
-              onClick={handlePreview}
-              className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              onClick={() => navigate('/posts')}
+              className="mr-4 p-2 hover:bg-slate-700/50 rounded-xl text-slate-400 hover:text-white transition-all"
             >
-              <FiEye className="mr-2" size={18} />
-              Preview
+              <FiArrowLeft size={20} />
             </button>
-          )}
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              {id ? 'Edit Post' : 'Create New Post'}
+            </h1>
+          </div>
+          <div className="flex gap-2">
+            {id && (
+              <button
+                onClick={handlePreview}
+                className="flex items-center px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all"
+              >
+                <FiEye className="mr-2" size={18} />
+                Preview
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6 space-y-6">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter post title"
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 space-y-6">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Title *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                placeholder="Enter post title"
+                required
+              />
+            </div>
+
+            {/* Content */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Content
+              </label>
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) => setFormData({ ...formData, content })}
+                placeholder="Write your post content..."
+              />
+            </div>
+
+            {/* Excerpt */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Excerpt
+              </label>
+              <textarea
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                rows={3}
+                placeholder="Brief summary of the post (optional)"
+              />
+            </div>
+
+            {/* Slug */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Slug
+              </label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                placeholder="post-url-slug"
+              />
+              <p className="mt-2 text-sm text-slate-500">
+                URL-friendly version of the title. Leave empty to auto-generate.
+              </p>
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'DRAFT' | 'PUBLISHED' })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              >
+                <option value="DRAFT">Draft</option>
+                <option value="PUBLISHED">Published</option>
+              </select>
+            </div>
           </div>
 
-          {/* Content */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Content
-            </label>
-            <RichTextEditor
-              content={formData.content}
-              onChange={(content) => setFormData({ ...formData, content })}
-              placeholder="Write your post content..."
-            />
-          </div>
-
-          {/* Excerpt */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Excerpt
-            </label>
-            <textarea
-              value={formData.excerpt}
-              onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-              placeholder="Brief summary of the post (optional)"
-            />
-          </div>
-
-          {/* Slug */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Slug
-            </label>
-            <input
-              type="text"
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="post-url-slug"
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              URL-friendly version of the title. Leave empty to auto-generate.
-            </p>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as 'DRAFT' | 'PUBLISHED' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          {/* Actions */}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/posts')}
+              className="px-6 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all"
             >
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-            </select>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all"
+            >
+              <FiSave className="mr-2" size={18} />
+              {saving ? 'Saving...' : 'Save Post'}
+            </button>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/posts')}
-            className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            <FiSave className="mr-2" size={18} />
-            {saving ? 'Saving...' : 'Save Post'}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

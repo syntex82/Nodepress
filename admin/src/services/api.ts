@@ -262,6 +262,118 @@ export const customThemesApi = {
   getPreviewToken: () => api.post<{ token: string; expiresIn: number }>('/custom-themes/preview-token'),
 };
 
+// Theme Customization API - for customizing active theme images, blocks, and links
+export interface ThemeCustomizationImage {
+  id: string;
+  themeId: string;
+  name: string;
+  type: string;
+  url: string;
+  altText?: string;
+  title?: string;
+  description?: string;
+  width?: number;
+  height?: number;
+  mimeType?: string;
+  fileSize?: number;
+  section?: string;
+  position: number;
+  customData?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ThemeCustomizationBlock {
+  id: string;
+  themeId: string;
+  name: string;
+  type: string;
+  title?: string;
+  description?: string;
+  content?: string;
+  richContent?: Record<string, any>;
+  backgroundColor?: string;
+  textColor?: string;
+  customCSS?: string;
+  layout?: string;
+  columns: number;
+  padding?: string;
+  margin?: string;
+  backgroundImage?: string;
+  featuredImage?: string;
+  isVisible: boolean;
+  position: number;
+  customData?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ThemeCustomizationLink {
+  id: string;
+  themeId: string;
+  name: string;
+  type: string;
+  label: string;
+  url: string;
+  icon?: string;
+  target: string;
+  rel?: string;
+  title?: string;
+  className?: string;
+  customCSS?: string;
+  group?: string;
+  position: number;
+  isVisible: boolean;
+  isActive: boolean;
+  customData?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const themeCustomizationApi = {
+  // Images
+  createImage: (themeId: string, data: any) =>
+    api.post<ThemeCustomizationImage>(`/theme-customization/images/${themeId}`, data),
+  getImages: (themeId: string, type?: string) =>
+    api.get<ThemeCustomizationImage[]>(`/theme-customization/images/${themeId}`, { params: { type } }),
+  getImage: (id: string) =>
+    api.get<ThemeCustomizationImage>(`/theme-customization/images/detail/${id}`),
+  updateImage: (id: string, data: any) =>
+    api.put<ThemeCustomizationImage>(`/theme-customization/images/${id}`, data),
+  deleteImage: (id: string) =>
+    api.delete(`/theme-customization/images/${id}`),
+  reorderImages: (themeId: string, imageIds: string[]) =>
+    api.post(`/theme-customization/images/${themeId}/reorder`, { imageIds }),
+
+  // Blocks
+  createBlock: (themeId: string, data: any) =>
+    api.post<ThemeCustomizationBlock>(`/theme-customization/blocks/${themeId}`, data),
+  getBlocks: (themeId: string, type?: string) =>
+    api.get<ThemeCustomizationBlock[]>(`/theme-customization/blocks/${themeId}`, { params: { type } }),
+  getBlock: (id: string) =>
+    api.get<ThemeCustomizationBlock>(`/theme-customization/blocks/detail/${id}`),
+  updateBlock: (id: string, data: any) =>
+    api.put<ThemeCustomizationBlock>(`/theme-customization/blocks/${id}`, data),
+  deleteBlock: (id: string) =>
+    api.delete(`/theme-customization/blocks/${id}`),
+  reorderBlocks: (themeId: string, blockIds: string[]) =>
+    api.post(`/theme-customization/blocks/${themeId}/reorder`, { blockIds }),
+
+  // Links
+  createLink: (themeId: string, data: any) =>
+    api.post<ThemeCustomizationLink>(`/theme-customization/links/${themeId}`, data),
+  getLinks: (themeId: string, type?: string, group?: string) =>
+    api.get<ThemeCustomizationLink[]>(`/theme-customization/links/${themeId}`, { params: { type, group } }),
+  getLink: (id: string) =>
+    api.get<ThemeCustomizationLink>(`/theme-customization/links/detail/${id}`),
+  updateLink: (id: string, data: any) =>
+    api.put<ThemeCustomizationLink>(`/theme-customization/links/${id}`, data),
+  deleteLink: (id: string) =>
+    api.delete(`/theme-customization/links/${id}`),
+  reorderLinks: (themeId: string, linkIds: string[]) =>
+    api.post(`/theme-customization/links/${themeId}/reorder`, { linkIds }),
+};
+
 // Media block for WYSIWYG editor
 export interface ThemeMediaBlock {
   id: string;

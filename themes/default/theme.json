@@ -1,0 +1,40 @@
+{
+  "name": "Default Theme",
+  "version": "1.0.0",
+  "author": "WordPress Node",
+  "description": "A clean, modern default theme for WordPress Node CMS",
+  "license": "MIT",
+  "templates": [
+    "home",
+    "single-post",
+    "single-page",
+    "archive"
+  ],
+  "settings": {
+    "colors": {
+      "primary": "#667eea",
+      "secondary": "#764ba2",
+      "accent": "#FF6B6B",
+      "background": "#ffffff",
+      "text": "#333333"
+    },
+    "typography": {
+      "fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+      "fontSize": {
+        "base": "16px",
+        "heading": "42px"
+      }
+    },
+    "spacing": {
+      "padding": "40px",
+      "margin": "2rem"
+    }
+  },
+  "features": [
+    "responsive",
+    "dark-mode-ready",
+    "customizable-colors",
+    "customizable-typography"
+  ]
+}
+

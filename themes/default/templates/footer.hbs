@@ -1,0 +1,43 @@
+  </main>
+
+  <footer style="background: #2c3e50; color: white; padding: 60px 40px; margin-top: 60px;">
+    <div class="footer-content" style="max-width: 1200px; margin: 0 auto;">
+      <div class="footer-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+        <!-- About Section -->
+        <div class="footer-section">
+          <h3 style="font-size: 18px; margin-bottom: 1rem; font-weight: 600;">About {{siteName}}</h3>
+          <p style="opacity: 0.8; line-height: 1.6;">{{siteDescription}}</p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer-section">
+          <h3 style="font-size: 18px; margin-bottom: 1rem; font-weight: 600;">Quick Links</h3>
+          <ul style="list-style: none;">
+            <li style="margin-bottom: 0.5rem;"><a href="/" style="color: #ecf0f1; text-decoration: none; transition: color 0.3s ease;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#ecf0f1'">Home</a></li>
+            <li style="margin-bottom: 0.5rem;"><a href="/blog" style="color: #ecf0f1; text-decoration: none; transition: color 0.3s ease;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#ecf0f1'">Blog</a></li>
+            <li style="margin-bottom: 0.5rem;"><a href="/about" style="color: #ecf0f1; text-decoration: none; transition: color 0.3s ease;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#ecf0f1'">About</a></li>
+            <li style="margin-bottom: 0.5rem;"><a href="/contact" style="color: #ecf0f1; text-decoration: none; transition: color 0.3s ease;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#ecf0f1'">Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="footer-section">
+          <h3 style="font-size: 18px; margin-bottom: 1rem; font-weight: 600;">Contact</h3>
+          <p style="opacity: 0.8; margin-bottom: 0.5rem;">Email: {{contactEmail}}</p>
+          <p style="opacity: 0.8;">Phone: {{contactPhone}}</p>
+        </div>
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom" style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 2rem; text-align: center; opacity: 0.8;">
+        <p>&copy; {{currentYear}} {{siteName}}. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Add any global scripts here
+  </script>
+</body>
+</html>
+

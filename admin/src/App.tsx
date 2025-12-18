@@ -62,6 +62,7 @@ import Seo from './pages/Seo';
 import Messages from './pages/Messages';
 // Theme Customizer
 import ThemeCustomizer from './pages/ThemeCustomizer';
+import ThemeContentManager from './pages/ThemeContentManager';
 // Email
 import EmailTemplates from './pages/email/EmailTemplates';
 import EmailComposer from './pages/email/EmailComposer';
@@ -137,6 +138,7 @@ function App() {
                 <Route path="menus" element={<ProtectedRoute feature="menus"><MenuManager /></ProtectedRoute>} />
                 <Route path="theme-builder" element={<ProtectedRoute feature="themes"><ThemeBuilder /></ProtectedRoute>} />
                 <Route path="theme-designer" element={<ProtectedRoute feature="themes"><ThemeDesigner /></ProtectedRoute>} />
+                <Route path="theme-content" element={<ProtectedRoute feature="themes"><ThemeContentManager /></ProtectedRoute>} />
 
                 {/* Shop Admin - specific routes before parameterized */}
                 <Route path="shop/products" element={<ProtectedRoute feature="shop"><ShopProducts /></ProtectedRoute>} />

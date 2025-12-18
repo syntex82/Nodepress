@@ -261,6 +261,57 @@ async function main() {
   });
   console.log('✅ Default theme created:', defaultTheme.name);
 
+  // Create default CustomTheme (for Theme Customizer/Style Customizer)
+  const defaultCustomTheme = await prisma.customTheme.upsert({
+    where: { name: 'Default Style' },
+    update: {},
+    create: {
+      name: 'Default Style',
+      description: 'Default styling for your website',
+      settings: {
+        colors: {
+          primary: '#3B82F6',
+          secondary: '#8B5CF6',
+          background: '#FFFFFF',
+          surface: '#F9FAFB',
+          text: '#1F2937',
+          textMuted: '#6B7280',
+          heading: '#111827',
+          link: '#3B82F6',
+          linkHover: '#2563EB',
+          border: '#E5E7EB',
+          accent: '#F59E0B',
+        },
+        typography: {
+          headingFont: 'Inter',
+          bodyFont: 'Inter',
+          baseFontSize: 16,
+          lineHeight: 1.6,
+          headingWeight: 700,
+        },
+        layout: {
+          sidebarPosition: 'right',
+          contentWidth: 1200,
+          headerStyle: 'default',
+          footerStyle: 'default',
+        },
+        spacing: {
+          sectionPadding: 48,
+          elementSpacing: 24,
+          containerPadding: 24,
+        },
+        borders: {
+          radius: 8,
+          width: 1,
+        },
+      },
+      isActive: true,
+      isDefault: true,
+      createdById: admin.id,
+    },
+  });
+  console.log('✅ Default CustomTheme created:', defaultCustomTheme.name);
+
   // Create plugins
   const seoPlugin = await prisma.plugin.upsert({
     where: { slug: 'seo' },

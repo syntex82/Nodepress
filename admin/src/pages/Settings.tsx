@@ -1,6 +1,7 @@
 /**
  * Settings Page
  * Manage site settings, themes, and plugins
+ * With comprehensive tooltips for user guidance
  */
 
 import { useEffect, useState, useRef } from 'react';
@@ -11,7 +12,24 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import ThemeRequirements from '../components/ThemeRequirements';
 import ThemeShop from '../components/ThemeShop';
 import toast from 'react-hot-toast';
-import { FiCheck, FiRefreshCw, FiUpload, FiTrash2, FiInfo, FiShoppingBag, FiTool, FiPenTool } from 'react-icons/fi';
+import { FiCheck, FiRefreshCw, FiUpload, FiTrash2, FiInfo, FiShoppingBag, FiTool, FiPenTool, FiHelpCircle } from 'react-icons/fi';
+import Tooltip from '../components/Tooltip';
+
+// Tooltip content for settings page
+const SETTINGS_TOOLTIPS = {
+  general: { title: 'General Settings', content: 'Configure your site name, description, and other basic settings.' },
+  themes: { title: 'Themes', content: 'Install, activate, and customize themes to change your site\'s appearance.' },
+  plugins: { title: 'Plugins', content: 'Extend your site\'s functionality with plugins.' },
+  uploadTheme: { title: 'Upload Theme', content: 'Upload a theme package (.zip) to install a new theme.' },
+  activateTheme: { title: 'Activate Theme', content: 'Make this theme the active theme for your site.' },
+  customizeTheme: { title: 'Customize Theme', content: 'Open the theme customizer to adjust colors, fonts, and layout.' },
+  deleteTheme: { title: 'Delete Theme', content: 'Permanently remove this theme from your site.' },
+  themeShop: { title: 'Theme Shop', content: 'Browse and install themes from the marketplace.' },
+  uploadPlugin: { title: 'Upload Plugin', content: 'Upload a plugin package (.zip) to install a new plugin.' },
+  activatePlugin: { title: 'Activate Plugin', content: 'Enable this plugin to add its features to your site.' },
+  deactivatePlugin: { title: 'Deactivate Plugin', content: 'Disable this plugin without removing it.' },
+  deletePlugin: { title: 'Delete Plugin', content: 'Permanently remove this plugin from your site.' },
+};
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -213,63 +231,71 @@ export default function Settings() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+      <div className="flex items-center gap-3 mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Settings</h1>
+        <Tooltip title="About Settings" content="Configure your site's core settings, manage themes and plugins, and customize your site's behavior." position="right" variant="help">
+          <button className="p-1 text-slate-400 hover:text-blue-400">
+            <FiHelpCircle size={18} />
+          </button>
+        </Tooltip>
+      </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
+      <div className="mb-6 border-b border-slate-700/50">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'general', label: 'General' },
-            { id: 'themes', label: 'Themes' },
-            { id: 'plugins', label: 'Plugins' },
+            { id: 'general', label: 'General', tooltip: SETTINGS_TOOLTIPS.general },
+            { id: 'themes', label: 'Themes', tooltip: SETTINGS_TOOLTIPS.themes },
+            { id: 'plugins', label: 'Plugins', tooltip: SETTINGS_TOOLTIPS.plugins },
           ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {tab.label}
-            </button>
+            <Tooltip key={tab.id} title={tab.tooltip.title} content={tab.tooltip.content} position="bottom">
+              <button
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-slate-400 hover:text-white hover:border-slate-500'
+                }`}
+              >
+                {tab.label}
+              </button>
+            </Tooltip>
           ))}
         </nav>
       </div>
 
       {/* General Settings Tab */}
       {activeTab === 'general' && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold mb-6">General Settings</h2>
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+          <h2 className="text-xl font-bold text-white mb-6">General Settings</h2>
           <div className="space-y-6 max-w-2xl">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-400 mb-2">
                 Site Name
               </label>
               <input
                 type="text"
                 value={siteSettings.siteName}
                 onChange={(e) => setSiteSettings({ ...siteSettings, siteName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                 placeholder="My WordPress Node Site"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-400 mb-2">
                 Site Description
               </label>
               <textarea
                 value={siteSettings.siteDescription}
                 onChange={(e) => setSiteSettings({ ...siteSettings, siteDescription: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                 rows={3}
                 placeholder="A brief description of your site"
               />
             </div>
             <button
               onClick={handleSaveSettings}
-              className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="flex items-center px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all"
             >
               <FiCheck className="mr-2" size={18} />
               Save Settings
@@ -282,39 +308,39 @@ export default function Settings() {
       {activeTab === 'themes' && (
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Themes</h2>
-            <div className="flex gap-3">
+            <h2 className="text-2xl font-bold text-white">Themes</h2>
+            <div className="flex gap-3 flex-wrap">
               <button
                 onClick={() => setShowThemeShop(!showThemeShop)}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="flex items-center px-4 py-2 border border-slate-700/50 text-slate-400 rounded-lg hover:bg-slate-700/50 hover:text-white transition-all"
               >
                 <FiShoppingBag className="mr-2" size={18} />
                 {showThemeShop ? 'Hide' : 'Browse'} Theme Shop
               </button>
               <button
                 onClick={() => setShowRequirements(!showRequirements)}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="flex items-center px-4 py-2 border border-slate-700/50 text-slate-400 rounded-lg hover:bg-slate-700/50 hover:text-white transition-all"
               >
                 <FiInfo className="mr-2" size={18} />
                 {showRequirements ? 'Hide' : 'Show'} Requirements
               </button>
               <button
                 onClick={handleScanThemes}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="flex items-center px-4 py-2 border border-slate-700/50 text-slate-400 rounded-lg hover:bg-slate-700/50 hover:text-white transition-all"
               >
                 <FiRefreshCw className="mr-2" size={18} />
                 Scan Themes
               </button>
               <button
                 onClick={() => navigate('/theme-designer')}
-                className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-lg hover:from-purple-500 hover:to-purple-400 shadow-lg shadow-purple-500/20 transition-all"
               >
                 <FiPenTool className="mr-2" size={18} />
                 Design Theme
               </button>
               <button
                 onClick={() => navigate('/theme-builder')}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-lg hover:from-emerald-500 hover:to-emerald-400 shadow-lg shadow-emerald-500/20 transition-all"
               >
                 <FiTool className="mr-2" size={18} />
                 Upload Theme
@@ -322,7 +348,7 @@ export default function Settings() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
               >
                 <FiUpload className="mr-2" size={18} />
                 {uploading ? 'Uploading...' : 'Quick Upload'}
@@ -351,14 +377,14 @@ export default function Settings() {
             </div>
           )}
 
-          <h3 className="text-lg font-semibold mb-4">Installed Themes ({themes.length})</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Installed Themes ({themes.length})</h3>
 
           {themes.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-500 mb-4">No themes found. Click "Scan Themes" to detect installed themes.</p>
+            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-8 text-center">
+              <p className="text-slate-400 mb-4">No themes found. Click "Scan Themes" to detect installed themes.</p>
               <button
                 onClick={handleScanThemes}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all"
               >
                 <FiRefreshCw className="mr-2" size={18} />
                 Scan for Themes
@@ -367,29 +393,29 @@ export default function Settings() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {themes.map((theme) => (
-              <div key={theme.id} className="bg-white rounded-lg shadow overflow-hidden">
+              <div key={theme.id} className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 overflow-hidden hover:border-slate-600/50 transition-all group">
                 {theme.thumbnail ? (
-                  <img src={theme.thumbnail} alt={theme.name} className="w-full h-48 object-cover" />
+                  <img src={theme.thumbnail} alt={theme.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform" />
                 ) : (
                   <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <span className="text-white text-4xl font-bold">{theme.name.charAt(0)}</span>
                   </div>
                 )}
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-1">{theme.name}</h3>
-                  <p className="text-xs text-gray-500 mb-2">by {theme.author}</p>
-                  <p className="text-sm text-gray-600 mb-4">{theme.description}</p>
+                  <h3 className="text-lg font-semibold text-white mb-1">{theme.name}</h3>
+                  <p className="text-xs text-slate-500 mb-2">by {theme.author}</p>
+                  <p className="text-sm text-slate-400 mb-4">{theme.description}</p>
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs text-gray-500">v{theme.version}</span>
+                    <span className="text-xs text-slate-500">v{theme.version}</span>
                     {theme.isActive ? (
-                      <span className="flex items-center px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">
+                      <span className="flex items-center px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-full">
                         <FiCheck className="mr-1" size={14} />
                         Active
                       </span>
                     ) : (
                       <button
                         onClick={() => handleActivateTheme(theme.id)}
-                        className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700"
+                        className="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full hover:bg-blue-500/30 transition-all"
                       >
                         Activate
                       </button>
@@ -398,7 +424,7 @@ export default function Settings() {
                   {!theme.isActive && (
                     <button
                       onClick={() => setDeleteConfirm({ isOpen: true, themeId: theme.id, themeName: theme.name })}
-                      className="w-full flex items-center justify-center px-3 py-2 border border-red-300 text-red-600 text-sm rounded hover:bg-red-50"
+                      className="w-full flex items-center justify-center px-3 py-2 border border-red-500/30 text-red-400 text-sm rounded-lg hover:bg-red-500/10 transition-all"
                     >
                       <FiTrash2 className="mr-2" size={14} />
                       Delete Theme
@@ -416,7 +442,7 @@ export default function Settings() {
       {activeTab === 'plugins' && (
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Plugins</h2>
+            <h2 className="text-2xl font-bold text-white">Plugins</h2>
             <div className="flex gap-3">
               <input
                 type="file"
@@ -428,14 +454,14 @@ export default function Settings() {
               <button
                 onClick={() => pluginFileInputRef.current?.click()}
                 disabled={pluginUploading}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
               >
                 <FiUpload className="mr-2" size={18} />
                 {pluginUploading ? 'Uploading...' : 'Upload Plugin'}
               </button>
               <button
                 onClick={handleScanPlugins}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="flex items-center px-4 py-2 border border-slate-700/50 text-slate-400 rounded-lg hover:bg-slate-700/50 hover:text-white transition-all"
               >
                 <FiRefreshCw className="mr-2" size={18} />
                 Scan for Plugins
@@ -444,82 +470,82 @@ export default function Settings() {
           </div>
 
           {/* Plugin Requirements Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-semibold text-blue-400 mb-2 flex items-center">
               <FiInfo className="mr-2" /> Plugin Requirements
             </h3>
-            <p className="text-sm text-blue-700 mb-2">
-              Plugins must be ZIP files containing a <code className="bg-blue-100 px-1 rounded">plugin.json</code> file with:
+            <p className="text-sm text-blue-300 mb-2">
+              Plugins must be ZIP files containing a <code className="bg-blue-500/20 px-1 rounded">plugin.json</code> file with:
             </p>
-            <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
-              <li><strong>name</strong> (required): Display name of the plugin</li>
-              <li><strong>version</strong> (required): Version string (e.g., "1.0.0")</li>
-              <li><strong>author</strong>: Author name</li>
-              <li><strong>description</strong>: Brief description</li>
-              <li><strong>entry</strong>: Entry file (defaults to "index.js")</li>
-              <li><strong>hooks</strong>: Array of lifecycle hooks (e.g., ["onActivate", "beforeSave", "registerRoutes"])</li>
+            <ul className="text-sm text-blue-300 list-disc list-inside space-y-1">
+              <li><strong className="text-blue-200">name</strong> (required): Display name of the plugin</li>
+              <li><strong className="text-blue-200">version</strong> (required): Version string (e.g., "1.0.0")</li>
+              <li><strong className="text-blue-200">author</strong>: Author name</li>
+              <li><strong className="text-blue-200">description</strong>: Brief description</li>
+              <li><strong className="text-blue-200">entry</strong>: Entry file (defaults to "index.js")</li>
+              <li><strong className="text-blue-200">hooks</strong>: Array of lifecycle hooks (e.g., ["onActivate", "beforeSave", "registerRoutes"])</li>
             </ul>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 overflow-hidden">
             {plugins.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">No plugins found</p>
+                <p className="text-slate-400 mb-4">No plugins found</p>
                 <button
                   onClick={() => pluginFileInputRef.current?.click()}
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all"
                 >
                   <FiUpload className="mr-2" size={18} />
                   Upload Your First Plugin
                 </button>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-slate-700/50">
                 {plugins.map((plugin) => (
-                  <div key={plugin.id} className="p-6">
+                  <div key={plugin.id} className="p-6 hover:bg-slate-700/30 transition-colors">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-gray-900">{plugin.name}</h3>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">v{plugin.version}</span>
+                          <h3 className="text-lg font-semibold text-white">{plugin.name}</h3>
+                          <span className="text-xs text-slate-400 bg-slate-700/50 px-2 py-1 rounded">v{plugin.version}</span>
                           {plugin.isActive && (
-                            <span className="flex items-center text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
+                            <span className="flex items-center text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">
                               <FiCheck className="mr-1" size={12} /> Active
                             </span>
                           )}
                         </div>
                         {plugin.author && (
-                          <p className="text-sm text-gray-500 mt-1">by {plugin.author}</p>
+                          <p className="text-sm text-slate-500 mt-1">by {plugin.author}</p>
                         )}
-                        <p className="text-sm text-gray-600 mt-2">{plugin.description}</p>
+                        <p className="text-sm text-slate-400 mt-2">{plugin.description}</p>
 
                         {/* Plugin Details Toggle */}
                         <button
                           onClick={() => setShowPluginDetails(showPluginDetails === plugin.id ? null : plugin.id)}
-                          className="text-sm text-blue-600 hover:text-blue-800 mt-2 flex items-center"
+                          className="text-sm text-blue-400 hover:text-blue-300 mt-2 flex items-center transition-colors"
                         >
                           <FiInfo className="mr-1" size={14} />
                           {showPluginDetails === plugin.id ? 'Hide Details' : 'Show Details'}
                         </button>
 
                         {showPluginDetails === plugin.id && plugin.config && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm">
+                          <div className="mt-3 p-3 bg-slate-900/50 rounded-lg text-sm border border-slate-700/50">
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <span className="font-medium text-gray-700">Entry File:</span>
-                                <span className="ml-2 text-gray-600">{plugin.config.entry || 'index.js'}</span>
+                                <span className="font-medium text-slate-400">Entry File:</span>
+                                <span className="ml-2 text-slate-300">{plugin.config.entry || 'index.js'}</span>
                               </div>
                               <div>
-                                <span className="font-medium text-gray-700">Path:</span>
-                                <span className="ml-2 text-gray-600">{plugin.path}</span>
+                                <span className="font-medium text-slate-400">Path:</span>
+                                <span className="ml-2 text-slate-300">{plugin.path}</span>
                               </div>
                             </div>
                             {plugin.config.hooks && plugin.config.hooks.length > 0 && (
                               <div className="mt-2">
-                                <span className="font-medium text-gray-700">Hooks:</span>
+                                <span className="font-medium text-slate-400">Hooks:</span>
                                 <div className="flex flex-wrap gap-2 mt-1">
                                   {plugin.config.hooks.map((hook: string) => (
-                                    <span key={hook} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">
+                                    <span key={hook} className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded">
                                       {hook}
                                     </span>
                                   ))}
@@ -528,10 +554,10 @@ export default function Settings() {
                             )}
                             {plugin.config.dependencies && Object.keys(plugin.config.dependencies).length > 0 && (
                               <div className="mt-2">
-                                <span className="font-medium text-gray-700">Dependencies:</span>
+                                <span className="font-medium text-slate-400">Dependencies:</span>
                                 <div className="flex flex-wrap gap-2 mt-1">
                                   {Object.entries(plugin.config.dependencies).map(([dep, ver]) => (
-                                    <span key={dep} className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">
+                                    <span key={dep} className="px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">
                                       {dep}@{ver as string}
                                     </span>
                                   ))}
@@ -545,10 +571,10 @@ export default function Settings() {
                       <div className="flex items-center gap-2 ml-4">
                         <button
                           onClick={() => handleTogglePlugin(plugin)}
-                          className={`px-4 py-2 text-sm font-medium rounded ${
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                             plugin.isActive
-                              ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                              : 'bg-green-100 text-green-800 hover:bg-green-200'
+                              ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                              : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                           }`}
                         >
                           {plugin.isActive ? 'Deactivate' : 'Activate'}
@@ -556,7 +582,7 @@ export default function Settings() {
                         {!plugin.isActive && (
                           <button
                             onClick={() => setDeletePluginConfirm({ isOpen: true, pluginId: plugin.id, pluginName: plugin.name })}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
                             title="Delete Plugin"
                           >
                             <FiTrash2 size={18} />

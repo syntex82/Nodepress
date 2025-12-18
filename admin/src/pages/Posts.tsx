@@ -1,6 +1,6 @@
 /**
  * Posts Page
- * Manage blog posts
+ * Manage blog posts with comprehensive tooltips
  */
 
 import { useEffect, useState } from 'react';
@@ -10,7 +10,21 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { PostCustomizationPanel } from '../components/PageCustomizer';
 import toast from 'react-hot-toast';
-import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiEye, FiSliders } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiEye, FiSliders, FiHelpCircle } from 'react-icons/fi';
+import Tooltip from '../components/Tooltip';
+
+// Tooltip content for posts page
+const POSTS_TOOLTIPS = {
+  addNew: { title: 'Create New Post', content: 'Start writing a new blog post. Add content, images, and publish when ready.' },
+  search: { title: 'Search Posts', content: 'Find posts by title. Start typing to filter the list.' },
+  statusFilter: { title: 'Filter by Status', content: 'Show only published posts, drafts, or all posts.' },
+  selectAll: { title: 'Select All', content: 'Select all visible posts for bulk actions like delete.' },
+  edit: { title: 'Edit Post', content: 'Open the post editor to modify content, title, or settings.' },
+  view: { title: 'View Post', content: 'Preview how this post looks on your website.' },
+  customize: { title: 'Customize Style', content: 'Adjust the visual appearance of this specific post.' },
+  delete: { title: 'Delete Post', content: 'Permanently remove this post. This action cannot be undone.' },
+  bulkDelete: { title: 'Delete Selected', content: 'Delete all selected posts at once.' },
+};
 
 export default function Posts() {
   const navigate = useNavigate();
@@ -89,82 +103,97 @@ export default function Posts() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Posts</h1>
-        <button
-          onClick={() => navigate('/posts/new')}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          <FiPlus className="mr-2" size={18} />
-          Add New Post
-        </button>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Posts</h1>
+          <Tooltip title="About Posts" content="Blog posts are time-based content that appears in your blog feed. Use posts for news, articles, and updates." position="right" variant="help">
+            <button className="p-1 text-slate-400 hover:text-blue-400">
+              <FiHelpCircle size={18} />
+            </button>
+          </Tooltip>
+        </div>
+        <Tooltip title={POSTS_TOOLTIPS.addNew.title} content={POSTS_TOOLTIPS.addNew.content} position="left">
+          <button
+            onClick={() => navigate('/posts/new')}
+            className="flex items-center bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all"
+          >
+            <FiPlus className="mr-2" size={18} />
+            Add New Post
+          </button>
+        </Tooltip>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search posts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">All Status</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="DRAFT">Draft</option>
-          </select>
+          <Tooltip title={POSTS_TOOLTIPS.search.title} content={POSTS_TOOLTIPS.search.content} position="bottom">
+            <div className="flex-1 relative">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
+              <input
+                type="text"
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              />
+            </div>
+          </Tooltip>
+          <Tooltip title={POSTS_TOOLTIPS.statusFilter.title} content={POSTS_TOOLTIPS.statusFilter.content} position="bottom">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+            >
+              <option value="all">All Status</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="DRAFT">Draft</option>
+            </select>
+          </Tooltip>
         </div>
 
         {/* Bulk Actions */}
         {selectedPosts.length > 0 && (
           <div className="mt-4 flex items-center gap-4">
-            <span className="text-sm text-gray-600">{selectedPosts.length} selected</span>
-            <button
-              onClick={handleBulkDelete}
-              className="text-sm text-red-600 hover:text-red-800"
-            >
-              Delete Selected
-            </button>
+            <span className="text-sm text-slate-400">{selectedPosts.length} selected</span>
+            <Tooltip title={POSTS_TOOLTIPS.bulkDelete.title} content={POSTS_TOOLTIPS.bulkDelete.content} position="right" variant="warning">
+              <button
+                onClick={handleBulkDelete}
+                className="text-sm text-red-400 hover:text-red-300"
+              >
+                Delete Selected
+              </button>
+            </Tooltip>
           </div>
         )}
       </div>
 
       {/* Posts Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 overflow-hidden">
         {filteredPosts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No posts found</p>
+            <p className="text-slate-400">No posts found</p>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-700/50">
+            <thead className="bg-slate-900/50">
               <tr>
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={selectedPosts.length === filteredPosts.length}
                     onChange={toggleSelectAll}
-                    className="rounded border-gray-300"
+                    className="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50"
                   />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Author</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Date</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-700/50">
               {filteredPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50">
+                <tr key={post.id} className="hover:bg-slate-700/30 transition-colors">
                   <td className="px-6 py-4">
                     <input
                       type="checkbox"
@@ -176,54 +205,58 @@ export default function Posts() {
                           setSelectedPosts(selectedPosts.filter(id => id !== post.id));
                         }
                       }}
-                      className="rounded border-gray-300"
+                      className="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50"
                     />
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{post.title}</div>
+                    <div className="text-sm font-medium text-white">{post.title}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{post.author.name}</div>
+                    <div className="text-sm text-slate-400">{post.author.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      post.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      post.status === 'PUBLISHED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
                     }`}>
                       {post.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                     {new Date(post.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => window.open(`http://localhost:3000/post/${post.slug}`, '_blank')}
-                      className="text-gray-600 hover:text-gray-900 mr-3"
-                      title="View"
-                    >
-                      <FiEye size={18} />
-                    </button>
-                    <button
-                      onClick={() => navigate(`/posts/edit/${post.id}`)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      title="Edit"
-                    >
-                      <FiEdit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => setCustomizePanel({ isOpen: true, postId: post.id, postTitle: post.title })}
-                      className="text-purple-600 hover:text-purple-900 mr-3"
-                      title="Customize"
-                    >
-                      <FiSliders size={18} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm({ isOpen: true, postId: post.id })}
-                      className="text-red-600 hover:text-red-900"
-                      title="Delete"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
+                    <Tooltip title={POSTS_TOOLTIPS.view.title} content={POSTS_TOOLTIPS.view.content} position="top">
+                      <button
+                        onClick={() => window.open(`http://localhost:3000/post/${post.slug}`, '_blank')}
+                        className="text-slate-400 hover:text-white mr-3 transition-colors"
+                      >
+                        <FiEye size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip title={POSTS_TOOLTIPS.edit.title} content={POSTS_TOOLTIPS.edit.content} position="top">
+                      <button
+                        onClick={() => navigate(`/posts/edit/${post.id}`)}
+                        className="text-blue-400 hover:text-blue-300 mr-3 transition-colors"
+                      >
+                        <FiEdit2 size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip title={POSTS_TOOLTIPS.customize.title} content={POSTS_TOOLTIPS.customize.content} position="top">
+                      <button
+                        onClick={() => setCustomizePanel({ isOpen: true, postId: post.id, postTitle: post.title })}
+                        className="text-purple-400 hover:text-purple-300 mr-3 transition-colors"
+                      >
+                        <FiSliders size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip title={POSTS_TOOLTIPS.delete.title} content={POSTS_TOOLTIPS.delete.content} position="top" variant="warning">
+                      <button
+                        onClick={() => setDeleteConfirm({ isOpen: true, postId: post.id })}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </Tooltip>
                   </td>
                 </tr>
               ))}

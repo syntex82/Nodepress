@@ -1,0 +1,41 @@
+{{> header}}
+
+<!-- Hero Section -->
+<section class="hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 40px; text-align: center;">
+  <div class="hero-content" style="max-width: 800px; margin: 0 auto;">
+    <h1 style="font-size: 48px; margin-bottom: 1rem; font-weight: 700;">Welcome to Our Site</h1>
+    <p style="font-size: 20px; margin-bottom: 2rem; opacity: 0.9;">Discover amazing content and experiences</p>
+    <a href="/blog" class="cta-button" style="display: inline-block; padding: 12px 32px; background: #FF6B6B; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore Now</a>
+  </div>
+</section>
+
+<!-- Featured Posts Section -->
+<section class="featured-section" style="padding: 60px 40px; background: #F8F9FA;">
+  <div class="container" style="max-width: 1200px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-bottom: 3rem; font-size: 36px; font-weight: 700;">Latest Posts</h2>
+    
+    <div class="posts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+      {{#each posts}}
+        <article class="post-card" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 24px rgba(0, 0, 0, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)';">
+          <div style="padding: 2rem;">
+            <h3 style="font-size: 20px; margin-bottom: 0.5rem; font-weight: 600;">{{this.title}}</h3>
+            <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">{{this.excerpt}}</p>
+            <a href="/post/{{this.slug}}" style="color: #667eea; text-decoration: none; font-weight: 600;">Read More →</a>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 40px; text-align: center;">
+  <div class="container" style="max-width: 800px; margin: 0 auto;">
+    <h2 style="font-size: 32px; margin-bottom: 1rem; font-weight: 700;">Ready to Get Started?</h2>
+    <p style="font-size: 18px; margin-bottom: 2rem; opacity: 0.9;">Join our community and stay updated with the latest content</p>
+    <a href="/contact" class="cta-button" style="display: inline-block; padding: 12px 32px; background: #FF6B6B; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Contact Us</a>
+  </div>
+</section>
+
+{{> footer}}
+

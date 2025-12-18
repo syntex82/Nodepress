@@ -1,6 +1,7 @@
 /**
  * Security Dashboard - Overview Page
  * Main security center with metrics and quick actions
+ * With comprehensive tooltips for user guidance
  */
 
 import { useEffect, useState } from 'react';
@@ -21,7 +22,22 @@ import {
   FiKey,
   FiClock,
   FiMonitor,
+  FiHelpCircle,
 } from 'react-icons/fi';
+import Tooltip from '../../components/Tooltip';
+
+// Tooltip content for security dashboard
+const SECURITY_TOOLTIPS = {
+  runCheck: { title: 'Run Security Check', content: 'Scan your site for security vulnerabilities and configuration issues.' },
+  loginActivity: { title: 'Login Activity', content: 'View recent login attempts and detect suspicious activity.' },
+  blockedIPs: { title: 'Blocked IPs', content: 'Manage IP addresses that are blocked from accessing your site.' },
+  rateLimiting: { title: 'Rate Limiting', content: 'Configure limits on API requests to prevent abuse.' },
+  sessions: { title: 'Session Management', content: 'View and manage active user sessions.' },
+  passwordPolicy: { title: 'Password Policy', content: 'Set requirements for user passwords.' },
+  fileIntegrity: { title: 'File Integrity', content: 'Monitor core files for unauthorized changes.' },
+  auditLog: { title: 'Audit Log', content: 'View a log of all security-related events.' },
+  twoFactor: { title: 'Two-Factor Auth', content: 'Configure two-factor authentication for enhanced security.' },
+};
 
 export default function SecurityDashboard() {
   const [loading, setLoading] = useState(true);
@@ -60,18 +76,18 @@ export default function SecurityDashboard() {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'low': return 'text-green-600 bg-green-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'high': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'low': return 'text-emerald-400 bg-emerald-500/20';
+      case 'medium': return 'text-amber-400 bg-amber-500/20';
+      case 'high': return 'text-red-400 bg-red-500/20';
+      default: return 'text-slate-400 bg-slate-500/20';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pass': return <FiCheckCircle className="text-green-600" size={20} />;
-      case 'warning': return <FiAlertTriangle className="text-yellow-600" size={20} />;
-      case 'fail': return <FiXCircle className="text-red-600" size={20} />;
+      case 'pass': return <FiCheckCircle className="text-emerald-400" size={20} />;
+      case 'warning': return <FiAlertTriangle className="text-amber-400" size={20} />;
+      case 'fail': return <FiXCircle className="text-red-400" size={20} />;
       default: return null;
     }
   };
@@ -79,24 +95,33 @@ export default function SecurityDashboard() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Security Center</h1>
-          <p className="text-gray-600 mt-1">Monitor and manage your site's security</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Security Center</h1>
+            <p className="text-slate-400 mt-1">Monitor and manage your site's security</p>
+          </div>
+          <Tooltip title="About Security Center" content="Your central hub for monitoring security threats, managing access controls, and protecting your site from attacks." position="right" variant="help">
+            <button className="p-1 text-slate-400 hover:text-blue-400">
+              <FiHelpCircle size={18} />
+            </button>
+          </Tooltip>
         </div>
-        <button
-          onClick={handleRunSecurityCheck}
-          disabled={runningCheck}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          <FiRefreshCw className={`mr-2 ${runningCheck ? 'animate-spin' : ''}`} size={18} />
-          Run Security Check
-        </button>
+        <Tooltip title={SECURITY_TOOLTIPS.runCheck.title} content={SECURITY_TOOLTIPS.runCheck.content} position="left">
+          <button
+            onClick={handleRunSecurityCheck}
+            disabled={runningCheck}
+            className="flex items-center bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
+          >
+            <FiRefreshCw className={`mr-2 ${runningCheck ? 'animate-spin' : ''}`} size={18} />
+            Run Security Check
+          </button>
+        </Tooltip>
       </div>
 
       {/* Risk Level Badge */}
       {dashboard?.securityStatus && (
         <div className="mb-6">
-          <div className={`inline-flex items-center px-4 py-2 rounded-lg font-semibold ${getRiskColor(dashboard.securityStatus.riskLevel)}`}>
+          <div className={`inline-flex items-center px-4 py-2 rounded-xl font-semibold ${getRiskColor(dashboard.securityStatus.riskLevel)}`}>
             <FiShield className="mr-2" size={20} />
             Risk Level: {dashboard.securityStatus.riskLevel.toUpperCase()}
           </div>
@@ -105,49 +130,49 @@ export default function SecurityDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Failed Logins (24h)</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{dashboard?.failedLogins24h || 0}</p>
+              <p className="text-sm font-medium text-slate-400">Failed Logins (24h)</p>
+              <p className="text-3xl font-bold text-white mt-2">{dashboard?.failedLogins24h || 0}</p>
             </div>
-            <div className="bg-red-100 text-red-600 p-3 rounded-lg">
+            <div className="bg-red-500/20 text-red-400 p-3 rounded-lg">
               <FiXCircle size={24} />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Locked Accounts</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{dashboard?.lockedAccounts || 0}</p>
+              <p className="text-sm font-medium text-slate-400">Locked Accounts</p>
+              <p className="text-3xl font-bold text-white mt-2">{dashboard?.lockedAccounts || 0}</p>
             </div>
-            <div className="bg-yellow-100 text-yellow-600 p-3 rounded-lg">
+            <div className="bg-amber-500/20 text-amber-400 p-3 rounded-lg">
               <FiLock size={24} />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Blocked IPs</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{dashboard?.blockedIps || 0}</p>
+              <p className="text-sm font-medium text-slate-400">Blocked IPs</p>
+              <p className="text-3xl font-bold text-white mt-2">{dashboard?.blockedIps || 0}</p>
             </div>
-            <div className="bg-purple-100 text-purple-600 p-3 rounded-lg">
+            <div className="bg-purple-500/20 text-purple-400 p-3 rounded-lg">
               <FiShield size={24} />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Failed Logins (7d)</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{dashboard?.failedLogins7d || 0}</p>
+              <p className="text-sm font-medium text-slate-400">Failed Logins (7d)</p>
+              <p className="text-3xl font-bold text-white mt-2">{dashboard?.failedLogins7d || 0}</p>
             </div>
-            <div className="bg-blue-100 text-blue-600 p-3 rounded-lg">
+            <div className="bg-blue-500/20 text-blue-400 p-3 rounded-lg">
               <FiActivity size={24} />
             </div>
           </div>
@@ -156,22 +181,22 @@ export default function SecurityDashboard() {
 
       {/* Security Checks */}
       {dashboard?.securityStatus?.checks && (
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Security Checks</h2>
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 mb-8">
+          <div className="p-6 border-b border-slate-700/50">
+            <h2 className="text-xl font-bold text-white">Security Checks</h2>
           </div>
           <div className="p-6">
             <div className="space-y-4">
               {dashboard.securityStatus.checks.map((check: any, index: number) => (
-                <div key={index} className="flex items-start p-4 border border-gray-200 rounded-lg">
+                <div key={index} className="flex items-start p-4 border border-slate-700/50 rounded-xl bg-slate-900/30">
                   <div className="mr-4 mt-1">
                     {getStatusIcon(check.status)}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{check.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{check.message}</p>
+                    <h3 className="font-semibold text-white">{check.name}</h3>
+                    <p className="text-sm text-slate-400 mt-1">{check.message}</p>
                     {check.details && (
-                      <p className="text-xs text-gray-500 mt-2">{check.details}</p>
+                      <p className="text-xs text-slate-500 mt-2">{check.details}</p>
                     )}
                   </div>
                 </div>
@@ -183,94 +208,94 @@ export default function SecurityDashboard() {
 
       {/* Security Tools Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link to="activity" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="activity" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-blue-100 text-blue-600 p-3 rounded-lg mr-4">
+            <div className="bg-blue-500/20 text-blue-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiActivity size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Login Activity</h3>
+            <h3 className="text-lg font-semibold text-white">Login Activity</h3>
           </div>
-          <p className="text-sm text-gray-600">Monitor all login attempts and authentication events</p>
+          <p className="text-sm text-slate-400">Monitor all login attempts and authentication events</p>
         </Link>
 
-        <Link to="blocked-ips" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="blocked-ips" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-purple-100 text-purple-600 p-3 rounded-lg mr-4">
+            <div className="bg-purple-500/20 text-purple-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiShield size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">IP Blocking</h3>
+            <h3 className="text-lg font-semibold text-white">IP Blocking</h3>
           </div>
-          <p className="text-sm text-gray-600">Block malicious IPs and manage access control</p>
+          <p className="text-sm text-slate-400">Block malicious IPs and manage access control</p>
         </Link>
 
-        <Link to="rate-limiting" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="rate-limiting" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-indigo-100 text-indigo-600 p-3 rounded-lg mr-4">
+            <div className="bg-indigo-500/20 text-indigo-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiClock size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Rate Limiting</h3>
+            <h3 className="text-lg font-semibold text-white">Rate Limiting</h3>
           </div>
-          <p className="text-sm text-gray-600">Configure API rate limits and DDoS protection</p>
+          <p className="text-sm text-slate-400">Configure API rate limits and DDoS protection</p>
         </Link>
 
-        <Link to="sessions" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="sessions" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-teal-100 text-teal-600 p-3 rounded-lg mr-4">
+            <div className="bg-teal-500/20 text-teal-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiMonitor size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Session Management</h3>
+            <h3 className="text-lg font-semibold text-white">Session Management</h3>
           </div>
-          <p className="text-sm text-gray-600">View and manage active user sessions</p>
+          <p className="text-sm text-slate-400">View and manage active user sessions</p>
         </Link>
 
-        <Link to="password-policy" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="password-policy" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-purple-100 text-purple-600 p-3 rounded-lg mr-4">
+            <div className="bg-purple-500/20 text-purple-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiKey size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Password Policy</h3>
+            <h3 className="text-lg font-semibold text-white">Password Policy</h3>
           </div>
-          <p className="text-sm text-gray-600">Configure password strength requirements</p>
+          <p className="text-sm text-slate-400">Configure password strength requirements</p>
         </Link>
 
-        <Link to="integrity" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="integrity" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-green-100 text-green-600 p-3 rounded-lg mr-4">
+            <div className="bg-emerald-500/20 text-emerald-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiFileText size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">File Integrity</h3>
+            <h3 className="text-lg font-semibold text-white">File Integrity</h3>
           </div>
-          <p className="text-sm text-gray-600">Detect unauthorized file modifications</p>
+          <p className="text-sm text-slate-400">Detect unauthorized file modifications</p>
         </Link>
 
-        <Link to="audit-log" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="audit-log" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-orange-100 text-orange-600 p-3 rounded-lg mr-4">
+            <div className="bg-amber-500/20 text-amber-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiEye size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Audit Log</h3>
+            <h3 className="text-lg font-semibold text-white">Audit Log</h3>
           </div>
-          <p className="text-sm text-gray-600">Complete security event history and forensics</p>
+          <p className="text-sm text-slate-400">Complete security event history and forensics</p>
         </Link>
 
-        <Link to="2fa" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link to="2fa" className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 hover:border-slate-600/50 hover:shadow-xl transition-all group">
           <div className="flex items-center mb-4">
-            <div className="bg-indigo-100 text-indigo-600 p-3 rounded-lg mr-4">
+            <div className="bg-indigo-500/20 text-indigo-400 p-3 rounded-lg mr-4 group-hover:scale-110 transition-transform">
               <FiKey size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Two-Factor Auth</h3>
+            <h3 className="text-lg font-semibold text-white">Two-Factor Auth</h3>
           </div>
-          <p className="text-sm text-gray-600">Enable 2FA for enhanced account security</p>
+          <p className="text-sm text-slate-400">Enable 2FA for enhanced account security</p>
         </Link>
 
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow p-6 border-2 border-dashed border-gray-300">
+        <div className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 rounded-xl p-6 border-2 border-dashed border-slate-700/50">
           <div className="flex items-center mb-4">
-            <div className="bg-gray-200 text-gray-500 p-3 rounded-lg mr-4">
+            <div className="bg-slate-700/50 text-slate-500 p-3 rounded-lg mr-4">
               <FiShield size={24} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-500">More Tools</h3>
+            <h3 className="text-lg font-semibold text-slate-500">More Tools</h3>
           </div>
-          <p className="text-sm text-gray-500">Additional security features coming soon</p>
+          <p className="text-sm text-slate-500">Additional security features coming soon</p>
         </div>
       </div>
     </div>

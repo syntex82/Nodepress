@@ -1,6 +1,7 @@
 /**
  * Pages Page
  * Manage static pages with search, filter, and actions
+ * With comprehensive tooltips for user guidance
  */
 
 import { useEffect, useState } from 'react';
@@ -10,7 +11,19 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { PageCustomizationPanel } from '../components/PageCustomizer';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEye, FiEdit2, FiTrash2, FiSearch, FiSliders } from 'react-icons/fi';
+import { FiPlus, FiEye, FiEdit2, FiTrash2, FiSearch, FiSliders, FiHelpCircle } from 'react-icons/fi';
+import Tooltip from '../components/Tooltip';
+
+// Tooltip content for pages
+const PAGES_TOOLTIPS = {
+  addNew: { title: 'Create New Page', content: 'Create a static page like About, Contact, or Services. Pages don\'t have dates like posts.' },
+  search: { title: 'Search Pages', content: 'Find pages by title. Start typing to filter the list.' },
+  statusFilter: { title: 'Filter by Status', content: 'Show only published pages, drafts, or all pages.' },
+  edit: { title: 'Edit Page', content: 'Open the page editor to modify content, title, or settings.' },
+  view: { title: 'View Page', content: 'Preview how this page looks on your website.' },
+  customize: { title: 'Customize Style', content: 'Adjust the visual appearance of this specific page.' },
+  delete: { title: 'Delete Page', content: 'Permanently remove this page. This action cannot be undone.' },
+};
 
 export default function Pages() {
   const navigate = useNavigate();
@@ -65,101 +78,118 @@ export default function Pages() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Pages</h1>
-        <button
-          onClick={() => navigate('/pages/new')}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          <FiPlus className="mr-2" size={18} />
-          Add New Page
-        </button>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Pages</h1>
+          <Tooltip title="About Pages" content="Static pages are timeless content like About, Contact, or Services. Unlike posts, they don't appear in your blog feed." position="right" variant="help">
+            <button className="p-1 text-slate-400 hover:text-blue-400">
+              <FiHelpCircle size={18} />
+            </button>
+          </Tooltip>
+        </div>
+        <Tooltip title={PAGES_TOOLTIPS.addNew.title} content={PAGES_TOOLTIPS.addNew.content} position="left">
+          <button
+            onClick={() => navigate('/pages/new')}
+            className="flex items-center bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-4 py-2 rounded-xl hover:from-emerald-500 hover:to-emerald-400 shadow-lg shadow-emerald-500/20 transition-all"
+          >
+            <FiPlus className="mr-2" size={18} />
+            Add New Page
+          </button>
+        </Tooltip>
       </div>
 
       {/* Search and Filter */}
       <div className="mb-6 flex gap-4">
-        <div className="flex-1 relative">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search pages..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Status</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="DRAFT">Draft</option>
-        </select>
+        <Tooltip title={PAGES_TOOLTIPS.search.title} content={PAGES_TOOLTIPS.search.content} position="bottom">
+          <div className="flex-1 relative">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
+            <input
+              type="text"
+              placeholder="Search pages..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+            />
+          </div>
+        </Tooltip>
+        <Tooltip title={PAGES_TOOLTIPS.statusFilter.title} content={PAGES_TOOLTIPS.statusFilter.content} position="bottom">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+          >
+            <option value="all">All Status</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="DRAFT">Draft</option>
+          </select>
+        </Tooltip>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 overflow-hidden">
+        <table className="min-w-full divide-y divide-slate-700/50">
+          <thead className="bg-slate-900/50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Title</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Date</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-slate-700/50">
             {filteredPages.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
                   No pages found
                 </td>
               </tr>
             ) : (
               filteredPages.map((page) => (
-                <tr key={page.id} className="hover:bg-gray-50">
+                <tr key={page.id} className="hover:bg-slate-700/30 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{page.title}</div>
+                    <div className="text-sm font-medium text-white">{page.title}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      page.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      page.status === 'PUBLISHED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
                     }`}>
                       {page.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-slate-400">
                     {new Date(page.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-medium">
-                    <button
-                      onClick={() => window.open(`http://localhost:3000/${page.slug}`, '_blank')}
-                      className="text-gray-600 hover:text-gray-900 mr-3"
-                      title="View"
-                    >
-                      <FiEye size={18} />
-                    </button>
-                    <button
-                      onClick={() => navigate(`/pages/edit/${page.id}`)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      title="Edit"
-                    >
-                      <FiEdit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => setCustomizePanel({ isOpen: true, pageId: page.id, pageName: page.title })}
-                      className="text-purple-600 hover:text-purple-900 mr-3"
-                      title="Customize"
-                    >
-                      <FiSliders size={18} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm({ isOpen: true, pageId: page.id })}
-                      className="text-red-600 hover:text-red-900"
-                      title="Delete"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
+                    <Tooltip title={PAGES_TOOLTIPS.view.title} content={PAGES_TOOLTIPS.view.content} position="top">
+                      <button
+                        onClick={() => window.open(`http://localhost:3000/${page.slug}`, '_blank')}
+                        className="text-slate-400 hover:text-white mr-3 transition-colors"
+                      >
+                        <FiEye size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip title={PAGES_TOOLTIPS.edit.title} content={PAGES_TOOLTIPS.edit.content} position="top">
+                      <button
+                        onClick={() => navigate(`/pages/edit/${page.id}`)}
+                        className="text-blue-400 hover:text-blue-300 mr-3 transition-colors"
+                      >
+                        <FiEdit2 size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip title={PAGES_TOOLTIPS.customize.title} content={PAGES_TOOLTIPS.customize.content} position="top">
+                      <button
+                        onClick={() => setCustomizePanel({ isOpen: true, pageId: page.id, pageName: page.title })}
+                        className="text-purple-400 hover:text-purple-300 mr-3 transition-colors"
+                      >
+                        <FiSliders size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip title={PAGES_TOOLTIPS.delete.title} content={PAGES_TOOLTIPS.delete.content} position="top" variant="warning">
+                      <button
+                        onClick={() => setDeleteConfirm({ isOpen: true, pageId: page.id })}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </Tooltip>
                   </td>
                 </tr>
               ))

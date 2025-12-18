@@ -278,6 +278,11 @@ model Theme {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Theme customization relations
+  customizationImages   ThemeCustomizationImage[]
+  customizationBlocks   ThemeCustomizationBlock[]
+  customizationLinks    ThemeCustomizationLink[]
+
   @@index([isActive])
 }
 
@@ -371,6 +376,126 @@ model PostCustomization {
   updatedAt       DateTime @updatedAt
 
   @@index([postId])
+}
+
+// ThemeCustomizationImage model - manages theme images (logo, hero, backgrounds, etc.)
+model ThemeCustomizationImage {
+  id              String   @id @default(uuid())
+  themeId         String
+  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  // Image metadata
+  name            String   // e.g., 'logo', 'hero-image', 'background'
+  type            String   // 'logo', 'hero', 'background', 'featured', 'banner', 'custom'
+  url             String   // URL to the image
+  altText         String?  // Alt text for accessibility
+  title           String?  // Display title
+  description     String?  // Description of the image
+
+  // Image properties
+  width           Int?     // Image width in pixels
+  height          Int?     // Image height in pixels
+  mimeType        String?  // e.g., 'image/png', 'image/jpeg'
+  fileSize        Int?     // File size in bytes
+
+  // Usage metadata
+  section         String?  // Which section uses this image (e.g., 'header', 'hero', 'footer')
+  position        Int      @default(0) // Order/position in the section
+
+  // Metadata
+  customData      Json?    // Additional custom properties
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([themeId])
+  @@index([type])
+  @@index([section])
+}
+
+// ThemeCustomizationBlock model - manages content blocks/sections
+model ThemeCustomizationBlock {
+  id              String   @id @default(uuid())
+  themeId         String
+  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  // Block metadata
+  name            String   // e.g., 'hero-section', 'features', 'testimonials'
+  type            String   // 'hero', 'features', 'testimonials', 'cta', 'gallery', 'text', 'custom'
+  title           String?  // Block title/heading
+  description     String?  // Block description
+
+  // Content
+  content         String?  @db.Text // HTML or text content
+  richContent     Json?    // Structured content (for rich editors)
+
+  // Styling
+  backgroundColor String?  // Background color
+  textColor       String?  // Text color
+  customCSS       String?  @db.Text // Custom CSS for this block
+
+  // Layout
+  layout          String?  // 'full-width', 'contained', 'grid', 'flex'
+  columns         Int      @default(1) // Number of columns for grid layouts
+  padding         String?  // Padding (e.g., '20px', '2rem')
+  margin          String?  // Margin (e.g., '20px', '2rem')
+
+  // Media
+  backgroundImage String?  // Background image URL
+  featuredImage   String?  // Featured image URL
+
+  // Visibility & Ordering
+  isVisible       Boolean  @default(true)
+  position        Int      @default(0) // Order in the theme
+
+  // Metadata
+  customData      Json?    // Additional custom properties
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([themeId])
+  @@index([type])
+  @@index([position])
+}
+
+// ThemeCustomizationLink model - manages theme links (nav, social, CTA, etc.)
+model ThemeCustomizationLink {
+  id              String   @id @default(uuid())
+  themeId         String
+  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  // Link metadata
+  name            String   // e.g., 'home', 'about', 'facebook', 'cta-button'
+  type            String   // 'navigation', 'social', 'cta', 'footer', 'custom'
+  label           String   // Display text for the link
+  url             String   // Link URL
+
+  // Link properties
+  icon            String?  // Icon class or name (e.g., 'facebook', 'twitter')
+  target          String   @default("_self") // '_self', '_blank', '_parent', '_top'
+  rel             String?  // rel attribute (e.g., 'noopener noreferrer')
+  title           String?  // Title attribute for hover text
+
+  // Styling
+  className       String?  // CSS class names
+  customCSS       String?  @db.Text // Custom CSS for this link
+
+  // Grouping & Ordering
+  group           String?  // Group links together (e.g., 'main-nav', 'social-links', 'footer-links')
+  position        Int      @default(0) // Order within the group
+
+  // Visibility
+  isVisible       Boolean  @default(true)
+  isActive        Boolean  @default(true)
+
+  // Metadata
+  customData      Json?    // Additional custom properties
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([themeId])
+  @@index([type])
+  @@index([group])
+  @@index([position])
 }
 
 // Plugin model - manages installed plugins

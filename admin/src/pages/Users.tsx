@@ -1,6 +1,7 @@
 /**
  * Users Page
  * Manage users with create, edit, and delete functionality
+ * With comprehensive tooltips for user guidance
  */
 
 import { useEffect, useState } from 'react';
@@ -8,7 +9,19 @@ import { usersApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmDialog from '../components/ConfirmDialog';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiHelpCircle } from 'react-icons/fi';
+import Tooltip from '../components/Tooltip';
+
+// Tooltip content for users page
+const USERS_TOOLTIPS = {
+  addNew: { title: 'Add New User', content: 'Create a new user account. Assign a role to control what they can access.' },
+  edit: { title: 'Edit User', content: 'Modify user details like name, email, or role.' },
+  delete: { title: 'Delete User', content: 'Permanently remove this user account. This action cannot be undone.' },
+  roleAdmin: { title: 'Admin Role', content: 'Full access to all features including user management and settings.' },
+  roleEditor: { title: 'Editor Role', content: 'Can edit and publish any content, but cannot manage users or settings.' },
+  roleAuthor: { title: 'Author Role', content: 'Can create and publish their own content only.' },
+  roleViewer: { title: 'Viewer Role', content: 'Read-only access. Cannot create or edit content.' },
+};
 
 interface UserFormData {
   name: string;
@@ -134,64 +147,75 @@ export default function Users() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Users</h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          <FiPlus className="mr-2" size={18} />
-          Add New User
-        </button>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Users</h1>
+          <Tooltip title="About Users" content="Manage user accounts and permissions. Assign roles to control what each user can access and modify." position="right" variant="help">
+            <button className="p-1 text-slate-400 hover:text-blue-400">
+              <FiHelpCircle size={18} />
+            </button>
+          </Tooltip>
+        </div>
+        <Tooltip title={USERS_TOOLTIPS.addNew.title} content={USERS_TOOLTIPS.addNew.content} position="left">
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-2 rounded-xl hover:from-purple-500 hover:to-purple-400 shadow-lg shadow-purple-500/20 transition-all"
+          >
+            <FiPlus className="mr-2" size={18} />
+            Add New User
+          </button>
+        </Tooltip>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 overflow-hidden">
+        <table className="min-w-full divide-y divide-slate-700/50">
+          <thead className="bg-slate-900/50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Joined</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-slate-700/50">
             {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
+              <tr key={user.id} className="hover:bg-slate-700/30 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                  <div className="text-sm font-medium text-white">{user.name}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{user.email}</div>
+                  <div className="text-sm text-slate-400">{user.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                    user.role === 'EDITOR' ? 'bg-blue-100 text-blue-800' :
-                    user.role === 'AUTHOR' ? 'bg-green-100 text-green-800' :
-                    'bg-gray-100 text-gray-800'
+                  <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    user.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-400' :
+                    user.role === 'EDITOR' ? 'bg-blue-500/20 text-blue-400' :
+                    user.role === 'AUTHOR' ? 'bg-emerald-500/20 text-emerald-400' :
+                    'bg-slate-500/20 text-slate-400'
                   }`}>
                     {user.role}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleOpenModal(user)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                    title="Edit"
-                  >
-                    <FiEdit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm({ isOpen: true, userId: user.id })}
-                    className="text-red-600 hover:text-red-900"
-                    title="Delete"
-                  >
-                    <FiTrash2 size={18} />
-                  </button>
+                  <Tooltip title={USERS_TOOLTIPS.edit.title} content={USERS_TOOLTIPS.edit.content} position="top">
+                    <button
+                      onClick={() => handleOpenModal(user)}
+                      className="text-blue-400 hover:text-blue-300 mr-3 transition-colors"
+                    >
+                      <FiEdit2 size={18} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title={USERS_TOOLTIPS.delete.title} content={USERS_TOOLTIPS.delete.content} position="top" variant="warning">
+                    <button
+                      onClick={() => setDeleteConfirm({ isOpen: true, userId: user.id })}
+                      className="text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                  </Tooltip>
                 </td>
               </tr>
             ))}
@@ -203,68 +227,68 @@ export default function Users() {
       {showModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={handleCloseModal}></div>
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={handleCloseModal}></div>
 
-            <div className="relative bg-white rounded-lg max-w-md w-full p-6">
+            <div className="relative bg-slate-800 border border-slate-700/50 rounded-2xl max-w-md w-full p-6 shadow-2xl">
               <button
                 onClick={handleCloseModal}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
               >
                 <FiX size={24} />
               </button>
 
-              <h2 className="text-2xl font-bold mb-6">
+              <h2 className="text-2xl font-bold text-white mb-6">
                 {editingUser ? 'Edit User' : 'Create New User'}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-400 mb-2">
                     Name *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-400 mb-2">
                     Email *
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-400 mb-2">
                     Password {editingUser ? '(leave blank to keep current)' : '*'}
                   </label>
                   <input
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                     required={!editingUser}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-400 mb-2">
                     Role *
                   </label>
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                   >
                     <option value="ADMIN">Admin</option>
                     <option value="EDITOR">Editor</option>
@@ -277,13 +301,13 @@ export default function Users() {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="flex-1 px-4 py-2.5 border border-slate-700/50 text-slate-400 rounded-lg hover:bg-slate-700/50 hover:text-white transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all"
                   >
                     {editingUser ? 'Update' : 'Create'}
                   </button>

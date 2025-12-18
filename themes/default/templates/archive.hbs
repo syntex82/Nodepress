@@ -1,0 +1,57 @@
+{{> header}}
+
+<section class="archive" style="max-width: 1000px; margin: 0 auto; padding: 60px 40px;">
+  <header class="archive-header" style="margin-bottom: 3rem; border-bottom: 2px solid #eee; padding-bottom: 2rem;">
+    <h1 style="font-size: 42px; margin-bottom: 0.5rem; font-weight: 700;">{{archiveTitle}}</h1>
+    {{#if archiveDescription}}
+      <p style="color: #666; font-size: 18px;">{{archiveDescription}}</p>
+    {{/if}}
+  </header>
+
+  {{#if posts}}
+    <div class="posts-list">
+      {{#each posts}}
+        <article class="post-item" style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #eee;">
+          <h2 style="font-size: 24px; margin-bottom: 0.5rem; font-weight: 600;">
+            <a href="/post/{{this.slug}}" style="color: #333; text-decoration: none;">{{this.title}}</a>
+          </h2>
+          <div class="post-meta" style="color: #666; font-size: 14px; margin-bottom: 1rem;">
+            <span>By {{this.author}}</span>
+            <span style="margin: 0 1rem;">•</span>
+            <span>{{this.date}}</span>
+          </div>
+          <p style="color: #555; line-height: 1.6;">{{this.excerpt}}</p>
+          <a href="/post/{{this.slug}}" style="color: #667eea; text-decoration: none; font-weight: 600;">Read More →</a>
+        </article>
+      {{/each}}
+    </div>
+
+    <!-- Pagination -->
+    {{#if pagination}}
+      <nav class="pagination" style="display: flex; justify-content: center; gap: 1rem; margin-top: 3rem;">
+        {{#if pagination.prev}}
+          <a href="{{pagination.prev}}" style="padding: 0.5rem 1rem; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #667eea;">← Previous</a>
+        {{/if}}
+        
+        {{#each pagination.pages}}
+          {{#if this.active}}
+            <span style="padding: 0.5rem 1rem; background: #667eea; color: white; border-radius: 4px;">{{this.number}}</span>
+          {{else}}
+            <a href="{{this.url}}" style="padding: 0.5rem 1rem; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #667eea;">{{this.number}}</a>
+          {{/if}}
+        {{/each}}
+        
+        {{#if pagination.next}}
+          <a href="{{pagination.next}}" style="padding: 0.5rem 1rem; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #667eea;">Next →</a>
+        {{/if}}
+      </nav>
+    {{/if}}
+  {{else}}
+    <div class="no-posts" style="text-align: center; padding: 3rem; color: #666;">
+      <p style="font-size: 18px;">No posts found.</p>
+    </div>
+  {{/if}}
+</section>
+
+{{> footer}}
+

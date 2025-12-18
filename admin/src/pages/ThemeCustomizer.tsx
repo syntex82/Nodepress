@@ -2,6 +2,7 @@
  * Theme Customizer Page
  * WordPress-like live theme customization with sidebar and preview
  * Features: Real-time preview via postMessage, Undo/Redo, Import/Export, Element Inspector
+ * With comprehensive tooltips for user guidance
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -10,6 +11,32 @@ import { FiX, FiSave, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEye, FiSetti
 import toast from 'react-hot-toast';
 import { customThemesApi, CustomTheme, CustomThemeSettings } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
+import Tooltip from '../components/Tooltip';
+
+// Tooltip content for all customizer features
+const CUSTOMIZER_TOOLTIPS = {
+  colors: { title: '🎨 Colors', content: 'Customize your site\'s color scheme. Set primary, secondary, background, text, and accent colors.' },
+  typography: { title: '✏️ Typography', content: 'Choose fonts and text styles. Set heading and body fonts, sizes, and line heights.' },
+  header: { title: '📌 Header', content: 'Configure your site header. Choose layout, logo position, navigation style, and sticky behavior.' },
+  footer: { title: '🦶 Footer', content: 'Design your site footer. Add widgets, copyright text, and social links.' },
+  layout: { title: '📐 Layout', content: 'Control page structure. Set content width, sidebar position, and container styles.' },
+  homepage: { title: '🏠 Homepage', content: 'Customize your homepage layout. Choose hero style, featured sections, and content blocks.' },
+  palette: { title: '🎭 Color Palette', content: 'Create and manage color palettes. Save presets and apply them with one click.' },
+  advTypography: { title: '📝 Advanced Typography', content: 'Fine-tune typography settings. Control letter spacing, text transforms, and font weights.' },
+  spacing: { title: '📏 Spacing & Layout', content: 'Adjust spacing and margins. Control section padding, element gaps, and container sizes.' },
+  css: { title: '💻 Custom CSS', content: 'Add your own CSS code. Override any style with custom rules.' },
+  inspector: { title: '🔍 Element Inspector', content: 'Click any element on the preview to inspect its styles. Generate CSS rules automatically.' },
+  importExport: { title: '📦 Import / Export', content: 'Backup your settings or transfer to another site. Export as JSON file.' },
+  undo: { title: 'Undo', content: 'Revert your last change. Keyboard shortcut: Ctrl+Z', shortcut: 'Ctrl+Z' },
+  redo: { title: 'Redo', content: 'Restore a reverted change. Keyboard shortcut: Ctrl+Y', shortcut: 'Ctrl+Y' },
+  reset: { title: 'Reset Changes', content: 'Discard all unsaved changes and revert to the last saved state.' },
+  saveDraft: { title: 'Save Draft', content: 'Save your changes without publishing. Your changes will be preserved but not visible to visitors.' },
+  publish: { title: 'Publish', content: 'Make your changes live! Visitors will see the updated design immediately.' },
+  refresh: { title: 'Refresh Preview', content: 'Reload the preview to see the latest changes from the server.' },
+  viewport: { title: 'Responsive Preview', content: 'Test how your site looks on different devices. Switch between desktop, tablet, and mobile views.' },
+  collapse: { title: 'Toggle Sidebar', content: 'Collapse or expand the sidebar to see more of the preview.' },
+  close: { title: 'Close Customizer', content: 'Exit the customizer and return to the dashboard. Unsaved changes will prompt for confirmation.' },
+};
 
 // Components
 import ColorPanel from '../components/ThemeCustomizer/ColorPanel';
@@ -471,35 +498,35 @@ export default function ThemeCustomizer() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
+      <div className="h-screen flex items-center justify-center bg-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading Theme Customizer...</p>
+          <p className="text-slate-400">Loading Theme Customizer...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex bg-gray-900 overflow-hidden">
+    <div className="h-screen flex bg-slate-900 overflow-hidden">
       {/* Sidebar */}
-      <div className={`bg-gray-800 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-80'}`}>
+      <div className={`bg-slate-800/80 backdrop-blur flex flex-col transition-all duration-300 border-r border-slate-700/50 ${sidebarCollapsed ? 'w-16' : 'w-80'}`}>
         {/* Header */}
-        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
           {!sidebarCollapsed && (
             <div>
-              <h1 className="text-white font-semibold">Customize</h1>
-              <p className="text-xs text-gray-400">{activeTheme?.name || 'Theme'}</p>
+              <h1 className="text-white font-semibold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Customize</h1>
+              <p className="text-xs text-slate-400">{activeTheme?.name || 'Theme'}</p>
             </div>
           )}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700"
+              className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-700/50 transition-all"
             >
               {sidebarCollapsed ? <FiChevronRight size={18} /> : <FiChevronLeft size={18} />}
             </button>
-            <button onClick={handleClose} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700">
+            <button onClick={handleClose} className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-700/50 transition-all">
               <FiX size={18} />
             </button>
           </div>
@@ -510,36 +537,44 @@ export default function ThemeCustomizer() {
           <div className="flex-1 overflow-y-auto p-4">
             {/* Basic Panels */}
             <div className="mb-4">
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-1">Basic</h3>
+              <h3 className="text-xs text-slate-500 uppercase tracking-wider mb-2 px-1">Basic</h3>
               <div className="space-y-1">
-                {basicPanels.map(panel => (
-                  <button
-                    key={panel.id}
-                    onClick={() => setActivePanel(panel.id)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                  >
-                    <panel.icon size={18} />
-                    <span className="text-sm">{panel.name}</span>
-                    <FiChevronRight size={14} className="ml-auto text-gray-500" />
-                  </button>
-                ))}
+                {basicPanels.map(panel => {
+                  const tooltip = CUSTOMIZER_TOOLTIPS[panel.id as keyof typeof CUSTOMIZER_TOOLTIPS];
+                  return (
+                    <Tooltip key={panel.id} title={tooltip?.title || panel.name} content={tooltip?.content || ''} position="right" variant="help">
+                      <button
+                        onClick={() => setActivePanel(panel.id)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all group"
+                      >
+                        <panel.icon size={18} className="group-hover:scale-110 transition-transform" />
+                        <span className="text-sm">{panel.name}</span>
+                        <FiChevronRight size={14} className="ml-auto text-slate-500 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </Tooltip>
+                  );
+                })}
               </div>
             </div>
             {/* Advanced Panels */}
             <div>
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-1">Advanced</h3>
+              <h3 className="text-xs text-slate-500 uppercase tracking-wider mb-2 px-1">Advanced</h3>
               <div className="space-y-1">
-                {advancedPanels.map(panel => (
-                  <button
-                    key={panel.id}
-                    onClick={() => setActivePanel(panel.id)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                  >
-                    <panel.icon size={18} />
-                    <span className="text-sm">{panel.name}</span>
-                    <FiChevronRight size={14} className="ml-auto text-gray-500" />
-                  </button>
-                ))}
+                {advancedPanels.map(panel => {
+                  const tooltip = CUSTOMIZER_TOOLTIPS[panel.id as keyof typeof CUSTOMIZER_TOOLTIPS];
+                  return (
+                    <Tooltip key={panel.id} title={tooltip?.title || panel.name} content={tooltip?.content || ''} position="right" variant="help">
+                      <button
+                        onClick={() => setActivePanel(panel.id)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all group"
+                      >
+                        <panel.icon size={18} className="group-hover:scale-110 transition-transform" />
+                        <span className="text-sm">{panel.name}</span>
+                        <FiChevronRight size={14} className="ml-auto text-slate-500 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </Tooltip>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -550,7 +585,7 @@ export default function ThemeCustomizer() {
           <div className="flex-1 overflow-y-auto">
             <button
               onClick={() => { setActivePanel(null); toggleInspector(false); }}
-              className="flex items-center gap-2 p-4 text-gray-400 hover:text-white border-b border-gray-700 w-full"
+              className="flex items-center gap-2 p-4 text-slate-400 hover:text-white border-b border-slate-700/50 w-full transition-colors"
             >
               <FiChevronLeft size={16} />
               <span>Back</span>
@@ -578,72 +613,82 @@ export default function ThemeCustomizer() {
         {sidebarCollapsed && (
           <div className="flex-1 overflow-y-auto py-4">
             <div className="space-y-1 px-2">
-              {[...basicPanels, ...advancedPanels].map(panel => (
-                <button
-                  key={panel.id}
-                  onClick={() => { setSidebarCollapsed(false); setActivePanel(panel.id); }}
-                  className="w-full p-2.5 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors flex items-center justify-center"
-                  title={panel.name}
-                >
-                  <panel.icon size={18} />
-                </button>
-              ))}
+              {[...basicPanels, ...advancedPanels].map(panel => {
+                const tooltip = CUSTOMIZER_TOOLTIPS[panel.id as keyof typeof CUSTOMIZER_TOOLTIPS];
+                return (
+                  <Tooltip key={panel.id} title={tooltip?.title || panel.name} content={tooltip?.content || ''} position="right" variant="help">
+                    <button
+                      onClick={() => { setSidebarCollapsed(false); setActivePanel(panel.id); }}
+                      className="w-full p-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all flex items-center justify-center"
+                    >
+                      <panel.icon size={18} />
+                    </button>
+                  </Tooltip>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-gray-700 space-y-2">
+        <div className="p-4 border-t border-slate-700/50 space-y-2">
           {!sidebarCollapsed && (
             <>
               {/* Undo/Redo buttons */}
               <div className="flex gap-2 mb-2">
-                <button
-                  onClick={undo}
-                  disabled={!canUndo}
-                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
-                  title="Undo"
-                >
-                  <FiRotateCcw size={14} />
-                  Undo
-                </button>
-                <button
-                  onClick={redo}
-                  disabled={!canRedo}
-                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
-                  title="Redo"
-                >
-                  <FiRotateCw size={14} />
-                  Redo
-                </button>
+                <Tooltip title={CUSTOMIZER_TOOLTIPS.undo.title} content={CUSTOMIZER_TOOLTIPS.undo.content} shortcut={CUSTOMIZER_TOOLTIPS.undo.shortcut} position="top">
+                  <button
+                    onClick={undo}
+                    disabled={!canUndo}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-600/50 disabled:opacity-30 disabled:cursor-not-allowed text-sm transition-all"
+                  >
+                    <FiRotateCcw size={14} />
+                    Undo
+                  </button>
+                </Tooltip>
+                <Tooltip title={CUSTOMIZER_TOOLTIPS.redo.title} content={CUSTOMIZER_TOOLTIPS.redo.content} shortcut={CUSTOMIZER_TOOLTIPS.redo.shortcut} position="top">
+                  <button
+                    onClick={redo}
+                    disabled={!canRedo}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-600/50 disabled:opacity-30 disabled:cursor-not-allowed text-sm transition-all"
+                  >
+                    <FiRotateCw size={14} />
+                    Redo
+                  </button>
+                </Tooltip>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={handleSaveDraft}
-                  disabled={!hasChanges || saving}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <FiSave size={16} />
-                  Save Draft
-                </button>
-                <button
-                  onClick={handleReset}
-                  disabled={!hasChanges}
-                  className="p-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-50"
-                  title="Reset changes"
-                >
-                  <FiRefreshCw size={16} />
-                </button>
+                <Tooltip title={CUSTOMIZER_TOOLTIPS.saveDraft.title} content={CUSTOMIZER_TOOLTIPS.saveDraft.content} position="top">
+                  <button
+                    onClick={handleSaveDraft}
+                    disabled={!hasChanges || saving}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-700/50 text-white rounded-xl hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <FiSave size={16} />
+                    Save Draft
+                  </button>
+                </Tooltip>
+                <Tooltip title={CUSTOMIZER_TOOLTIPS.reset.title} content={CUSTOMIZER_TOOLTIPS.reset.content} position="top">
+                  <button
+                    onClick={handleReset}
+                    disabled={!hasChanges}
+                    className="p-2 bg-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-600/50 disabled:opacity-50 transition-all"
+                  >
+                    <FiRefreshCw size={16} />
+                  </button>
+                </Tooltip>
               </div>
-              <button
-                onClick={handlePublish}
-                disabled={saving}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {saving ? 'Publishing...' : 'Publish'}
-              </button>
+              <Tooltip title={CUSTOMIZER_TOOLTIPS.publish.title} content={CUSTOMIZER_TOOLTIPS.publish.content} position="top">
+                <button
+                  onClick={handlePublish}
+                  disabled={saving}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all"
+                >
+                  {saving ? 'Publishing...' : 'Publish'}
+                </button>
+              </Tooltip>
               {hasChanges && (
-                <p className="text-xs text-yellow-400 text-center">You have unsaved changes</p>
+                <p className="text-xs text-amber-400 text-center">You have unsaved changes</p>
               )}
             </>
           )}
@@ -651,16 +696,16 @@ export default function ThemeCustomizer() {
       </div>
 
       {/* Preview Area */}
-      <div className="flex-1 flex flex-col bg-gray-900">
+      <div className="flex-1 flex flex-col bg-slate-900">
         {/* Preview Toolbar */}
-        <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-4">
+        <div className="h-14 bg-slate-800/50 backdrop-blur border-b border-slate-700/50 flex items-center justify-between px-4">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">Preview</span>
+            <span className="text-sm text-slate-400">Preview</span>
             <ResponsivePreview currentViewport={viewport} onViewportChange={setViewport} />
           </div>
           <div className="flex items-center gap-4">
             {inspectorEnabled && (
-              <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded">
+              <span className="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded-lg border border-blue-500/30">
                 Inspector Active
               </span>
             )}
@@ -668,7 +713,7 @@ export default function ThemeCustomizer() {
               href={backendUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-400 hover:text-blue-300"
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
               Open in new tab →
             </a>
@@ -678,15 +723,15 @@ export default function ThemeCustomizer() {
         {/* Preview iframe */}
         <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
           <div
-            className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
+            className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 relative ring-1 ring-slate-700/50"
             style={{ width: getPreviewWidth(), height: viewport === 'full' ? '100%' : '90%', maxHeight: '100%' }}
           >
             {/* Loading state */}
             {(previewLoading || !previewToken) && !previewError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800 z-10">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
-                <p className="text-gray-600">Loading preview...</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-slate-300">Loading preview...</p>
+                <p className="text-xs text-slate-500 mt-1">
                   {!previewToken ? 'Authenticating...' : `Connecting to ${backendUrl}`}
                 </p>
               </div>
@@ -694,14 +739,14 @@ export default function ThemeCustomizer() {
 
             {/* Error state */}
             {previewError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 p-8">
-                <FiAlertCircle className="text-orange-500 mb-4" size={48} />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Cannot Connect to Server</h3>
-                <p className="text-gray-500 text-center mb-4 max-w-md">
-                  The backend server at <code className="bg-gray-200 px-2 py-1 rounded">{backendUrl}</code> is not responding.
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800 z-10 p-8">
+                <FiAlertCircle className="text-amber-500 mb-4" size={48} />
+                <h3 className="text-lg font-semibold text-white mb-2">Cannot Connect to Server</h3>
+                <p className="text-slate-400 text-center mb-4 max-w-md">
+                  The backend server at <code className="bg-slate-700 px-2 py-1 rounded text-slate-300">{backendUrl}</code> is not responding.
                 </p>
-                <div className="bg-gray-800 text-gray-200 rounded-lg p-4 mb-4 font-mono text-sm max-w-md">
-                  <p className="text-gray-400 mb-2"># Start the backend server:</p>
+                <div className="bg-slate-900 text-slate-300 rounded-xl p-4 mb-4 font-mono text-sm max-w-md border border-slate-700/50">
+                  <p className="text-slate-500 mb-2"># Start the backend server:</p>
                   <p>npm run start:dev</p>
                 </div>
                 <button
@@ -710,7 +755,7 @@ export default function ThemeCustomizer() {
                     setPreviewLoading(true);
                     await fetchPreviewToken();
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all"
                 >
                   <FiRefreshCw size={16} /> Retry Connection
                 </button>

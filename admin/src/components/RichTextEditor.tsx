@@ -249,15 +249,24 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
     }
   };
 
+  // Dynamic class helpers for dark/light mode
+  const toolbarBtnClass = (isActive: boolean) => `p-2 rounded-lg transition-all ${
+    isDarkMode
+      ? `hover:bg-slate-600 ${isActive ? 'bg-slate-600 text-blue-400' : 'text-slate-300'}`
+      : `hover:bg-gray-200 ${isActive ? 'bg-gray-300 text-blue-600' : 'text-gray-700'}`
+  }`;
+
+  const dividerClass = isDarkMode ? 'w-px bg-slate-600 mx-1' : 'w-px bg-gray-300 mx-1';
+
   return (
     <>
-      <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+      <div className={`border rounded-xl overflow-hidden ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-300 bg-white'}`}>
         {/* Toolbar */}
-        <div className="border-b border-gray-300 bg-gray-50 p-2 flex flex-wrap gap-1">
+        <div className={`border-b p-2 flex flex-wrap gap-1 ${isDarkMode ? 'border-slate-700 bg-slate-900/50' : 'border-gray-300 bg-gray-50'}`}>
           {/* Text Formatting */}
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('bold') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('bold'))}
             type="button"
             title="Bold"
           >
@@ -265,7 +274,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('italic') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('italic'))}
             type="button"
             title="Italic"
           >
@@ -273,39 +282,39 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => editor.chain().focus().toggleHighlight().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('highlight') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('highlight'))}
             type="button"
             title="Highlight"
           >
-            <span className="font-bold bg-yellow-200 px-1">H</span>
+            <span className={`font-bold px-1 rounded ${isDarkMode ? 'bg-yellow-500/30 text-yellow-300' : 'bg-yellow-200'}`}>H</span>
           </button>
 
-          <div className="w-px bg-gray-300 mx-1"></div>
+          <div className={dividerClass}></div>
 
           {/* Headings */}
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('heading', { level: 2 }))}
             type="button"
             title="Heading 2"
           >
-            <span className="font-bold">H2</span>
+            <span className="font-bold text-sm">H2</span>
           </button>
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('heading', { level: 3 }))}
             type="button"
             title="Heading 3"
           >
-            <span className="font-bold">H3</span>
+            <span className="font-bold text-sm">H3</span>
           </button>
 
-          <div className="w-px bg-gray-300 mx-1"></div>
+          <div className={dividerClass}></div>
 
           {/* Alignment */}
           <button
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive({ textAlign: 'left' }))}
             type="button"
             title="Align Left"
           >
@@ -313,7 +322,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive({ textAlign: 'center' }))}
             type="button"
             title="Align Center"
           >
@@ -321,19 +330,19 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive({ textAlign: 'right' }))}
             type="button"
             title="Align Right"
           >
             <FiAlignRight size={18} />
           </button>
 
-          <div className="w-px bg-gray-300 mx-1"></div>
+          <div className={dividerClass}></div>
 
           {/* Lists & Blocks */}
           <button
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('bulletList') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('bulletList'))}
             type="button"
             title="Bullet List"
           >
@@ -341,7 +350,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('blockquote') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('blockquote'))}
             type="button"
             title="Quote"
           >
@@ -349,19 +358,19 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('codeBlock') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('codeBlock'))}
             type="button"
             title="Code Block"
           >
             <FiCode size={18} />
           </button>
 
-          <div className="w-px bg-gray-300 mx-1"></div>
+          <div className={dividerClass}></div>
 
           {/* Links & Media */}
           <button
             onClick={addLink}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('link') ? 'bg-gray-300' : ''}`}
+            className={toolbarBtnClass(editor.isActive('link'))}
             type="button"
             title="Add Link"
           >
@@ -372,7 +381,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
               setMediaPickerType('image');
               setShowMediaPicker(true);
             }}
-            className="p-2 rounded hover:bg-gray-200"
+            className={toolbarBtnClass(false)}
             type="button"
             title="Add Image"
           >
@@ -383,7 +392,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
               setMediaPickerType('video');
               setShowMediaPicker(true);
             }}
-            className="p-2 rounded hover:bg-gray-200"
+            className={toolbarBtnClass(false)}
             type="button"
             title="Add Video"
           >
@@ -394,7 +403,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
               setMediaPickerType('audio');
               setShowMediaPicker(true);
             }}
-            className="p-2 rounded hover:bg-gray-200"
+            className={toolbarBtnClass(false)}
             type="button"
             title="Add Audio"
           >
@@ -402,7 +411,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={addYouTube}
-            className="p-2 rounded hover:bg-gray-200"
+            className={toolbarBtnClass(false)}
             type="button"
             title="Embed YouTube"
           >
@@ -410,7 +419,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={addButton}
-            className="p-2 rounded hover:bg-gray-200"
+            className={toolbarBtnClass(false)}
             type="button"
             title="Add Button"
           >
@@ -418,19 +427,19 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           </button>
           <button
             onClick={() => setShowShopLinkPicker(true)}
-            className="p-2 rounded hover:bg-gray-200"
+            className={toolbarBtnClass(false)}
             type="button"
             title="Add Shop Link"
           >
             <FiShoppingBag size={18} />
           </button>
 
-          <div className="w-px bg-gray-300 mx-1"></div>
+          <div className={dividerClass}></div>
 
           {/* Block Picker */}
           <button
             onClick={() => setShowBlockPicker(true)}
-            className="p-2 rounded hover:bg-gray-200 bg-violet-100 text-violet-600"
+            className={`p-2 rounded-lg transition-all ${isDarkMode ? 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30' : 'bg-violet-100 text-violet-600 hover:bg-violet-200'}`}
             type="button"
             title="Insert Content Block"
           >
@@ -440,7 +449,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded hover:bg-gray-200 ml-auto"
+            className={`p-2 rounded-lg ml-auto transition-all ${isDarkMode ? 'hover:bg-slate-600 text-yellow-400' : 'hover:bg-gray-200 text-slate-600'}`}
             type="button"
             title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
@@ -451,7 +460,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         {/* Editor Content */}
         <EditorContent
           editor={editor}
-          className={isDarkMode ? 'bg-gray-800' : 'bg-white'}
+          className={isDarkMode ? 'bg-slate-800 min-h-[300px]' : 'bg-white min-h-[300px]'}
         />
       </div>
 

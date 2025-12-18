@@ -213,19 +213,19 @@ export default function MenuManager() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-slate-900 p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Menu Manager</h1>
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Menu Manager</h1>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all"
         >
           <FiPlus /> Create Menu
         </button>
@@ -233,24 +233,24 @@ export default function MenuManager() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Menu List */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="font-semibold text-gray-700 mb-3">Menus</h2>
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4">
+          <h2 className="font-semibold text-white mb-3">Menus</h2>
           {menus.length === 0 ? (
-            <p className="text-gray-500 text-sm">No menus yet. Create one to get started.</p>
+            <p className="text-slate-400 text-sm">No menus yet. Create one to get started.</p>
           ) : (
             <div className="space-y-2">
               {menus.map(menu => (
                 <button
                   key={menu.id}
                   onClick={() => selectMenu(menu)}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition ${
+                  className={`w-full text-left px-3 py-2 rounded-xl transition-all ${
                     selectedMenu?.id === menu.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'hover:bg-gray-100 text-gray-700'
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                      : 'hover:bg-slate-700/50 text-slate-300 border border-transparent'
                   }`}
                 >
                   <div className="font-medium">{menu.name}</div>
-                  <div className="text-xs text-gray-500">{menu.location}</div>
+                  <div className="text-xs text-slate-500">{menu.location}</div>
                 </button>
               ))}
             </div>
@@ -258,25 +258,25 @@ export default function MenuManager() {
         </div>
 
         {/* Menu Editor */}
-        <div className="lg:col-span-3 bg-white rounded-lg shadow">
+        <div className="lg:col-span-3 bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50">
           {selectedMenu ? (
             <div>
-              <div className="flex justify-between items-center p-4 border-b">
+              <div className="flex justify-between items-center p-4 border-b border-slate-700/50">
                 <div>
-                  <h2 className="font-semibold text-gray-900">{selectedMenu.name}</h2>
-                  <p className="text-sm text-gray-500">Location: {selectedMenu.location}</p>
+                  <h2 className="font-semibold text-white">{selectedMenu.name}</h2>
+                  <p className="text-sm text-slate-400">Location: {selectedMenu.location}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleDeleteMenu}
-                    className="flex items-center gap-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    className="flex items-center gap-1 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
                   >
                     <FiTrash2 /> Delete
                   </button>
                   <button
                     onClick={handleSaveMenu}
                     disabled={saving}
-                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 shadow-lg shadow-blue-500/20 transition-all"
                   >
                     <FiSave /> {saving ? 'Saving...' : 'Save Menu'}
                   </button>
@@ -285,17 +285,17 @@ export default function MenuManager() {
 
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium text-gray-700">Menu Items</h3>
+                  <h3 className="font-medium text-white">Menu Items</h3>
                   <button
                     onClick={() => setShowAddItemModal(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-slate-700/50 hover:bg-slate-600/50 text-white rounded-xl transition-all"
                   >
                     <FiPlus /> Add Item
                   </button>
                 </div>
 
                 {menuItems.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-slate-400">
                     <p>No menu items yet.</p>
                     <p className="text-sm">Click "Add Item" to add links to this menu.</p>
                   </div>
@@ -308,11 +308,11 @@ export default function MenuManager() {
                         onDragStart={() => handleDragStart(index)}
                         onDragOver={(e) => handleDragOver(e, index)}
                         onDragEnd={handleDragEnd}
-                        className={`flex items-center gap-3 p-3 bg-gray-50 rounded-lg border ${
-                          draggedIndex === index ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
-                        }`}
+                        className={`flex items-center gap-3 p-3 bg-slate-700/30 rounded-xl border ${
+                          draggedIndex === index ? 'border-blue-500/50 bg-blue-500/10' : 'border-slate-600/50'
+                        } transition-all`}
                       >
-                        <div className="cursor-move text-gray-400 hover:text-gray-600">
+                        <div className="cursor-move text-slate-400 hover:text-white transition-colors">
                           <FiMove />
                         </div>
                         <div className="flex-1">
@@ -320,21 +320,21 @@ export default function MenuManager() {
                             type="text"
                             value={item.label}
                             onChange={(e) => handleUpdateItem(index, { label: e.target.value })}
-                            className="font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full"
+                            className="font-medium bg-transparent border-none focus:outline-none focus:ring-0 w-full text-white"
                           />
-                          <div className="text-xs text-gray-500">{item.url || 'No URL'}</div>
+                          <div className="text-xs text-slate-500">{item.url || 'No URL'}</div>
                         </div>
                         <div className="flex items-center gap-1">
                           <button onClick={() => moveItem(index, 'up')} disabled={index === 0}
-                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                            className="p-1 text-slate-400 hover:text-white disabled:opacity-30 transition-colors">
                             <FiChevronUp />
                           </button>
                           <button onClick={() => moveItem(index, 'down')} disabled={index === menuItems.length - 1}
-                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                            className="p-1 text-slate-400 hover:text-white disabled:opacity-30 transition-colors">
                             <FiChevronDown />
                           </button>
                           <button onClick={() => handleRemoveItem(index)}
-                            className="p-1 text-red-400 hover:text-red-600">
+                            className="p-1 text-red-400 hover:text-red-300 transition-colors">
                             <FiTrash2 />
                           </button>
                         </div>
@@ -345,7 +345,7 @@ export default function MenuManager() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="flex items-center justify-center h-64 text-slate-400">
               Select a menu or create a new one
             </div>
           )}
@@ -354,31 +354,31 @@ export default function MenuManager() {
 
       {/* Create Menu Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Create New Menu</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+              <h3 className="text-lg font-semibold text-white">Create New Menu</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white hover:bg-slate-700/50 p-2 rounded-lg transition-all">
                 <FiX />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Menu Name</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Menu Name</label>
                 <input
                   type="text"
                   value={newMenuName}
                   onChange={(e) => setNewMenuName(e.target.value)}
                   placeholder="e.g., Main Navigation"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Location</label>
                 <select
                   value={newMenuLocation}
                   onChange={(e) => setNewMenuLocation(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 >
                   {MENU_LOCATIONS.map(loc => (
                     <option key={loc.id} value={loc.id}>{loc.name}</option>
@@ -387,11 +387,11 @@ export default function MenuManager() {
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <button onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                  className="px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-all">
                   Cancel
                 </button>
                 <button onClick={handleCreateMenu}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all">
                   Create Menu
                 </button>
               </div>
@@ -402,24 +402,24 @@ export default function MenuManager() {
 
       {/* Add Item Modal */}
       {showAddItemModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Add Menu Item</h3>
-              <button onClick={() => setShowAddItemModal(false)} className="text-gray-400 hover:text-gray-600">
+              <h3 className="text-lg font-semibold text-white">Add Menu Item</h3>
+              <button onClick={() => setShowAddItemModal(false)} className="text-slate-400 hover:text-white hover:bg-slate-700/50 p-2 rounded-lg transition-all">
                 <FiX />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Type</label>
                 <div className="grid grid-cols-4 gap-2">
                   {ITEM_TYPES.map(type => (
                     <button
                       key={type.id}
                       onClick={() => setNewItem({ ...newItem, type: type.id as any, pageId: undefined, postId: undefined })}
-                      className={`flex flex-col items-center p-2 rounded-lg border ${
-                        newItem.type === type.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+                      className={`flex flex-col items-center p-2 rounded-xl border transition-all ${
+                        newItem.type === type.id ? 'border-blue-500/50 bg-blue-500/20 text-blue-400' : 'border-slate-600/50 hover:bg-slate-700/50 text-slate-300'
                       }`}
                     >
                       <type.icon className="w-5 h-5 mb-1" />
@@ -429,37 +429,37 @@ export default function MenuManager() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Label</label>
                 <input
                   type="text"
                   value={newItem.label || ''}
                   onChange={(e) => setNewItem({ ...newItem, label: e.target.value })}
                   placeholder="Menu item text"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
               {newItem.type === 'CUSTOM' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">URL</label>
                   <input
                     type="text"
                     value={newItem.url || ''}
                     onChange={(e) => setNewItem({ ...newItem, url: e.target.value })}
                     placeholder="https://example.com or /page"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
               )}
               {newItem.type === 'PAGE' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Page</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Select Page</label>
                   <select
                     value={newItem.pageId || ''}
                     onChange={(e) => {
                       const page = availablePages.find(p => p.id === e.target.value);
                       setNewItem({ ...newItem, pageId: e.target.value, label: newItem.label || page?.title || '' });
                     }}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   >
                     <option value="">Select a page...</option>
                     {availablePages.map(page => (
@@ -470,14 +470,14 @@ export default function MenuManager() {
               )}
               {newItem.type === 'POST' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Post</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Select Post</label>
                   <select
                     value={newItem.postId || ''}
                     onChange={(e) => {
                       const post = availablePosts.find(p => p.id === e.target.value);
                       setNewItem({ ...newItem, postId: e.target.value, label: newItem.label || post?.title || '' });
                     }}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   >
                     <option value="">Select a post...</option>
                     {availablePosts.map(post => (
@@ -488,14 +488,14 @@ export default function MenuManager() {
               )}
               {newItem.type === 'PRODUCT' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Product</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Select Product</label>
                   <select
                     value={newItem.productId || ''}
                     onChange={(e) => {
                       const product = availableProducts.find(p => p.id === e.target.value);
                       setNewItem({ ...newItem, productId: e.target.value, label: newItem.label || product?.name || '' });
                     }}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   >
                     <option value="">Select a product...</option>
                     {availableProducts.map(product => (
@@ -506,14 +506,14 @@ export default function MenuManager() {
               )}
               {newItem.type === 'CATEGORY' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Select Category</label>
                   <select
                     value={newItem.categoryId || ''}
                     onChange={(e) => {
                       const category = availableCategories.find(c => c.id === e.target.value);
                       setNewItem({ ...newItem, categoryId: e.target.value, label: newItem.label || category?.name || '' });
                     }}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   >
                     <option value="">Select a category...</option>
                     {availableCategories.map(category => (
@@ -523,11 +523,11 @@ export default function MenuManager() {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Open in</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Open in</label>
                 <select
                   value={newItem.target || '_self'}
                   onChange={(e) => setNewItem({ ...newItem, target: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 >
                   <option value="_self">Same window</option>
                   <option value="_blank">New tab</option>
@@ -535,11 +535,11 @@ export default function MenuManager() {
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <button onClick={() => setShowAddItemModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                  className="px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-all">
                   Cancel
                 </button>
                 <button onClick={handleAddItem}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 transition-all">
                   Add Item
                 </button>
               </div>
