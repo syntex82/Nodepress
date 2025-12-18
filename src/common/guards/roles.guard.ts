@@ -1,9 +1,10 @@
 /**
  * Roles Guard
  * Implements role-based access control for routes
+ * Throws ForbiddenException when user lacks required roles
  */
 
-import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Logger, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -20,29 +21,36 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!requiredRoles) {
+    // If no roles are required, allow access
+    if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
     const { user } = context.switchToHttp().getRequest();
 
+    // If no user is found, deny access
     if (!user) {
       this.logger.warn('RolesGuard: No user found in request');
-      return false;
+      throw new ForbiddenException('Authentication required to access this resource');
     }
 
     this.logger.debug(
-      `RolesGuard: User role = "${user.role}", Required roles = ${JSON.stringify(requiredRoles)}`,
+      `RolesGuard: User role = "${user.role}", Required roles = [${requiredRoles.join(', ')}]`,
     );
 
+    // Check if user has one of the required roles
     const hasRole = requiredRoles.some((role) => user.role === role);
 
     if (!hasRole) {
+      const rolesList = requiredRoles.join(', ').toUpperCase();
       this.logger.warn(
-        `RolesGuard: Access denied. User role "${user.role}" not in required roles ${JSON.stringify(requiredRoles)}`,
+        `RolesGuard: Access denied. User role "${user.role}" not in required roles [${rolesList}]`,
+      );
+      throw new ForbiddenException(
+        `Insufficient permissions. Required roles: ${rolesList}. Your role: ${user.role}`,
       );
     }
 
-    return hasRole;
+    return true;
   }
 }
