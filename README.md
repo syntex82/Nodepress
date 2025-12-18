@@ -453,6 +453,87 @@ npm run dev
 
 ---
 
+### 🪟 Windows 11 & Windows Server - One-Command Install
+
+<div align="center">
+
+**Deploy WordPress Node CMS on Windows 11 or Windows Server with a single command!**
+
+</div>
+
+#### Quick Start
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/syntex82/WordPress-Node.git
+cd WordPress-Node
+```
+
+2. **Run the setup script:**
+   - **Option A (Easiest):** Double-click `scripts/windows-setup.bat`
+   - **Option B (Manual):** Open PowerShell as Administrator and run:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-setup.ps1
+```
+
+<details>
+<summary><strong>📋 What the script installs automatically</strong></summary>
+
+<br />
+
+| Component | Version | Purpose |
+|-----------|---------|---------|
+| **Chocolatey** | Latest | Windows package manager |
+| **Node.js** | 20.x | JavaScript runtime |
+| **npm** | Latest | Package manager |
+| **PostgreSQL** | 15 | Database server |
+| **Redis** | Latest | Caching & sessions |
+| **Git** | Latest | Repository cloning |
+
+The script also:
+- ✅ Installs all npm dependencies (backend + admin)
+- ✅ Rebuilds native modules for Windows
+- ✅ **Builds the admin frontend** (`npm run build`)
+- ✅ **Builds the backend** (`npm run build`)
+- ✅ Creates PostgreSQL database and user
+- ✅ Generates secure secrets for JWT and sessions
+- ✅ Creates `.env` file with all configuration
+- ✅ Pushes database schema (`npx prisma db push`)
+- ✅ Seeds admin user with default credentials
+- ✅ Creates uploads and themes directories
+- ✅ Includes pre-built themes: **my-theme** (default) and **tester**
+
+</details>
+
+<br />
+
+**After installation completes:**
+
+```bash
+npm run dev
+```
+
+**Access the application:**
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | `http://localhost:3000` | Public-facing website with theme |
+| **Admin Panel** | `http://localhost:3000/admin` | Administration dashboard |
+| **API** | `http://localhost:3000/api` | RESTful API endpoints |
+| **Health Check** | `http://localhost:3000/health` | Server health status |
+
+**Default Login Credentials:**
+```
+📧 Email:    admin@starter.dev
+🔑 Password: Admin123!
+```
+
+> 💡 **Tip:** The script automatically installs Chocolatey if not already installed. Make sure to run PowerShell as Administrator.
+
+<br />
+
+---
+
 ### 🚀 Quick Start (Manual)
 
 ```bash
