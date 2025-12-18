@@ -94,19 +94,19 @@ export default function Courses() {
 
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
-      DRAFT: 'bg-gray-100 text-gray-800',
-      PUBLISHED: 'bg-green-100 text-green-800',
-      ARCHIVED: 'bg-yellow-100 text-yellow-800',
+      DRAFT: 'bg-slate-500/20 text-slate-300',
+      PUBLISHED: 'bg-green-500/20 text-green-400',
+      ARCHIVED: 'bg-yellow-500/20 text-yellow-400',
     };
-    return <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[status] || 'bg-gray-100'}`}>{status}</span>;
+    return <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[status] || 'bg-slate-500/20 text-slate-300'}`}>{status}</span>;
   };
 
   const getLevelBadge = (level: string) => {
     const colors: Record<string, string> = {
-      BEGINNER: 'bg-blue-100 text-blue-800',
-      INTERMEDIATE: 'bg-purple-100 text-purple-800',
-      ADVANCED: 'bg-red-100 text-red-800',
-      ALL_LEVELS: 'bg-teal-100 text-teal-800',
+      BEGINNER: 'bg-blue-500/20 text-blue-400',
+      INTERMEDIATE: 'bg-purple-500/20 text-purple-400',
+      ADVANCED: 'bg-red-500/20 text-red-400',
+      ALL_LEVELS: 'bg-teal-500/20 text-teal-400',
     };
     const labels: Record<string, string> = {
       BEGINNER: 'Beginner',
@@ -114,20 +114,20 @@ export default function Courses() {
       ADVANCED: 'Advanced',
       ALL_LEVELS: 'All Levels',
     };
-    return <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[level] || 'bg-gray-100'}`}>{labels[level] || level}</span>;
+    return <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[level] || 'bg-slate-500/20 text-slate-300'}`}>{labels[level] || level}</span>;
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-slate-900 p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Courses</h1>
-          <p className="text-sm text-gray-500 mt-1">{total} courses total</p>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Courses</h1>
+          <p className="text-sm text-slate-400 mt-1">{total} courses total</p>
         </div>
         <Link
           to="/lms/courses/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-500 hover:to-blue-400 flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20"
         >
           <FiPlus size={18} />
           Create Course
@@ -135,22 +135,22 @@ export default function Courses() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 mb-6">
         <form onSubmit={handleSearch} className="flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px] relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search courses by title, description, or instructor..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full border rounded-lg pl-10 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl pl-10 pr-3 py-2 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
+            className="bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="">All Status</option>
             <option value="DRAFT">Draft</option>
@@ -160,7 +160,7 @@ export default function Courses() {
           <select
             value={categoryFilter}
             onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-            className="border rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
+            className="bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="">All Categories</option>
             {categories.map((cat) => (
@@ -169,7 +169,7 @@ export default function Courses() {
           </select>
           <button
             type="submit"
-            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+            className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-4 py-2 rounded-xl hover:bg-slate-600/50 transition-colors"
           >
             Search
           </button>
@@ -178,63 +178,63 @@ export default function Courses() {
 
       {/* Courses Table */}
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-8 flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-8 flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-700 border-t-blue-500"></div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <p className="text-red-600 font-medium">{error}</p>
-          <button onClick={loadCourses} className="mt-3 text-red-700 hover:underline font-medium">Try Again</button>
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+          <p className="text-red-400 font-medium">{error}</p>
+          <button onClick={loadCourses} className="mt-3 text-red-300 hover:text-red-200 font-medium">Try Again</button>
         </div>
       ) : courses.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <FiBook className="mx-auto text-gray-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
-          <p className="text-gray-500 mb-4">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-12 text-center">
+          <FiBook className="mx-auto text-slate-600 mb-4" size={48} />
+          <h3 className="text-lg font-medium text-white mb-2">No courses found</h3>
+          <p className="text-slate-400 mb-4">
             {search || statusFilter || categoryFilter
               ? 'Try adjusting your filters or search terms'
               : 'Get started by creating your first course'}
           </p>
           {!search && !statusFilter && !categoryFilter && (
-            <Link to="/lms/courses/new" className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <Link to="/lms/courses/new" className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
               <FiPlus size={18} />
               Create Course
             </Link>
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-700/50">
+              <thead className="bg-slate-700/30">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Content</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollments</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Course</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Instructor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Content</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Enrollments</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-700/50">
                 {courses.map((course) => (
-                  <tr key={course.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={course.id} className="hover:bg-slate-700/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden bg-gray-100">
+                        <div className="flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden bg-slate-700">
                           {course.featuredImage ? (
                             <img src={course.featuredImage} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <div className="w-full h-full flex items-center justify-center text-slate-500">
                               <FiBook size={20} />
                             </div>
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="font-medium text-gray-900">{course.title}</div>
+                          <div className="font-medium text-white">{course.title}</div>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-500">{course.category || 'Uncategorized'}</span>
+                            <span className="text-xs text-slate-400">{course.category || 'Uncategorized'}</span>
                             {course.level && getLevelBadge(course.level)}
                           </div>
                         </div>
@@ -246,22 +246,22 @@ export default function Courses() {
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-medium mr-2">
                             {course.instructor.name?.charAt(0).toUpperCase() || '?'}
                           </div>
-                          <span className="text-sm text-gray-900">{course.instructor.name}</span>
+                          <span className="text-sm text-white">{course.instructor.name}</span>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">No instructor</span>
+                        <span className="text-sm text-slate-500">No instructor</span>
                       )}
                     </td>
                     <td className="px-6 py-4">{getStatusBadge(course.status)}</td>
                     <td className="px-6 py-4">
                       {course.priceType === 'FREE' ? (
-                        <span className="text-green-600 font-medium">Free</span>
+                        <span className="text-green-400 font-medium">Free</span>
                       ) : (
-                        <span className="font-medium">${Number(course.priceAmount || 0).toFixed(2)}</span>
+                        <span className="font-medium text-white">${Number(course.priceAmount || 0).toFixed(2)}</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center justify-center gap-4 text-sm text-slate-400">
                         <div className="flex items-center gap-1" title="Lessons">
                           <FiList size={14} />
                           <span>{course._count?.lessons || 0}</span>
@@ -273,7 +273,7 @@ export default function Courses() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-1 text-gray-600">
+                      <div className="flex items-center justify-center gap-1 text-slate-400">
                         <FiUsers size={14} />
                         <span className="font-medium">{course._count?.enrollments || 0}</span>
                       </div>
@@ -282,28 +282,28 @@ export default function Courses() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           to={`/lms/courses/${course.id}`}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                           title="Edit Course"
                         >
                           <FiEdit2 size={16} />
                         </Link>
                         <Link
                           to={`/lms/courses/${course.id}/lessons`}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-2 text-green-400 hover:bg-green-500/20 rounded-lg transition-colors"
                           title="Manage Lessons"
                         >
                           <FiList size={16} />
                         </Link>
                         <Link
                           to={`/lms/courses/${course.id}/quizzes`}
-                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          className="p-2 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors"
                           title="Manage Quizzes"
                         >
                           <FiHelpCircle size={16} />
                         </Link>
                         <button
                           onClick={() => handleDelete(course.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                           title="Delete Course"
                         >
                           <FiTrash2 size={16} />
@@ -318,15 +318,15 @@ export default function Courses() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+            <div className="px-6 py-4 border-t border-slate-700/50 bg-slate-700/30 flex items-center justify-between">
+              <p className="text-sm text-slate-400">
                 Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, total)} of {total} courses
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white transition-colors"
+                  className="px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
                 >
                   Previous
                 </button>
@@ -340,10 +340,10 @@ export default function Courses() {
                       <button
                         key={pageNum}
                         onClick={() => setPage(pageNum)}
-                        className={`w-10 h-10 rounded-lg transition-colors ${
+                        className={`w-10 h-10 rounded-xl transition-colors ${
                           page === pageNum
                             ? 'bg-blue-600 text-white'
-                            : 'hover:bg-white border'
+                            : 'hover:bg-slate-600/50 border border-slate-600/50 text-slate-300'
                         }`}
                       >
                         {pageNum}
@@ -354,7 +354,7 @@ export default function Courses() {
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white transition-colors"
+                  className="px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
                 >
                   Next
                 </button>

@@ -128,7 +128,7 @@ export default function Groups() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-slate-900">
       {/* Hero Header */}
       <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white">
         <div className="max-w-7xl mx-auto px-6 py-12">
@@ -189,14 +189,14 @@ export default function Groups() {
         {/* Filters & Search */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
             <input type="text" placeholder="Search groups by name or description..." value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border-0 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 transition-all" />
+              className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" />
           </div>
           <div className="flex gap-2">
             {(['all', 'my', 'public'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                className={`px-5 py-3 rounded-xl font-medium transition-all ${filter === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                className={`px-5 py-3 rounded-xl font-medium transition-all ${filter === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-800/50 text-slate-300 border border-slate-700/50 hover:bg-slate-700/50'}`}>
                 {f === 'all' ? 'All Groups' : f === 'my' ? 'My Groups' : 'Public'}
               </button>
             ))}
@@ -206,15 +206,15 @@ export default function Groups() {
         {/* Groups Grid */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 border-t-indigo-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-indigo-500"></div>
           </div>
         ) : groups.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FiMessageSquare className="text-3xl text-indigo-600" />
+          <div className="text-center py-20 bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50">
+            <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiMessageSquare className="text-3xl text-indigo-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No groups found</h3>
-            <p className="text-gray-500 mb-6">Create your first group to start building your community</p>
+            <h3 className="text-xl font-semibold text-white mb-2">No groups found</h3>
+            <p className="text-slate-400 mb-6">Create your first group to start building your community</p>
             <button onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700">
               <FiPlus /> Create Group
             </button>
@@ -222,7 +222,7 @@ export default function Groups() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {groups.map((group, idx) => (
-              <div key={group.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
+              <div key={group.id} className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 overflow-hidden group">
                 {/* Card Header with Gradient */}
                 <div className={`h-28 bg-gradient-to-br ${getGradient(idx)} relative`}>
                   <div className="absolute inset-0 bg-black/10"></div>
@@ -248,22 +248,22 @@ export default function Groups() {
 
                 {/* Card Content */}
                 <div className="p-5">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">{group.name}</h3>
-                  <p className="text-gray-500 text-sm line-clamp-2 mb-4 min-h-[40px]">{group.description || 'No description available'}</p>
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">{group.name}</h3>
+                  <p className="text-slate-400 text-sm line-clamp-2 mb-4 min-h-[40px]">{group.description || 'No description available'}</p>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-5">
+                  <div className="flex items-center gap-4 text-sm text-slate-500 mb-5">
                     <span className="flex items-center gap-1.5"><FiUsers size={14} /> {group._count.members} members</span>
                     <span className="flex items-center gap-1.5"><FiCalendar size={14} /> {formatDate(group.createdAt)}</span>
                   </div>
 
                   {/* Owner Info */}
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-4">
+                  <div className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-xl mb-4">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold">
                       {group.owner.avatar ? <img src={group.owner.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : group.owner.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{group.owner.name}</p>
-                      <p className="text-xs text-gray-500">Group Owner</p>
+                      <p className="text-sm font-medium text-white truncate">{group.owner.name}</p>
+                      <p className="text-xs text-slate-500">Group Owner</p>
                     </div>
                   </div>
 
@@ -274,10 +274,10 @@ export default function Groups() {
                     </Link>
                     {group.owner.id === user?.id && (
                       <>
-                        <Link to={`/groups/${group.id}`} className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors">
+                        <Link to={`/groups/${group.id}`} className="p-2.5 bg-slate-700/50 text-slate-300 rounded-xl hover:bg-slate-600/50 transition-colors">
                           <FiEdit2 size={18} />
                         </Link>
-                        <button onClick={() => setDeleteGroup(group)} className="p-2.5 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors">
+                        <button onClick={() => setDeleteGroup(group)} className="p-2.5 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors">
                           <FiTrash2 size={18} />
                         </button>
                       </>
@@ -292,8 +292,8 @@ export default function Groups() {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-700/50">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Create New Group</h2>
@@ -304,43 +304,43 @@ export default function Groups() {
             <form onSubmit={handleCreate} className="p-6">
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Group Name</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">Group Name</label>
                   <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value, slug: generateSlug(e.target.value) })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Enter group name" />
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" placeholder="Enter group name" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">URL Slug</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">URL Slug</label>
                   <div className="flex items-center">
-                    <span className="px-4 py-3 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-gray-500 text-sm">/groups/</span>
+                    <span className="px-4 py-3 bg-slate-700 border border-r-0 border-slate-600/50 rounded-l-xl text-slate-400 text-sm">/groups/</span>
                     <input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-r-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="group-slug" />
+                      className="flex-1 px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-r-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" placeholder="group-slug" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">Description</label>
                   <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" rows={3} placeholder="What's this group about?" />
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all resize-none" rows={3} placeholder="What's this group about?" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Visibility</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">Visibility</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button type="button" onClick={() => setFormData({ ...formData, visibility: 'PUBLIC' })}
-                      className={`p-4 rounded-xl border-2 transition-all ${formData.visibility === 'PUBLIC' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                      <FiGlobe className={`mx-auto text-2xl mb-2 ${formData.visibility === 'PUBLIC' ? 'text-indigo-600' : 'text-gray-400'}`} />
-                      <p className="font-medium text-gray-900">Public</p>
-                      <p className="text-xs text-gray-500">Anyone can join</p>
+                      className={`p-4 rounded-xl border-2 transition-all ${formData.visibility === 'PUBLIC' ? 'border-indigo-500 bg-indigo-500/20' : 'border-slate-600/50 hover:border-slate-500'}`}>
+                      <FiGlobe className={`mx-auto text-2xl mb-2 ${formData.visibility === 'PUBLIC' ? 'text-indigo-400' : 'text-slate-500'}`} />
+                      <p className="font-medium text-white">Public</p>
+                      <p className="text-xs text-slate-400">Anyone can join</p>
                     </button>
                     <button type="button" onClick={() => setFormData({ ...formData, visibility: 'PRIVATE' })}
-                      className={`p-4 rounded-xl border-2 transition-all ${formData.visibility === 'PRIVATE' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                      <FiLock className={`mx-auto text-2xl mb-2 ${formData.visibility === 'PRIVATE' ? 'text-indigo-600' : 'text-gray-400'}`} />
-                      <p className="font-medium text-gray-900">Private</p>
-                      <p className="text-xs text-gray-500">Invite only</p>
+                      className={`p-4 rounded-xl border-2 transition-all ${formData.visibility === 'PRIVATE' ? 'border-indigo-500 bg-indigo-500/20' : 'border-slate-600/50 hover:border-slate-500'}`}>
+                      <FiLock className={`mx-auto text-2xl mb-2 ${formData.visibility === 'PRIVATE' ? 'text-indigo-400' : 'text-slate-500'}`} />
+                      <p className="font-medium text-white">Private</p>
+                      <p className="text-xs text-slate-400">Invite only</p>
                     </button>
                   </div>
                 </div>
               </div>
               <div className="mt-8 flex gap-3">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 px-4 py-3 text-slate-300 bg-slate-700/50 border border-slate-600/50 rounded-xl font-medium hover:bg-slate-600/50 transition-colors">Cancel</button>
                 <button type="submit" disabled={saving} className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
                   {saving ? 'Creating...' : 'Create Group'}
                 </button>
