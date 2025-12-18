@@ -1078,3 +1078,11 @@ export const postCustomizationApi = {
   update: (id: string, data: any) => api.put(`/post-customizations/${id}`, data),
   delete: (id: string) => api.delete(`/post-customizations/${id}`),
 };
+
+// Customization Export/Import API
+export const customizationExportApi = {
+  exportPages: () => api.get('/customizations/export/pages'),
+  exportPosts: () => api.get('/customizations/export/posts'),
+  exportAll: () => api.get('/customizations/export/all'),
+  import: (data: any) => api.post('/customizations/import', data),
+};

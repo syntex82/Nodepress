@@ -7,6 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { ThemesService } from './themes.service';
 import { SettingsService } from '../settings/settings.service';
 import { MenusService } from '../menus/menus.service';
+import { CustomizationRendererService } from './customization-renderer.service';
 import * as Handlebars from 'handlebars';
 import * as fs from 'fs/promises';
 
@@ -16,6 +17,7 @@ export class ThemeRendererService {
     private themesService: ThemesService,
     private settingsService: SettingsService,
     private menusService: MenusService,
+    private customizationRenderer: CustomizationRendererService,
   ) {
     this.registerHelpers();
   }
@@ -209,7 +211,10 @@ export class ThemeRendererService {
    * Render single post
    */
   async renderPost(post: any, user?: { id: string; role: string } | null) {
-    return this.render('single-post', { post }, user);
+    let html = await this.render('single-post', { post }, user);
+    // Apply post customizations
+    html = await this.customizationRenderer.applyPostCustomization(html, post.id);
+    return html;
   }
 
   /**
@@ -217,7 +222,10 @@ export class ThemeRendererService {
    */
   async renderPage(page: any, user?: { id: string; role: string } | null) {
     const template = page.template || 'single-page';
-    return this.render(template, { page }, user);
+    let html = await this.render(template, { page }, user);
+    // Apply page customizations
+    html = await this.customizationRenderer.applyPageCustomization(html, page.id);
+    return html;
   }
 
   /**

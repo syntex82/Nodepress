@@ -15,6 +15,7 @@ import { ThemeEditorController } from './theme-editor.controller';
 import { CustomThemesService } from './custom-themes.service';
 import { CustomThemesController } from './custom-themes.controller';
 import { AiThemeGeneratorService } from './ai-theme-generator.service';
+import { CustomizationRendererService } from './customization-renderer.service';
 import { ContentModule } from '../content/content.module';
 import { SettingsModule } from '../settings/settings.module';
 import { MenusModule } from '../menus/menus.module';
@@ -41,6 +42,7 @@ import { MenusModule } from '../menus/menus.module';
     ThemeEditorService,
     CustomThemesService,
     AiThemeGeneratorService,
+    CustomizationRendererService,
   ],
   controllers: [ThemesController, ThemeEditorController, CustomThemesController],
   exports: [
@@ -49,6 +51,7 @@ import { MenusModule } from '../menus/menus.module';
     ThemeEditorService,
     CustomThemesService,
     AiThemeGeneratorService,
+    CustomizationRendererService,
   ],
 })
 export class ThemesModule {}
