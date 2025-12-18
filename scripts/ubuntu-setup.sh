@@ -114,7 +114,7 @@ STORAGE_PROVIDER=local
 STORAGE_LOCAL_URL=/uploads
 SITE_NAME="WordPress Node"
 SITE_DESCRIPTION="A modern CMS built with Node.js"
-ACTIVE_THEME=default
+ACTIVE_THEME=my-theme
 ENVEOF
 chown ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}/.env
 echo -e "${GREEN}✓ .env created${NC}"
@@ -131,6 +131,10 @@ chown -R ${ACTUAL_USER}:${ACTUAL_USER} ${APP_DIR}
 echo -e "${BLUE}Installing backend dependencies...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npm install"
 
+# Rebuild native modules for Linux
+echo -e "${BLUE}Rebuilding native modules for Linux...${NC}"
+sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npm rebuild"
+
 # Generate Prisma client
 echo -e "${BLUE}Generating Prisma client...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npx prisma generate"
@@ -142,6 +146,10 @@ sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR}/admin && npm install"
 # Build admin frontend
 echo -e "${BLUE}Building admin frontend...${NC}"
 sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR}/admin && npm run build"
+
+# Build backend
+echo -e "${BLUE}Building backend...${NC}"
+sudo -u ${ACTUAL_USER} bash -c "cd ${APP_DIR} && npm run build"
 
 # Push schema to database (simpler than migrations for fresh install)
 echo -e "${BLUE}Pushing database schema...${NC}"
