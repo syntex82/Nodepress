@@ -183,7 +183,7 @@
         {{/if}}
         <p>Full lifetime access</p>
         {{#if isEnrolled}}
-        <a href="/learn/{{course.id}}" class="btn-enroll btn-continue">Continue Learning</a>
+        <a href="/admin/lms/learn/{{course.id}}" class="btn-enroll btn-continue">Continue Learning</a>
         {{else}}
         <button class="btn-enroll" id="enrollBtn" onclick="enrollCourse()">Enroll Now</button>
         {{/if}}
@@ -221,14 +221,25 @@ async function enrollCourse() {
     var token = localStorage.getItem('token');
     var headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = 'Bearer ' + token;
-    var r = await fetch('/api/lms/courses/{{course.id}}/enroll', { method: 'POST', credentials: 'include', headers: headers });
-    if (r.status === 401) { window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname); return; }
-    if (!r.ok) throw new Error('Enrollment failed');
-    window.location.href = '/learn/{{course.id}}';
+    var r = await fetch('/api/lms/courses/{{course.id}}/enroll', {
+      method: 'POST',
+      credentials: 'include',
+      headers: headers,
+      body: JSON.stringify({})
+    });
+    if (r.status === 401) {
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+    var data = await r.json().catch(function() { return {}; });
+    if (!r.ok) {
+      throw new Error(data.message || 'Enrollment failed');
+    }
+    window.location.href = '/admin/lms/learn/{{course.id}}';
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Enroll Now';
-    alert('Enrollment failed. Please try again.');
+    alert(e.message || 'Enrollment failed. Please try again.');
   }
 }
 </script>

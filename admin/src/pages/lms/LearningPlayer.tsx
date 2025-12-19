@@ -23,6 +23,8 @@ interface CourseProgress {
   percentComplete: number;
   nextLesson?: { id: string };
   isComplete: boolean;
+  requiredQuizzes?: { id: string; title: string; passed: boolean }[];
+  allRequiredQuizzesPassed?: boolean;
 }
 
 export default function LearningPlayer() {
@@ -188,6 +190,10 @@ export default function LearningPlayer() {
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto">
+          {/* Lessons */}
+          <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+            Lessons
+          </div>
           {course.lessons?.map((lesson: any, index: number) => (
             <button
               key={lesson.id}
@@ -207,6 +213,34 @@ export default function LearningPlayer() {
               </div>
             </button>
           ))}
+
+          {/* Standalone Quizzes */}
+          {progress?.requiredQuizzes && progress.requiredQuizzes.length > 0 && (
+            <>
+              <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700/50 mt-2">
+                Required Quizzes
+              </div>
+              {progress.requiredQuizzes.map((quiz) => (
+                <Link
+                  key={quiz.id}
+                  to={`/lms/quiz/${courseId}/${quiz.id}`}
+                  className="w-full text-left px-4 py-3 border-b border-slate-700/50 flex items-center gap-3 hover:bg-slate-700/50 transition-colors block"
+                >
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                    quiz.passed ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
+                  }`}>
+                    {quiz.passed ? '✓' : '?'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate text-white">{quiz.title}</div>
+                    <div className="text-xs text-slate-500">
+                      {quiz.passed ? 'Passed' : 'Not completed'}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </>
+          )}
         </nav>
       </aside>
 
@@ -279,7 +313,7 @@ export default function LearningPlayer() {
               </button>
 
               <div className="flex items-center gap-4">
-                {!isLessonComplete(currentLesson.id) && currentLesson.type !== 'VIDEO' && (
+                {!isLessonComplete(currentLesson.id) && (
                   <button onClick={handleMarkComplete}
                     className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-2 rounded-xl hover:from-green-700 hover:to-green-600 transition-colors shadow-lg shadow-green-500/20">
                     <FiCheck /> Mark Complete

@@ -204,7 +204,7 @@
         var html = enrollments.map(function(e) {
           var progress = e.progress ? Math.round(e.progress) : 0;
           var c = e.course || {};
-          return '<div class="course-item"><div class="course-thumb">' + (c.featuredImage ? '<img src="'+c.featuredImage+'" alt="">' : '📚') + '</div><div class="course-info"><h3>'+c.title+'</h3><p>'+(c.shortDescription||'')+'</p><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%"></div></div><p style="margin-top:0.5rem;font-size:0.85rem">'+progress+'% complete</p></div><div class="course-actions"><a href="/learn/'+c.id+'" class="btn-continue">Continue</a></div></div>';
+          return '<div class="course-item"><div class="course-thumb">' + (c.featuredImage ? '<img src="'+c.featuredImage+'" alt="">' : '📚') + '</div><div class="course-info"><h3>'+c.title+'</h3><p>'+(c.shortDescription||'')+'</p><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%"></div></div><p style="margin-top:0.5rem;font-size:0.85rem">'+progress+'% complete</p></div><div class="course-actions"><a href="/admin/lms/learn/'+c.id+'" class="btn-continue">Continue</a></div></div>';
         }).join('');
         document.getElementById('coursesContainer').innerHTML = html;
       }
