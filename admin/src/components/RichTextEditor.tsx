@@ -32,7 +32,7 @@ import {
   FiBold, FiItalic, FiList, FiCode, FiImage as FiImageIcon,
   FiLink, FiAlignLeft, FiAlignCenter, FiAlignRight, FiVideo,
   FiMusic, FiYoutube, FiSquare, FiMessageSquare, FiShoppingBag,
-  FiPlus, FiSun, FiMoon
+  FiPlus
 } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
 import MediaPickerModal from './MediaPickerModal';
@@ -58,18 +58,6 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
   const [showShopLinkPicker, setShowShopLinkPicker] = useState(false);
   const [showBlockPicker, setShowBlockPicker] = useState(false);
   const [activeConfigModal, setActiveConfigModal] = useState<BlockConfigModal>(null);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('editor-theme') === 'dark';
-    }
-    return false;
-  });
-
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem('editor-theme', newMode ? 'dark' : 'light');
-  };
 
   const editor = useEditor({
     extensions: [
@@ -113,7 +101,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
     },
     editorProps: {
       attributes: {
-        class: `prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4 ${isDarkMode ? 'prose-invert' : ''}`,
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-4 prose-invert',
       },
     },
   });
@@ -249,20 +237,16 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
     }
   };
 
-  // Dynamic class helpers for dark/light mode
-  const toolbarBtnClass = (isActive: boolean) => `p-2 rounded-lg transition-all ${
-    isDarkMode
-      ? `hover:bg-slate-600 ${isActive ? 'bg-slate-600 text-blue-400' : 'text-slate-300'}`
-      : `hover:bg-gray-200 ${isActive ? 'bg-gray-300 text-blue-600' : 'text-gray-700'}`
-  }`;
+  // Dark mode toolbar button styling
+  const toolbarBtnClass = (isActive: boolean) => `p-2 rounded-lg transition-all hover:bg-slate-600 ${isActive ? 'bg-blue-600/30 text-blue-400 ring-1 ring-blue-500/50' : 'text-slate-300 hover:text-white'}`;
 
-  const dividerClass = isDarkMode ? 'w-px bg-slate-600 mx-1' : 'w-px bg-gray-300 mx-1';
+  const dividerClass = 'w-px h-6 bg-slate-600/50 mx-1 self-center';
 
   return (
     <>
-      <div className={`border rounded-xl overflow-hidden ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-300 bg-white'}`}>
+      <div className="border border-slate-600/50 rounded-xl overflow-hidden bg-slate-800/80 backdrop-blur">
         {/* Toolbar */}
-        <div className={`border-b p-2 flex flex-wrap gap-1 ${isDarkMode ? 'border-slate-700 bg-slate-900/50' : 'border-gray-300 bg-gray-50'}`}>
+        <div className="border-b border-slate-700/50 p-2 flex flex-wrap items-center gap-1 bg-slate-900/60">
           {/* Text Formatting */}
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -286,7 +270,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
             type="button"
             title="Highlight"
           >
-            <span className={`font-bold px-1 rounded ${isDarkMode ? 'bg-yellow-500/30 text-yellow-300' : 'bg-yellow-200'}`}>H</span>
+            <span className="font-bold px-1 rounded bg-yellow-500/30 text-yellow-300">H</span>
           </button>
 
           <div className={dividerClass}></div>
@@ -439,28 +423,18 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
           {/* Block Picker */}
           <button
             onClick={() => setShowBlockPicker(true)}
-            className={`p-2 rounded-lg transition-all ${isDarkMode ? 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30' : 'bg-violet-100 text-violet-600 hover:bg-violet-200'}`}
+            className="p-2 rounded-lg transition-all bg-gradient-to-r from-violet-600/30 to-purple-600/30 text-violet-400 hover:from-violet-600/50 hover:to-purple-600/50 ring-1 ring-violet-500/30"
             type="button"
             title="Insert Content Block"
           >
             <FiPlus size={18} />
-          </button>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg ml-auto transition-all ${isDarkMode ? 'hover:bg-slate-600 text-yellow-400' : 'hover:bg-gray-200 text-slate-600'}`}
-            type="button"
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? <FiSun size={18} /> : <FiMoon size={18} />}
           </button>
         </div>
 
         {/* Editor Content */}
         <EditorContent
           editor={editor}
-          className={isDarkMode ? 'bg-slate-800 min-h-[300px]' : 'bg-white min-h-[300px]'}
+          className="bg-slate-900/50 min-h-[200px]"
         />
       </div>
 

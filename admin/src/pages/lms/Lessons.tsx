@@ -8,7 +8,7 @@ import { lmsAdminApi, Lesson, Course } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 import RichTextEditor from '../../components/RichTextEditor';
-import { FiUpload, FiVideo, FiLink, FiTrash2, FiEdit2, FiMove, FiEye, FiCheck, FiSave } from 'react-icons/fi';
+import { FiUpload, FiVideo, FiLink, FiTrash2, FiEdit2, FiMove, FiEye, FiCheck, FiSave, FiHelpCircle, FiList } from 'react-icons/fi';
 
 export default function Lessons() {
   const { courseId } = useParams();
@@ -333,14 +333,97 @@ export default function Lessons() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-slate-300">Content</label>
-                <RichTextEditor
-                  content={editingLesson.content || ''}
-                  onChange={(content) => updateEditingLesson({ content })}
-                  placeholder="Write your lesson content here..."
-                />
-              </div>
+              {/* Content Section - varies by lesson type */}
+              {editingLesson.type === 'VIDEO' && (
+                <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/50">
+                  <label className="block text-sm font-medium mb-2 text-slate-300">Video Content</label>
+                  <p className="text-slate-400 text-sm mb-3">
+                    Save the lesson first, then use the video icon to upload or attach a video.
+                  </p>
+                  <div className="bg-slate-800/50 rounded-xl p-4 border border-dashed border-slate-500/50 text-center">
+                    <FiVideo className="mx-auto text-3xl text-purple-400 mb-2" />
+                    <p className="text-slate-400 text-sm">Video will be attached after saving</p>
+                  </div>
+                </div>
+              )}
+
+              {editingLesson.type === 'ARTICLE' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-300">Article Content</label>
+                  <RichTextEditor
+                    content={editingLesson.content || ''}
+                    onChange={(content) => updateEditingLesson({ content })}
+                    placeholder="Write your article content here..."
+                  />
+                </div>
+              )}
+
+              {editingLesson.type === 'QUIZ' && (
+                <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl p-4 border border-amber-500/30">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-amber-500/20 rounded-lg">
+                      <FiHelpCircle className="text-amber-400" size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-white">Quiz Lesson</h4>
+                      <p className="text-slate-400 text-sm">Manage quiz questions separately after creating the lesson</p>
+                    </div>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600/50">
+                    <label className="block text-sm font-medium mb-2 text-slate-300">Quiz Instructions (optional)</label>
+                    <textarea
+                      value={editingLesson.content || ''}
+                      onChange={(e) => updateEditingLesson({ content: e.target.value })}
+                      rows={3}
+                      className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none"
+                      placeholder="Enter instructions for students before they start the quiz..."
+                    />
+                  </div>
+                  <p className="text-amber-400/80 text-xs mt-3 flex items-center gap-1">
+                    <FiList size={12} /> After saving, go to the Quizzes tab to add questions
+                  </p>
+                </div>
+              )}
+
+              {editingLesson.type === 'ASSIGNMENT' && (
+                <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-xl p-4 border border-emerald-500/30">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-emerald-500/20 rounded-lg">
+                      <FiEdit2 className="text-emerald-400" size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-white">Assignment Lesson</h4>
+                      <p className="text-slate-400 text-sm">Students will submit their work for review</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-300">Assignment Description</label>
+                      <textarea
+                        value={editingLesson.content || ''}
+                        onChange={(e) => updateEditingLesson({ content: e.target.value })}
+                        rows={4}
+                        className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
+                        placeholder="Describe what students need to do for this assignment..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-600/50">
+                        <label className="flex items-center gap-2 text-sm text-slate-300">
+                          <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500" />
+                          Allow file uploads
+                        </label>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-600/50">
+                        <label className="flex items-center gap-2 text-sm text-slate-300">
+                          <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500" />
+                          Text submission
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer text-slate-300">
                   <input
