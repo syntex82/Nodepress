@@ -33,7 +33,7 @@ export class LessonsService {
 
     const orderIndex = dto.orderIndex ?? (maxOrder._max.orderIndex ?? -1) + 1;
 
-    return this.prisma.lesson.create({
+    const lesson = await this.prisma.lesson.create({
       data: {
         ...dto,
         courseId,
@@ -41,8 +41,25 @@ export class LessonsService {
       },
       include: {
         videoAsset: true,
+        quiz: true,
       },
     });
+
+    // Auto-create quiz for QUIZ type lessons
+    if (dto.type === 'QUIZ' && !lesson.quiz) {
+      const quiz = await this.prisma.quiz.create({
+        data: {
+          courseId,
+          lessonId: lesson.id,
+          title: dto.title,
+          description: dto.content || '',
+          isRequired: dto.isRequired ?? true,
+        },
+      });
+      return { ...lesson, quiz };
+    }
+
+    return lesson;
   }
 
   async findByCourse(courseId: string) {

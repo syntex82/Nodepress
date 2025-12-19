@@ -263,6 +263,15 @@ export default function Lessons() {
                       <FiVideo />
                     </button>
                   )}
+                  {lesson.type === 'QUIZ' && (lesson as any).quiz?.id && (
+                    <Link
+                      to={`/lms/courses/${courseId}/quizzes/${(lesson as any).quiz.id}/questions`}
+                      className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-xl transition-colors"
+                      title="Manage Questions"
+                    >
+                      <FiList />
+                    </Link>
+                  )}
                   <button
                     onClick={() => openModal(lesson)}
                     className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-colors"
@@ -366,7 +375,9 @@ export default function Lessons() {
                     </div>
                     <div>
                       <h4 className="font-medium text-white">Quiz Lesson</h4>
-                      <p className="text-slate-400 text-sm">Manage quiz questions separately after creating the lesson</p>
+                      <p className="text-slate-400 text-sm">
+                        {editingLesson.id ? 'Quiz is automatically created. Add questions after saving.' : 'A quiz will be auto-created when you save this lesson.'}
+                      </p>
                     </div>
                   </div>
                   <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600/50">
@@ -379,9 +390,18 @@ export default function Lessons() {
                       placeholder="Enter instructions for students before they start the quiz..."
                     />
                   </div>
-                  <p className="text-amber-400/80 text-xs mt-3 flex items-center gap-1">
-                    <FiList size={12} /> After saving, go to the Quizzes tab to add questions
-                  </p>
+                  {editingLesson.id && (editingLesson as any).quiz?.id ? (
+                    <Link
+                      to={`/lms/courses/${courseId}/quizzes/${(editingLesson as any).quiz.id}/questions`}
+                      className="mt-3 inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-2 rounded-xl hover:from-amber-700 hover:to-orange-600 transition-colors shadow-lg shadow-amber-500/20"
+                    >
+                      <FiList size={14} /> Manage Quiz Questions
+                    </Link>
+                  ) : (
+                    <p className="text-amber-400/80 text-xs mt-3 flex items-center gap-1">
+                      <FiList size={12} /> Save lesson first, then click "Manage Questions" to add quiz questions
+                    </p>
+                  )}
                 </div>
               )}
 
