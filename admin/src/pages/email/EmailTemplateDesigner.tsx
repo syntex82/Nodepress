@@ -548,13 +548,13 @@ ${blocks.map(renderBlock).join('')}
 
     return (
       <div className="space-y-5">
-        <div className="flex items-center gap-3 pb-4 border-b">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+        <div className="flex items-center gap-3 pb-4 border-b border-slate-700/50">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white">
             <Icon size={20} />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800">{BLOCK_INFO[type].label}</h3>
-            <p className="text-xs text-gray-500">Edit block settings</p>
+            <h3 className="font-semibold text-white">{BLOCK_INFO[type].label}</h3>
+            <p className="text-xs text-slate-400">Edit block settings</p>
           </div>
         </div>
 
@@ -562,29 +562,29 @@ ${blocks.map(renderBlock).join('')}
         {type === 'text' && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Content</label>
               <textarea
                 value={content.text}
                 onChange={(e) => updateBlockContent(block.id, { text: e.target.value })}
-                className="w-full p-3 border rounded-lg text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-sm text-white resize-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent"
                 rows={4}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Font Size</label>
-                <input type="number" value={styles.fontSize} onChange={(e) => updateBlockStyles(block.id, { fontSize: +e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Font Size</label>
+                <input type="number" value={styles.fontSize} onChange={(e) => updateBlockStyles(block.id, { fontSize: +e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Text Color</label>
-                <input type="color" value={styles.color} onChange={(e) => updateBlockStyles(block.id, { color: e.target.value })} className="w-full h-10 rounded-lg border cursor-pointer" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Text Color</label>
+                <input type="color" value={styles.color} onChange={(e) => updateBlockStyles(block.id, { color: e.target.value })} className="w-full h-10 rounded-lg border border-slate-600/50 cursor-pointer bg-slate-700/50" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">Alignment</label>
+              <label className="block text-xs font-medium text-slate-400 mb-2">Alignment</label>
               <div className="flex gap-2">
                 {['left', 'center', 'right'].map(a => (
-                  <button key={a} onClick={() => updateBlockStyles(block.id, { textAlign: a })} className={`flex-1 p-2 rounded-lg border ${styles.textAlign === a ? 'bg-indigo-100 border-indigo-500 text-indigo-600' : 'hover:bg-gray-50'}`}>
+                  <button key={a} onClick={() => updateBlockStyles(block.id, { textAlign: a })} className={`flex-1 p-2 rounded-lg border ${styles.textAlign === a ? 'bg-violet-500/20 border-violet-500/50 text-violet-400' : 'border-slate-600/50 text-slate-400 hover:bg-slate-700/50'}`}>
                     {a === 'left' && <FiAlignLeft className="mx-auto" />}
                     {a === 'center' && <FiAlignCenter className="mx-auto" />}
                     {a === 'right' && <FiAlignRight className="mx-auto" />}
@@ -599,12 +599,12 @@ ${blocks.map(renderBlock).join('')}
         {type === 'image' && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
-              <button onClick={() => openMediaLibrary(block.id, 'src')} className="w-full p-4 border-2 border-dashed rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+              <label className="block text-sm font-medium text-slate-300 mb-2">Image</label>
+              <button onClick={() => openMediaLibrary(block.id, 'src')} className="w-full p-4 border-2 border-dashed border-slate-600/50 rounded-xl hover:border-violet-500/50 hover:bg-violet-500/10 transition-colors">
                 {content.src ? (
                   <img src={content.src} alt="" className="max-h-32 mx-auto rounded-lg" />
                 ) : (
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-slate-400">
                     <FiImage size={32} className="mx-auto mb-2" />
                     <span className="text-sm">Choose from Media Library</span>
                   </div>
@@ -612,16 +612,16 @@ ${blocks.map(renderBlock).join('')}
               </button>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Alt Text</label>
-              <input type="text" value={content.alt} onChange={(e) => updateBlockContent(block.id, { alt: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Alt Text</label>
+              <input type="text" value={content.alt} onChange={(e) => updateBlockContent(block.id, { alt: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Link URL (optional)</label>
-              <input type="text" value={content.link} onChange={(e) => updateBlockContent(block.id, { link: e.target.value })} placeholder="https://..." className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Link URL (optional)</label>
+              <input type="text" value={content.link} onChange={(e) => updateBlockContent(block.id, { link: e.target.value })} placeholder="https://..." className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white placeholder-slate-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Border Radius</label>
-              <input type="range" min="0" max="24" value={styles.borderRadius} onChange={(e) => updateBlockStyles(block.id, { borderRadius: +e.target.value })} className="w-full" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Border Radius</label>
+              <input type="range" min="0" max="24" value={styles.borderRadius} onChange={(e) => updateBlockStyles(block.id, { borderRadius: +e.target.value })} className="w-full accent-violet-500" />
             </div>
           </>
         )}
@@ -630,26 +630,26 @@ ${blocks.map(renderBlock).join('')}
         {type === 'button' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Button Text</label>
-              <input type="text" value={content.text} onChange={(e) => updateBlockContent(block.id, { text: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Button Text</label>
+              <input type="text" value={content.text} onChange={(e) => updateBlockContent(block.id, { text: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Link URL</label>
-              <input type="text" value={content.link} onChange={(e) => updateBlockContent(block.id, { link: e.target.value })} placeholder="https://..." className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Link URL</label>
+              <input type="text" value={content.link} onChange={(e) => updateBlockContent(block.id, { link: e.target.value })} placeholder="https://..." className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white placeholder-slate-500" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Button Color</label>
-                <input type="color" value={styles.backgroundColor} onChange={(e) => updateBlockStyles(block.id, { backgroundColor: e.target.value })} className="w-full h-10 rounded-lg border cursor-pointer" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Button Color</label>
+                <input type="color" value={styles.backgroundColor} onChange={(e) => updateBlockStyles(block.id, { backgroundColor: e.target.value })} className="w-full h-10 rounded-lg border border-slate-600/50 cursor-pointer bg-slate-700/50" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Text Color</label>
-                <input type="color" value={styles.textColor} onChange={(e) => updateBlockStyles(block.id, { textColor: e.target.value })} className="w-full h-10 rounded-lg border cursor-pointer" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Text Color</label>
+                <input type="color" value={styles.textColor} onChange={(e) => updateBlockStyles(block.id, { textColor: e.target.value })} className="w-full h-10 rounded-lg border border-slate-600/50 cursor-pointer bg-slate-700/50" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Border Radius</label>
-              <input type="range" min="0" max="24" value={styles.borderRadius} onChange={(e) => updateBlockStyles(block.id, { borderRadius: +e.target.value })} className="w-full" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Border Radius</label>
+              <input type="range" min="0" max="24" value={styles.borderRadius} onChange={(e) => updateBlockStyles(block.id, { borderRadius: +e.target.value })} className="w-full accent-violet-500" />
             </div>
           </>
         )}
@@ -658,12 +658,12 @@ ${blocks.map(renderBlock).join('')}
         {type === 'header' && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
-              <button onClick={() => openMediaLibrary(block.id, 'logoUrl')} className="w-full p-4 border-2 border-dashed rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+              <label className="block text-sm font-medium text-slate-300 mb-2">Logo</label>
+              <button onClick={() => openMediaLibrary(block.id, 'logoUrl')} className="w-full p-4 border-2 border-dashed border-slate-600/50 rounded-xl hover:border-violet-500/50 hover:bg-violet-500/10 transition-colors">
                 {content.logoUrl ? (
                   <img src={content.logoUrl} alt="" className="max-h-16 mx-auto" />
                 ) : (
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-slate-400">
                     <FiImage size={24} className="mx-auto mb-1" />
                     <span className="text-sm">Add Logo</span>
                   </div>
@@ -671,8 +671,8 @@ ${blocks.map(renderBlock).join('')}
               </button>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
-              <input type="text" value={content.title} onChange={(e) => updateBlockContent(block.id, { title: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Title</label>
+              <input type="text" value={content.title} onChange={(e) => updateBlockContent(block.id, { title: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
           </>
         )}
@@ -681,21 +681,21 @@ ${blocks.map(renderBlock).join('')}
         {type === 'hero' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
-              <input type="text" value={content.title} onChange={(e) => updateBlockContent(block.id, { title: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Title</label>
+              <input type="text" value={content.title} onChange={(e) => updateBlockContent(block.id, { title: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
-              <textarea value={content.subtitle} onChange={(e) => updateBlockContent(block.id, { subtitle: e.target.value })} className="w-full p-2 border rounded-lg text-sm" rows={2} />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Subtitle</label>
+              <textarea value={content.subtitle} onChange={(e) => updateBlockContent(block.id, { subtitle: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" rows={2} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Button Text</label>
-                <input type="text" value={content.buttonText} onChange={(e) => updateBlockContent(block.id, { buttonText: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Button Text</label>
+                <input type="text" value={content.buttonText} onChange={(e) => updateBlockContent(block.id, { buttonText: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Button Link</label>
-                <input type="text" value={content.buttonLink} onChange={(e) => updateBlockContent(block.id, { buttonLink: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Button Link</label>
+                <input type="text" value={content.buttonLink} onChange={(e) => updateBlockContent(block.id, { buttonLink: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
             </div>
           </>
@@ -705,21 +705,21 @@ ${blocks.map(renderBlock).join('')}
         {type === 'cta' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
-              <input type="text" value={content.title} onChange={(e) => updateBlockContent(block.id, { title: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Title</label>
+              <input type="text" value={content.title} onChange={(e) => updateBlockContent(block.id, { title: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
-              <input type="text" value={content.subtitle} onChange={(e) => updateBlockContent(block.id, { subtitle: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Subtitle</label>
+              <input type="text" value={content.subtitle} onChange={(e) => updateBlockContent(block.id, { subtitle: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Button Text</label>
-                <input type="text" value={content.buttonText} onChange={(e) => updateBlockContent(block.id, { buttonText: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Button Text</label>
+                <input type="text" value={content.buttonText} onChange={(e) => updateBlockContent(block.id, { buttonText: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Button Link</label>
-                <input type="text" value={content.buttonLink} onChange={(e) => updateBlockContent(block.id, { buttonLink: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Button Link</label>
+                <input type="text" value={content.buttonLink} onChange={(e) => updateBlockContent(block.id, { buttonLink: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
             </div>
           </>
@@ -729,16 +729,16 @@ ${blocks.map(renderBlock).join('')}
         {type === 'footer' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Company Name</label>
-              <input type="text" value={content.companyName} onChange={(e) => updateBlockContent(block.id, { companyName: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Company Name</label>
+              <input type="text" value={content.companyName} onChange={(e) => updateBlockContent(block.id, { companyName: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
-              <input type="text" value={content.address} onChange={(e) => updateBlockContent(block.id, { address: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Address</label>
+              <input type="text" value={content.address} onChange={(e) => updateBlockContent(block.id, { address: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Unsubscribe Text</label>
-              <input type="text" value={content.unsubscribeText} onChange={(e) => updateBlockContent(block.id, { unsubscribeText: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Unsubscribe Text</label>
+              <input type="text" value={content.unsubscribeText} onChange={(e) => updateBlockContent(block.id, { unsubscribeText: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
             </div>
           </>
         )}
@@ -747,17 +747,17 @@ ${blocks.map(renderBlock).join('')}
         {type === 'testimonial' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Quote</label>
-              <textarea value={content.quote} onChange={(e) => updateBlockContent(block.id, { quote: e.target.value })} className="w-full p-2 border rounded-lg text-sm" rows={3} />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Quote</label>
+              <textarea value={content.quote} onChange={(e) => updateBlockContent(block.id, { quote: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" rows={3} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Author</label>
-                <input type="text" value={content.author} onChange={(e) => updateBlockContent(block.id, { author: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Author</label>
+                <input type="text" value={content.author} onChange={(e) => updateBlockContent(block.id, { author: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
-                <input type="text" value={content.role} onChange={(e) => updateBlockContent(block.id, { role: e.target.value })} className="w-full p-2 border rounded-lg text-sm" />
+                <label className="block text-xs font-medium text-slate-400 mb-1">Role</label>
+                <input type="text" value={content.role} onChange={(e) => updateBlockContent(block.id, { role: e.target.value })} className="w-full p-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white" />
               </div>
             </div>
           </>
@@ -766,8 +766,8 @@ ${blocks.map(renderBlock).join('')}
         {/* Spacer block */}
         {type === 'spacer' && (
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Height: {styles.height}px</label>
-            <input type="range" min="16" max="120" value={styles.height} onChange={(e) => updateBlockStyles(block.id, { height: +e.target.value })} className="w-full" />
+            <label className="block text-xs font-medium text-slate-400 mb-1">Height: {styles.height}px</label>
+            <input type="range" min="16" max="120" value={styles.height} onChange={(e) => updateBlockStyles(block.id, { height: +e.target.value })} className="w-full accent-violet-500" />
           </div>
         )}
 
@@ -775,21 +775,21 @@ ${blocks.map(renderBlock).join('')}
         {type === 'divider' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Color</label>
-              <input type="color" value={styles.color} onChange={(e) => updateBlockStyles(block.id, { color: e.target.value })} className="w-full h-10 rounded-lg border cursor-pointer" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Color</label>
+              <input type="color" value={styles.color} onChange={(e) => updateBlockStyles(block.id, { color: e.target.value })} className="w-full h-10 rounded-lg border border-slate-600/50 cursor-pointer bg-slate-700/50" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Thickness: {styles.thickness}px</label>
-              <input type="range" min="1" max="8" value={styles.thickness} onChange={(e) => updateBlockStyles(block.id, { thickness: +e.target.value })} className="w-full" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Thickness: {styles.thickness}px</label>
+              <input type="range" min="1" max="8" value={styles.thickness} onChange={(e) => updateBlockStyles(block.id, { thickness: +e.target.value })} className="w-full accent-violet-500" />
             </div>
           </>
         )}
 
         {/* Common padding */}
         {styles.padding !== undefined && (
-          <div className="pt-4 border-t">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Padding: {styles.padding}px</label>
-            <input type="range" min="0" max="80" value={styles.padding} onChange={(e) => updateBlockStyles(block.id, { padding: +e.target.value })} className="w-full" />
+          <div className="pt-4 border-t border-slate-700/50">
+            <label className="block text-xs font-medium text-slate-400 mb-1">Padding: {styles.padding}px</label>
+            <input type="range" min="0" max="80" value={styles.padding} onChange={(e) => updateBlockStyles(block.id, { padding: +e.target.value })} className="w-full accent-violet-500" />
           </div>
         )}
       </div>
@@ -798,27 +798,27 @@ ${blocks.map(renderBlock).join('')}
 
   // Main render
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="h-screen flex flex-col bg-slate-900">
       {/* Top toolbar */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm">
+      <div className="bg-slate-800/80 backdrop-blur border-b border-slate-700/50 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
             Email Designer
           </h1>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setPreviewMode('desktop')} className={`p-2 rounded-md transition-colors ${previewMode === 'desktop' ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
+          <div className="flex items-center gap-1 bg-slate-700/50 rounded-lg p-1">
+            <button onClick={() => setPreviewMode('desktop')} className={`p-2 rounded-md transition-colors ${previewMode === 'desktop' ? 'bg-slate-600 text-violet-400' : 'text-slate-400 hover:text-white'}`}>
               <FiMonitor size={18} />
             </button>
-            <button onClick={() => setPreviewMode('mobile')} className={`p-2 rounded-md transition-colors ${previewMode === 'mobile' ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
+            <button onClick={() => setPreviewMode('mobile')} className={`p-2 rounded-md transition-colors ${previewMode === 'mobile' ? 'bg-slate-600 text-violet-400' : 'text-slate-400 hover:text-white'}`}>
               <FiSmartphone size={18} />
             </button>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowPreviewModal(true)} className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+          <button onClick={() => setShowPreviewModal(true)} className="flex items-center gap-2 px-4 py-2 text-slate-300 bg-slate-700/50 border border-slate-600/50 rounded-xl hover:bg-slate-700 transition-colors">
             <FiEye size={18} /> Preview
           </button>
-          <button onClick={() => setShowSaveModal(true)} className="flex items-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors shadow-md">
+          <button onClick={() => setShowSaveModal(true)} className="flex items-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl hover:from-violet-700 hover:to-purple-700 transition-colors shadow-lg shadow-violet-500/20">
             <FiSave size={18} /> Save Template
           </button>
         </div>
@@ -827,12 +827,12 @@ ${blocks.map(renderBlock).join('')}
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left sidebar - Block palette */}
-        <div className="w-72 bg-white border-r overflow-y-auto">
+        <div className="w-72 bg-slate-800/50 backdrop-blur border-r border-slate-700/50 overflow-y-auto">
           <div className="p-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Add Blocks</h2>
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Add Blocks</h2>
             {Object.entries(BLOCK_CATEGORIES).map(([category, types]) => (
               <div key={category} className="mb-6">
-                <h3 className="text-xs font-medium text-gray-400 uppercase mb-3">{category}</h3>
+                <h3 className="text-xs font-medium text-slate-500 uppercase mb-3">{category}</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {types.map(type => {
                     const info = BLOCK_INFO[type];
@@ -841,12 +841,12 @@ ${blocks.map(renderBlock).join('')}
                       <button
                         key={type}
                         onClick={() => addBlock(type)}
-                        className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-indigo-400 hover:bg-indigo-50 transition-all group"
+                        className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-slate-600/50 hover:border-violet-500/50 hover:bg-violet-500/10 transition-all group"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-indigo-100 group-hover:to-purple-100 flex items-center justify-center text-gray-500 group-hover:text-indigo-600 transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-slate-700/50 group-hover:bg-violet-500/20 flex items-center justify-center text-slate-400 group-hover:text-violet-400 transition-colors">
                           <Icon size={20} />
                         </div>
-                        <span className="text-xs font-medium text-gray-600 group-hover:text-indigo-600">{info.label}</span>
+                        <span className="text-xs font-medium text-slate-400 group-hover:text-violet-400">{info.label}</span>
                       </button>
                     );
                   })}
@@ -857,19 +857,19 @@ ${blocks.map(renderBlock).join('')}
         </div>
 
         {/* Center - Canvas */}
-        <div className="flex-1 overflow-y-auto p-8" style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)' }}>
+        <div className="flex-1 overflow-y-auto p-8 bg-slate-900/50">
           <div
-            className="mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300"
+            className="mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ring-1 ring-slate-700/50"
             style={{ width: previewMode === 'mobile' ? 375 : design.globalStyles.contentWidth, maxWidth: '100%' }}
           >
             {design.blocks.length === 0 ? (
-              <div className="p-16 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                  <FiPlus size={32} className="text-indigo-500" />
+              <div className="p-16 text-center bg-slate-800">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
+                  <FiPlus size={32} className="text-violet-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Start Building</h3>
-                <p className="text-gray-500 mb-6">Click on blocks from the left panel to add them here</p>
-                <button onClick={() => addBlock('hero')} className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-colors shadow-lg">
+                <h3 className="text-xl font-semibold text-white mb-2">Start Building</h3>
+                <p className="text-slate-400 mb-6">Click on blocks from the left panel to add them here</p>
+                <button onClick={() => addBlock('hero')} className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-purple-700 transition-colors shadow-lg shadow-violet-500/20">
                   Add Hero Section
                 </button>
               </div>
@@ -879,16 +879,16 @@ ${blocks.map(renderBlock).join('')}
                   {renderBlockPreview(block)}
                   {/* Block controls */}
                   <div className={`absolute top-2 right-2 flex gap-1 transition-opacity ${selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                    <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'up'); }} disabled={index === 0} className="p-1.5 bg-white rounded-lg shadow-md hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed">
+                    <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'up'); }} disabled={index === 0} className="p-1.5 bg-slate-800 rounded-lg shadow-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed">
                       <FiArrowUp size={14} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'down'); }} disabled={index === design.blocks.length - 1} className="p-1.5 bg-white rounded-lg shadow-md hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed">
+                    <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'down'); }} disabled={index === design.blocks.length - 1} className="p-1.5 bg-slate-800 rounded-lg shadow-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed">
                       <FiArrowDown size={14} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); duplicateBlock(block.id); }} className="p-1.5 bg-white rounded-lg shadow-md hover:bg-gray-50">
+                    <button onClick={(e) => { e.stopPropagation(); duplicateBlock(block.id); }} className="p-1.5 bg-slate-800 rounded-lg shadow-md hover:bg-slate-700 text-slate-300">
                       <FiCopy size={14} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} className="p-1.5 bg-white rounded-lg shadow-md hover:bg-red-50 text-red-500">
+                    <button onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} className="p-1.5 bg-slate-800 rounded-lg shadow-md hover:bg-red-500/20 text-red-400">
                       <FiTrash2 size={14} />
                     </button>
                   </div>
@@ -899,36 +899,36 @@ ${blocks.map(renderBlock).join('')}
         </div>
 
         {/* Right sidebar - Style editor */}
-        <div className="w-80 bg-white border-l overflow-y-auto">
+        <div className="w-80 bg-slate-800/50 backdrop-blur border-l border-slate-700/50 overflow-y-auto">
           <div className="p-5">
             {selectedBlock ? (
               <StyleEditor block={selectedBlock} />
             ) : (
               <>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Global Styles</h2>
+                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Global Styles</h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Background Color</label>
-                    <input type="color" value={design.globalStyles.backgroundColor} onChange={(e) => updateGlobalStyles({ backgroundColor: e.target.value })} className="w-full h-10 rounded-lg border cursor-pointer" />
+                    <label className="block text-xs font-medium text-slate-400 mb-1">Background Color</label>
+                    <input type="color" value={design.globalStyles.backgroundColor} onChange={(e) => updateGlobalStyles({ backgroundColor: e.target.value })} className="w-full h-10 rounded-lg border border-slate-600/50 cursor-pointer bg-slate-700/50" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Primary Color</label>
-                    <input type="color" value={design.globalStyles.primaryColor} onChange={(e) => updateGlobalStyles({ primaryColor: e.target.value })} className="w-full h-10 rounded-lg border cursor-pointer" />
+                    <label className="block text-xs font-medium text-slate-400 mb-1">Primary Color</label>
+                    <input type="color" value={design.globalStyles.primaryColor} onChange={(e) => updateGlobalStyles({ primaryColor: e.target.value })} className="w-full h-10 rounded-lg border border-slate-600/50 cursor-pointer bg-slate-700/50" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Content Width</label>
-                    <input type="number" value={design.globalStyles.contentWidth} onChange={(e) => updateGlobalStyles({ contentWidth: +e.target.value })} className="w-full p-2 border rounded-lg text-sm" min={400} max={800} />
+                    <label className="block text-xs font-medium text-slate-400 mb-1">Content Width</label>
+                    <input type="number" value={design.globalStyles.contentWidth} onChange={(e) => updateGlobalStyles({ contentWidth: +e.target.value })} className="w-full p-2 border border-slate-600/50 rounded-lg text-sm bg-slate-700/50 text-white" min={400} max={800} />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Font Family</label>
-                    <select value={design.globalStyles.fontFamily} onChange={(e) => updateGlobalStyles({ fontFamily: e.target.value })} className="w-full p-2 border rounded-lg text-sm">
+                    <label className="block text-xs font-medium text-slate-400 mb-1">Font Family</label>
+                    <select value={design.globalStyles.fontFamily} onChange={(e) => updateGlobalStyles({ fontFamily: e.target.value })} className="w-full p-2 border border-slate-600/50 rounded-lg text-sm bg-slate-700/50 text-white">
                       {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
                     </select>
                   </div>
                 </div>
-                <div className="mt-8 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl">
-                  <p className="text-sm text-gray-600 text-center">
-                    <span className="font-medium text-indigo-600">Tip:</span> Click on a block in the canvas to edit its content and styles
+                <div className="mt-8 p-4 bg-gradient-to-br from-violet-500/10 to-purple-500/10 rounded-xl border border-violet-500/20">
+                  <p className="text-sm text-slate-300 text-center">
+                    <span className="font-medium text-violet-400">Tip:</span> Click on a block in the canvas to edit its content and styles
                   </p>
                 </div>
               </>
@@ -939,25 +939,25 @@ ${blocks.map(renderBlock).join('')}
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Email Preview</h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-slate-700/50">
+            <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
+              <h2 className="text-lg font-semibold text-white">Email Preview</h2>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                  <button onClick={() => setPreviewMode('desktop')} className={`p-2 rounded-md ${previewMode === 'desktop' ? 'bg-white shadow' : ''}`}>
+                <div className="flex items-center gap-1 bg-slate-700/50 rounded-lg p-1">
+                  <button onClick={() => setPreviewMode('desktop')} className={`p-2 rounded-md ${previewMode === 'desktop' ? 'bg-slate-600 text-violet-400' : 'text-slate-400'}`}>
                     <FiMonitor size={16} />
                   </button>
-                  <button onClick={() => setPreviewMode('mobile')} className={`p-2 rounded-md ${previewMode === 'mobile' ? 'bg-white shadow' : ''}`}>
+                  <button onClick={() => setPreviewMode('mobile')} className={`p-2 rounded-md ${previewMode === 'mobile' ? 'bg-slate-600 text-violet-400' : 'text-slate-400'}`}>
                     <FiSmartphone size={16} />
                   </button>
                 </div>
-                <button onClick={() => setShowPreviewModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <button onClick={() => setShowPreviewModal(false)} className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white">
                   <FiX size={20} />
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-auto p-6 bg-gray-100">
+            <div className="flex-1 overflow-auto p-6 bg-slate-900/50">
               <div className="mx-auto transition-all" style={{ width: previewMode === 'mobile' ? 375 : design.globalStyles.contentWidth }}>
                 <iframe
                   srcDoc={generateHtml()}
@@ -972,49 +972,49 @@ ${blocks.map(renderBlock).join('')}
 
       {/* Save Modal */}
       {showSaveModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-700/50">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">Save Template</h2>
-              <button onClick={() => setShowSaveModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+              <h2 className="text-xl font-semibold text-white">Save Template</h2>
+              <button onClick={() => setShowSaveModal(false)} className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white">
                 <FiX size={20} />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Template Name *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Template Name *</label>
                 <input
                   type="text"
                   value={templateName}
                   onChange={(e) => { setTemplateName(e.target.value); setTemplateSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')); }}
                   placeholder="Welcome Email"
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-violet-500/50 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Slug *</label>
                 <input
                   type="text"
                   value={templateSlug}
                   onChange={(e) => setTemplateSlug(e.target.value)}
                   placeholder="welcome-email"
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-violet-500/50 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject Line</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Subject Line</label>
                 <input
                   type="text"
                   value={templateSubject}
                   onChange={(e) => setTemplateSubject(e.target.value)}
                   placeholder="Welcome to {{site.name}}!"
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-violet-500/50 focus:border-transparent"
                 />
               </div>
               <button
                 onClick={handleSave}
                 disabled={saving || !templateName || !templateSlug}
-                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20"
               >
                 {saving ? (
                   <>
@@ -1035,32 +1035,32 @@ ${blocks.map(renderBlock).join('')}
 
       {/* Media Library Modal */}
       {showMediaModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Media Library</h2>
-              <button onClick={() => { setShowMediaModal(false); setMediaTarget(null); }} className="p-2 hover:bg-gray-100 rounded-lg">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col border border-slate-700/50">
+            <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
+              <h2 className="text-lg font-semibold text-white">Media Library</h2>
+              <button onClick={() => { setShowMediaModal(false); setMediaTarget(null); }} className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white">
                 <FiX size={20} />
               </button>
             </div>
-            <div className="p-4 border-b">
+            <div className="p-4 border-b border-slate-700/50">
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={mediaSearch}
                   onChange={(e) => setMediaSearch(e.target.value)}
                   placeholder="Search images..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-violet-500/50 focus:border-transparent"
                 />
               </div>
             </div>
-            <div className="flex-1 overflow-auto p-4">
+            <div className="flex-1 overflow-auto p-4 bg-slate-900/30">
               {filteredMedia.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-slate-400">
                   <FiImage size={48} className="mx-auto mb-4 opacity-50" />
                   <p>No images found in your media library</p>
-                  <p className="text-sm mt-2">Upload images via Media → Library</p>
+                  <p className="text-sm mt-2 text-slate-500">Upload images via Media → Library</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-4 gap-4">
@@ -1068,11 +1068,11 @@ ${blocks.map(renderBlock).join('')}
                     <button
                       key={item.id}
                       onClick={() => selectMedia(item)}
-                      className="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-indigo-500 transition-colors group relative"
+                      className="aspect-square rounded-xl overflow-hidden border-2 border-slate-600/50 hover:border-violet-500 transition-colors group relative"
                     >
                       <img src={item.url} alt={item.filename} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">Select</span>
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-sm font-medium bg-violet-600 px-3 py-1 rounded-lg">Select</span>
                       </div>
                     </button>
                   ))}
