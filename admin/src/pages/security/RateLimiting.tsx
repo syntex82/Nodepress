@@ -84,17 +84,17 @@ export default function RateLimiting() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <Link to=".." relative="path" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4">
+        <Link to=".." relative="path" className="text-blue-400 hover:text-blue-300 flex items-center gap-2 mb-4">
           <FiArrowLeft /> Back to Security
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Rate Limiting</h1>
-            <p className="text-gray-600 mt-2">Configure API rate limits and view violations</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Rate Limiting</h1>
+            <p className="text-slate-400 mt-2">Configure API rate limits and view violations</p>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all"
           >
             <FiPlus /> Add Rate Limit
           </button>
@@ -102,41 +102,41 @@ export default function RateLimiting() {
       </div>
 
       {/* Rate Limit Configurations */}
-      <div className="bg-white rounded-lg shadow mb-8">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Rate Limit Configurations</h2>
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 mb-8">
+        <div className="p-6 border-b border-slate-700/50">
+          <h2 className="text-xl font-bold text-white">Rate Limit Configurations</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-700/30">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Endpoint</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Window</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Max Requests</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Block Duration</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Endpoint</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Window</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Max Requests</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Block Duration</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-700/50">
               {configs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
                     No rate limit configurations found
                   </td>
                 </tr>
               ) : (
                 configs.map((config) => (
-                  <tr key={config.id}>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{config.endpoint}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{config.windowMs / 1000}s</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{config.maxRequests}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                  <tr key={config.id} className="hover:bg-slate-700/30">
+                    <td className="px-6 py-4 text-sm font-medium text-white">{config.endpoint}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{config.windowMs / 1000}s</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{config.maxRequests}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">
                       {config.blockDuration ? `${config.blockDuration}m` : 'None'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        config.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        config.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-600/50 text-slate-400'
                       }`}>
                         {config.enabled ? 'Enabled' : 'Disabled'}
                       </span>
@@ -144,7 +144,7 @@ export default function RateLimiting() {
                     <td className="px-6 py-4">
                       <button
                         onClick={() => handleDelete(config.endpoint)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-400 hover:text-red-300"
                       >
                         <FiTrash2 />
                       </button>
@@ -158,39 +158,39 @@ export default function RateLimiting() {
       </div>
 
       {/* Recent Violations */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <FiAlertTriangle className="text-orange-500" />
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50">
+        <div className="p-6 border-b border-slate-700/50">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <FiAlertTriangle className="text-orange-400" />
             Recent Violations
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-700/30">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Endpoint</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requests</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Limit</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">IP Address</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Endpoint</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Requests</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Limit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-700/50">
               {violations.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
                     No violations recorded
                   </td>
                 </tr>
               ) : (
                 violations.map((violation) => (
-                  <tr key={violation.id}>
-                    <td className="px-6 py-4 text-sm font-mono text-gray-900">{violation.ip}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{violation.endpoint}</td>
-                    <td className="px-6 py-4 text-sm text-red-600 font-semibold">{violation.requests}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{violation.limit}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                  <tr key={violation.id} className="hover:bg-slate-700/30">
+                    <td className="px-6 py-4 text-sm font-mono text-white">{violation.ip}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{violation.endpoint}</td>
+                    <td className="px-6 py-4 text-sm text-red-400 font-semibold">{violation.requests}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{violation.limit}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">
                       {new Date(violation.createdAt).toLocaleString()}
                     </td>
                   </tr>
@@ -203,13 +203,13 @@ export default function RateLimiting() {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Add Rate Limit Configuration</h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-white mb-4">Add Rate Limit Configuration</h2>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Endpoint
                   </label>
                   <input
@@ -217,39 +217,39 @@ export default function RateLimiting() {
                     value={formData.endpoint}
                     onChange={(e) => setFormData({ ...formData, endpoint: e.target.value })}
                     placeholder="e.g., /api/auth/login or global"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Time Window (seconds)
                   </label>
                   <input
                     type="number"
                     value={formData.windowMs / 1000}
                     onChange={(e) => setFormData({ ...formData, windowMs: parseInt(e.target.value) * 1000 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Max Requests
                   </label>
                   <input
                     type="number"
                     value={formData.maxRequests}
                     onChange={(e) => setFormData({ ...formData, maxRequests: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Block Duration (minutes, optional)
                   </label>
                   <input
@@ -257,7 +257,7 @@ export default function RateLimiting() {
                     value={formData.blockDuration || ''}
                     onChange={(e) => setFormData({ ...formData, blockDuration: e.target.value ? parseInt(e.target.value) : undefined })}
                     placeholder="Leave empty for no blocking"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500"
                   />
                 </div>
 
@@ -267,9 +267,9 @@ export default function RateLimiting() {
                     id="enabled"
                     checked={formData.enabled}
                     onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
-                    className="mr-2"
+                    className="mr-2 w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500/50"
                   />
-                  <label htmlFor="enabled" className="text-sm text-gray-700">
+                  <label htmlFor="enabled" className="text-sm text-slate-300">
                     Enabled
                   </label>
                 </div>
@@ -278,14 +278,14 @@ export default function RateLimiting() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-500 hover:to-blue-400"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300"
+                  className="flex-1 bg-slate-700 text-slate-300 px-4 py-2 rounded-xl hover:bg-slate-600"
                 >
                   Cancel
                 </button>
