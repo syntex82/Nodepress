@@ -200,13 +200,32 @@ export default function Media() {
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`mb-6 border-2 border-dashed rounded-xl p-12 text-center transition-all ${
+          className={`mb-6 border-2 border-dashed rounded-xl p-8 text-center transition-all ${
             dragActive ? 'border-blue-500 bg-blue-500/10' : 'border-slate-700/50 bg-slate-800/30'
           }`}
         >
           <FiUpload className="mx-auto text-slate-500 mb-4" size={48} />
           <p className="text-slate-400 mb-2">Drag and drop files here, or click the button above</p>
-          <p className="text-sm text-slate-500">Supports: JPG, PNG, GIF, SVG, MP4, MP3, PDF</p>
+          <p className="text-sm text-slate-500 mb-4">Supports: JPG, PNG, GIF, SVG, MP4, MP3, PDF</p>
+
+          {/* Recommended Sizes */}
+          <div className="mt-4 pt-4 border-t border-slate-700/50">
+            <p className="text-xs text-slate-500 mb-2">📐 Recommended Image Sizes:</p>
+            <div className="flex flex-wrap justify-center gap-4 text-xs">
+              <span className="bg-slate-700/50 px-3 py-1 rounded-full">
+                <span className="text-purple-400">Courses:</span> <span className="text-blue-400">1280 × 720 px</span>
+              </span>
+              <span className="bg-slate-700/50 px-3 py-1 rounded-full">
+                <span className="text-green-400">Products:</span> <span className="text-blue-400">800 × 600 px</span>
+              </span>
+              <span className="bg-slate-700/50 px-3 py-1 rounded-full">
+                <span className="text-amber-400">Posts:</span> <span className="text-blue-400">1200 × 630 px</span>
+              </span>
+              <span className="bg-slate-700/50 px-3 py-1 rounded-full">
+                <span className="text-pink-400">Logo:</span> <span className="text-blue-400">200 × 60 px</span>
+              </span>
+            </div>
+          </div>
         </div>
       </Tooltip>
 

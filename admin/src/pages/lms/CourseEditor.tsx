@@ -449,7 +449,10 @@ export default function CourseEditor() {
             <div className="col-span-2 space-y-6">
               {/* Featured Image */}
               <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-                <label className="block text-sm font-medium text-slate-300 mb-3">Featured Image</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Featured Image</label>
+                <p className="text-xs text-slate-500 mb-3">
+                  📐 Recommended size: <span className="text-blue-400 font-medium">1280 × 720 px</span> (16:9 aspect ratio)
+                </p>
                 {course.featuredImage ? (
                   <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-700/50">
                     <img
@@ -473,6 +476,7 @@ export default function CourseEditor() {
                   >
                     <FiImage size={32} className="mb-2" />
                     <span>Click to select image</span>
+                    <span className="text-xs mt-1 opacity-75">1280 × 720 px recommended</span>
                   </button>
                 )}
                 {course.featuredImage && (

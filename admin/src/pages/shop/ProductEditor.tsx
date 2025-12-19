@@ -288,7 +288,10 @@ export default function ProductEditor() {
 
         {/* Product Images */}
         <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Product Images</h2>
+          <h2 className="text-lg font-semibold text-white mb-1">Product Images</h2>
+          <p className="text-xs text-slate-500 mb-4">
+            📐 Recommended size: <span className="text-blue-400 font-medium">800 × 600 px</span> (4:3 aspect ratio)
+          </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
             {form.images.map((image, index) => (
               <div key={index} className="relative group">
@@ -321,6 +324,7 @@ export default function ProductEditor() {
             >
               <FiPlus size={24} />
               <span className="text-sm mt-1">Add Image</span>
+              <span className="text-xs opacity-75">800 × 600 px</span>
             </button>
           </div>
           <p className="text-sm text-slate-500">
