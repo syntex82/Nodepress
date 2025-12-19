@@ -6,12 +6,13 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX } from 'react-icons/fi';
-import { useState, useEffect } from 'react';
+import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX, FiCommand } from 'react-icons/fi';
+import { useState, useEffect, useCallback } from 'react';
 import { messagesApi } from '../services/api';
 import { canAccess, ROLE_DESCRIPTIONS, type UserRole, type RolePermissions } from '../config/permissions';
 import Tooltip from './Tooltip';
 import { NAV_TOOLTIPS } from '../config/tooltips';
+import CommandPalette from './CommandPalette';
 
 export default function Layout() {
   const location = useLocation();
@@ -29,8 +30,22 @@ export default function Layout() {
     email: false,
     theme: false,
   });
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const userRole = (user?.role || 'VIEWER') as UserRole;
   const roleInfo = ROLE_DESCRIPTIONS[userRole];
+
+  // Global keyboard shortcut for Command Palette (Cmd+K / Ctrl+K)
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      setCommandPaletteOpen(prev => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -144,6 +159,24 @@ export default function Layout() {
               {sidebarCollapsed ? <FiChevronRight size={14} /> : <FiX size={14} />}
             </button>
           </div>
+        </div>
+
+        {/* Search Button */}
+        <div className="p-4 border-b border-slate-800/50">
+          <button
+            onClick={() => setCommandPaletteOpen(true)}
+            className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700/50 hover:border-slate-600 transition-all ${sidebarCollapsed ? 'justify-center' : ''}`}
+          >
+            <FiSearch size={16} />
+            {!sidebarCollapsed && (
+              <>
+                <span className="flex-1 text-left text-sm">Search...</span>
+                <kbd className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-700/50 rounded text-xs text-slate-500">
+                  <FiCommand size={10} />K
+                </kbd>
+              </>
+            )}
+          </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-4 relative custom-scrollbar">
@@ -593,6 +626,9 @@ export default function Layout() {
           background: rgba(100, 116, 139, 0.5);
         }
       `}</style>
+
+      {/* Command Palette */}
+      <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </div>
   );
 }
