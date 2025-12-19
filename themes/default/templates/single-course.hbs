@@ -168,7 +168,9 @@
     <div class="course-hero-content">
       <div class="course-info">
         <h1>{{course.title}}</h1>
-        <p>{{course.description}}</p>
+        {{#if course.shortDescription}}
+        <p>{{course.shortDescription}}</p>
+        {{/if}}
         <div class="course-meta">
           {{#if course.level}}<span class="meta-item">📊 {{course.level}}</span>{{/if}}
           {{#if course._count.lessons}}<span class="meta-item">📚 {{course._count.lessons}} lessons</span>{{/if}}
@@ -195,7 +197,16 @@
       </div>
     </div>
   </div>
-  
+
+  {{#if course.description}}
+  <div class="course-description" style="max-width: 1000px; margin: 2rem auto; padding: 0 40px;">
+    <h2 style="color: #1e293b; margin-bottom: 1rem;">About This Course</h2>
+    <div class="course-description-content" style="color: #475569; line-height: 1.8;">
+      {{{course.description}}}
+    </div>
+  </div>
+  {{/if}}
+
   <div class="course-content">
     <h2>Course Content</h2>
     <div class="lessons-list">
