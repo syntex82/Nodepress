@@ -58,7 +58,8 @@ export class LearningController {
       },
     });
 
-    if (!enrollment || enrollment.status !== 'ACTIVE') {
+    // Allow both ACTIVE and COMPLETED enrollments to access the course
+    if (!enrollment || !['ACTIVE', 'COMPLETED'].includes(enrollment.status)) {
       throw new ForbiddenException('You must be enrolled to access this course');
     }
 

@@ -1,11 +1,12 @@
 /**
  * Certificate PDF Generator Service
- * Generates PDF certificates for course completion
+ * Generates PDF certificates for course completion using pdfkit
  */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
+import PDFDocument from 'pdfkit';
 
 interface CertificateData {
   certificateNumber: string;
@@ -34,162 +35,108 @@ export class CertificateGeneratorService {
   async generateCertificatePDF(
     data: CertificateData,
   ): Promise<{ filePath: string; pdfUrl: string }> {
-    const fileName = `certificate-${data.certificateNumber}.html`;
+    const fileName = `certificate-${data.certificateNumber}.pdf`;
     const filePath = path.join(this.uploadsDir, fileName);
-    const verifyUrl = `${this.baseUrl}/verify/${data.verificationHash}`;
+    const verifyUrl = `${this.baseUrl}/lms/certificates/verify/${data.verificationHash}`;
 
-    // Generate HTML certificate (can be converted to PDF with a headless browser)
-    const html = this.generateCertificateHTML(data, verifyUrl);
-
-    fs.writeFileSync(filePath, html);
+    await this.createPDF(data, filePath, verifyUrl);
 
     return {
       filePath: `/uploads/certificates/${fileName}`,
-      pdfUrl: `${this.baseUrl}/uploads/certificates/${fileName}`,
+      pdfUrl: `/uploads/certificates/${fileName}`,
     };
   }
 
-  private generateCertificateHTML(data: CertificateData, verifyUrl: string): string {
-    const formattedDate = data.issuedAt.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  private createPDF(data: CertificateData, filePath: string, verifyUrl: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        layout: 'landscape',
+        margins: { top: 50, bottom: 50, left: 50, right: 50 },
+      });
 
-    return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Certificate of Completion - ${data.courseName}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      font-family: 'Open Sans', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-    }
-    
-    .certificate {
-      background: white;
-      width: 900px;
-      padding: 60px;
-      border-radius: 20px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .certificate::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 8px;
-      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-    }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    
-    .logo { font-size: 24px; color: #667eea; margin-bottom: 10px; }
-    
-    .title {
-      font-family: 'Playfair Display', serif;
-      font-size: 48px;
-      color: #1a1a2e;
-      margin-bottom: 10px;
-    }
-    
-    .subtitle { color: #666; font-size: 18px; }
-    
-    .content { text-align: center; margin: 40px 0; }
-    
-    .presented-to { color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; }
-    
-    .student-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 42px;
-      color: #1a1a2e;
-      margin: 20px 0;
-      border-bottom: 3px solid #667eea;
-      display: inline-block;
-      padding-bottom: 10px;
-    }
-    
-    .completion-text { color: #444; font-size: 18px; margin: 20px 0; }
-    
-    .course-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px;
-      color: #667eea;
-      margin: 20px 0;
-    }
-    
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 60px;
-      padding-top: 30px;
-      border-top: 1px solid #eee;
-    }
-    
-    .signature { text-align: center; }
-    .signature-line { width: 200px; border-bottom: 2px solid #333; margin-bottom: 10px; }
-    .signature-name { font-weight: 600; }
-    .signature-title { color: #888; font-size: 12px; }
-    
-    .details { text-align: right; font-size: 12px; color: #888; }
-    .cert-number { font-family: monospace; }
-    
-    .verify-link { color: #667eea; text-decoration: none; }
-    
-    @media print {
-      body { background: white; padding: 0; }
-      .certificate { box-shadow: none; }
-    }
-  </style>
-</head>
-<body>
-  <div class="certificate">
-    <div class="header">
-      <div class="logo">🎓 WordPress Node LMS</div>
-      <h1 class="title">Certificate of Completion</h1>
-      <p class="subtitle">This is to certify that</p>
-    </div>
-    
-    <div class="content">
-      <p class="presented-to">Presented to</p>
-      <h2 class="student-name">${data.studentName}</h2>
-      <p class="completion-text">has successfully completed the course</p>
-      <h3 class="course-name">${data.courseName}</h3>
-    </div>
-    
-    <div class="footer">
-      <div class="signature">
-        <div class="signature-line"></div>
-        <p class="signature-name">${data.instructorName}</p>
-        <p class="signature-title">Course Instructor</p>
-      </div>
-      
-      <div class="details">
-        <p>Date: ${formattedDate}</p>
-        <p class="cert-number">Certificate #: ${data.certificateNumber}</p>
-        <p><a href="${verifyUrl}" class="verify-link">Verify Certificate</a></p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
+      const stream = fs.createWriteStream(filePath);
+      doc.pipe(stream);
+
+      const pageWidth = doc.page.width;
+      const pageHeight = doc.page.height;
+
+      // Background
+      doc.rect(0, 0, pageWidth, pageHeight).fill('#f8fafc');
+
+      // Decorative border
+      doc.lineWidth(3).strokeColor('#6366f1')
+         .rect(30, 30, pageWidth - 60, pageHeight - 60).stroke();
+
+      // Inner border
+      doc.lineWidth(1).strokeColor('#a5b4fc')
+         .rect(40, 40, pageWidth - 80, pageHeight - 80).stroke();
+
+      // Top decorative line
+      doc.lineWidth(4).strokeColor('#6366f1')
+         .moveTo(50, 50).lineTo(pageWidth - 50, 50).stroke();
+
+      // Title
+      doc.fontSize(42).fillColor('#1e293b').font('Helvetica-Bold')
+         .text('Certificate of Completion', 0, 80, { align: 'center' });
+
+      // Subtitle
+      doc.fontSize(14).fillColor('#64748b').font('Helvetica')
+         .text('This is to certify that', 0, 140, { align: 'center' });
+
+      // Student name
+      doc.fontSize(36).fillColor('#6366f1').font('Helvetica-Bold')
+         .text(data.studentName, 0, 170, { align: 'center' });
+
+      // Underline for name
+      const nameWidth = doc.widthOfString(data.studentName);
+      const nameX = (pageWidth - nameWidth) / 2;
+      doc.lineWidth(2).strokeColor('#6366f1')
+         .moveTo(nameX, 215).lineTo(nameX + nameWidth, 215).stroke();
+
+      // Completion text
+      doc.fontSize(14).fillColor('#64748b').font('Helvetica')
+         .text('has successfully completed the course', 0, 235, { align: 'center' });
+
+      // Course name
+      doc.fontSize(28).fillColor('#1e293b').font('Helvetica-Bold')
+         .text(data.courseName, 50, 265, { align: 'center', width: pageWidth - 100 });
+
+      // Footer section
+      const footerY = pageHeight - 120;
+
+      // Instructor signature line
+      doc.lineWidth(1).strokeColor('#334155')
+         .moveTo(100, footerY).lineTo(280, footerY).stroke();
+
+      doc.fontSize(12).fillColor('#1e293b').font('Helvetica-Bold')
+         .text(data.instructorName, 100, footerY + 10, { width: 180, align: 'center' });
+
+      doc.fontSize(10).fillColor('#64748b').font('Helvetica')
+         .text('Course Instructor', 100, footerY + 28, { width: 180, align: 'center' });
+
+      // Date and certificate number
+      const formattedDate = data.issuedAt.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+      });
+
+      doc.fontSize(11).fillColor('#64748b').font('Helvetica')
+         .text(`Date: ${formattedDate}`, pageWidth - 300, footerY + 5, { width: 200, align: 'right' });
+
+      doc.fontSize(10)
+         .text(`Certificate #: ${data.certificateNumber}`, pageWidth - 300, footerY + 22, { width: 200, align: 'right' });
+
+      doc.fontSize(9).fillColor('#6366f1')
+         .text(`Verify: ${verifyUrl}`, pageWidth - 300, footerY + 39, { width: 200, align: 'right' });
+
+      // Branding
+      doc.fontSize(10).fillColor('#94a3b8')
+         .text('WordPress Node LMS', 0, pageHeight - 60, { align: 'center' });
+
+      doc.end();
+
+      stream.on('finish', () => resolve());
+      stream.on('error', reject);
+    });
   }
 }
