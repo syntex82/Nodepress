@@ -1,46 +1,190 @@
 {{> header}}
 
-<article class="single-post" style="max-width: 800px; margin: 0 auto; padding: 60px 40px;">
-  <header class="post-header" style="margin-bottom: 3rem; border-bottom: 2px solid #eee; padding-bottom: 2rem;">
-    <h1 style="font-size: 42px; margin-bottom: 1rem; font-weight: 700;">{{post.title}}</h1>
-    <div class="post-meta" style="color: #666; font-size: 14px;">
-      <span>By {{post.author}}</span>
-      <span style="margin: 0 1rem;">•</span>
-      <span>{{post.date}}</span>
+<style>
+  .single-post-page {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    min-height: calc(100vh - 140px);
+    padding: 60px 20px;
+  }
+  .post-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 50px;
+  }
+  .post-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .post-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+  .post-meta {
+    color: #94a3b8;
+    font-size: 14px;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .post-content {
+    color: #e2e8f0;
+    font-size: 1.1rem;
+    line-height: 1.9;
+  }
+  .post-content h2 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin: 2.5rem 0 1rem;
+    font-weight: 700;
+  }
+  .post-content h3 {
+    color: #a5b4fc;
+    font-size: 1.4rem;
+    margin: 2rem 0 0.75rem;
+    font-weight: 600;
+  }
+  .post-content p {
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+  }
+  .post-content ul {
+    margin: 1rem 0 1.5rem 1.5rem;
+    color: #cbd5e1;
+  }
+  .post-content li {
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+  }
+  .post-content strong {
+    color: #fff;
+  }
+  .post-content em {
+    color: #94a3b8;
+  }
+  .post-content blockquote {
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-left: 4px solid #6366f1 !important;
+    padding: 1.5rem !important;
+    margin: 2rem 0 !important;
+    border-radius: 0 12px 12px 0;
+    color: #e2e8f0 !important;
+    font-style: italic;
+  }
+  .post-content a {
+    color: #818cf8;
+    text-decoration: underline;
+  }
+  .post-content a:hover {
+    color: #a5b4fc;
+  }
+  .post-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .post-tags a {
+    display: inline-block;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    text-decoration: none;
+    color: #a5b4fc;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .post-tags a:hover {
+    background: rgba(99, 102, 241, 0.4);
+  }
+  .related-posts {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 60px 20px;
+  }
+  .related-posts h2 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .related-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+  }
+  .related-card:hover {
+    border-color: #6366f1;
+    transform: translateY(-3px);
+  }
+  .related-card h3 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .related-card a {
+    color: #818cf8;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .related-card a:hover {
+    color: #a5b4fc;
+  }
+</style>
+
+<div class="single-post-page">
+  <article class="post-container">
+    <header class="post-header">
+      <h1 class="post-title">{{post.title}}</h1>
+      <div class="post-meta">
+        {{#if post.author.name}}<span>By {{post.author.name}}</span>{{/if}}
+        {{#if post.date}}<span>•</span><span>{{post.date}}</span>{{/if}}
+      </div>
+    </header>
+
+    <div class="post-content">
+      {{{post.content}}}
     </div>
-  </header>
 
-  <div class="post-content" style="line-height: 1.8; font-size: 16px; color: #333;">
-    {{{post.content}}}
-  </div>
-
-  <footer class="post-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #eee;">
     {{#if post.tags}}
-      <div class="post-tags" style="margin-bottom: 2rem;">
-        <strong>Tags:</strong>
+    <footer class="post-footer">
+      <div class="post-tags">
         {{#each post.tags}}
-          <a href="/tag/{{this}}" style="display: inline-block; margin-right: 1rem; padding: 0.5rem 1rem; background: #f0f0f0; border-radius: 20px; text-decoration: none; color: #667eea; font-size: 14px;">{{this}}</a>
+          <a href="/tag/{{this}}">{{this}}</a>
         {{/each}}
       </div>
+    </footer>
     {{/if}}
-  </footer>
-</article>
+  </article>
+</div>
 
-<!-- Related Posts -->
 {{#if relatedPosts}}
-  <section class="related-posts" style="max-width: 1200px; margin: 4rem auto; padding: 0 40px;">
-    <h2 style="font-size: 28px; margin-bottom: 2rem; font-weight: 700;">Related Posts</h2>
-    <div class="posts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-      {{#each relatedPosts}}
-        <article class="post-card" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-          <div style="padding: 1.5rem;">
-            <h3 style="font-size: 18px; margin-bottom: 0.5rem; font-weight: 600;">{{this.title}}</h3>
-            <a href="/post/{{this.slug}}" style="color: #667eea; text-decoration: none; font-weight: 600;">Read More →</a>
-          </div>
-        </article>
-      {{/each}}
-    </div>
-  </section>
+<section class="related-posts">
+  <h2>Related Posts</h2>
+  <div class="related-grid">
+    {{#each relatedPosts}}
+      <article class="related-card">
+        <h3>{{this.title}}</h3>
+        <a href="/post/{{this.slug}}">Read More →</a>
+      </article>
+    {{/each}}
+  </div>
+</section>
 {{/if}}
 
 {{> footer}}
