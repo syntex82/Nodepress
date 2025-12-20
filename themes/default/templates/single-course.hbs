@@ -116,43 +116,22 @@
     color: #0f172a;
     margin-bottom: 1.5rem;
   }
-  .lessons-list {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .lesson-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .lesson-item:last-child {
-    border-bottom: none;
-  }
-  .lesson-num {
-    width: 32px;
-    height: 32px;
-    background: #f1f5f9;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    color: #64748b;
-    font-size: 0.9rem;
-  }
-  .lesson-title {
-    flex: 1;
-    color: #0f172a;
-    font-weight: 500;
-  }
-  .lesson-duration {
-    color: #94a3b8;
-    font-size: 0.9rem;
-  }
+  .curriculum-list { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+  .module-section { border-bottom: 1px solid #e2e8f0; }
+  .module-section:last-child { border-bottom: none; }
+  .module-header { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: #f8fafc; cursor: pointer; }
+  .module-header:hover { background: #f1f5f9; }
+  .module-icon { color: #10b981; font-size: 1.2rem; }
+  .module-title { flex: 1; font-weight: 600; color: #0f172a; }
+  .module-count { color: #94a3b8; font-size: 0.85rem; }
+  .module-lessons { display: none; }
+  .module-lessons.open { display: block; }
+  .lesson-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem 1rem 3rem; border-top: 1px solid #f1f5f9; }
+  .lesson-item:hover { background: #fafafa; }
+  .lesson-num { width: 28px; height: 28px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; font-size: 0.8rem; }
+  .lesson-title { flex: 1; color: #0f172a; font-weight: 500; }
+  .lesson-type { color: #94a3b8; font-size: 0.8rem; padding: 2px 8px; background: #f1f5f9; border-radius: 4px; }
+  .lesson-preview { color: #10b981; font-size: 0.75rem; padding: 2px 6px; background: #d1fae5; border-radius: 4px; margin-left: 0.5rem; }
   @media (max-width: 800px) {
     .course-hero-content {
       grid-template-columns: 1fr;
@@ -209,21 +188,56 @@
 
   <div class="course-content">
     <h2>Course Content</h2>
-    <div class="lessons-list">
-      {{#each course.lessons}}
-      <div class="lesson-item">
-        <span class="lesson-num">{{add @index 1}}</span>
-        <span class="lesson-title">{{title}}</span>
-        {{#if duration}}<span class="lesson-duration">{{duration}} min</span>{{/if}}
-      </div>
+    <div class="curriculum-list">
+      {{#if course.modules.length}}
+        {{#each course.modules}}
+        <div class="module-section">
+          <div class="module-header" onclick="toggleModule(this)">
+            <span class="module-icon">📁</span>
+            <span class="module-title">{{title}}</span>
+            <span class="module-count">{{lessons.length}} lessons</span>
+            <span class="module-toggle">▼</span>
+          </div>
+          <div class="module-lessons open">
+            {{#each lessons}}
+            <div class="lesson-item">
+              <span class="lesson-num">{{add @index 1}}</span>
+              <span class="lesson-title">{{title}}</span>
+              <span class="lesson-type">{{type}}</span>
+              {{#if isPreview}}<span class="lesson-preview">Preview</span>{{/if}}
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{/each}}
       {{else}}
-      <div class="lesson-item"><span class="lesson-title" style="color:#94a3b8">Lessons coming soon...</span></div>
-      {{/each}}
+        {{#each course.lessons}}
+        <div class="lesson-item" style="padding-left:1.5rem">
+          <span class="lesson-num">{{add @index 1}}</span>
+          <span class="lesson-title">{{title}}</span>
+          <span class="lesson-type">{{type}}</span>
+          {{#if isPreview}}<span class="lesson-preview">Preview</span>{{/if}}
+        </div>
+        {{else}}
+        <div class="lesson-item" style="padding-left:1.5rem"><span class="lesson-title" style="color:#94a3b8">Lessons coming soon...</span></div>
+        {{/each}}
+      {{/if}}
     </div>
   </div>
 </section>
 
 <script>
+function toggleModule(header) {
+  var lessons = header.nextElementSibling;
+  var toggle = header.querySelector('.module-toggle');
+  if (lessons.classList.contains('open')) {
+    lessons.classList.remove('open');
+    toggle.textContent = '▶';
+  } else {
+    lessons.classList.add('open');
+    toggle.textContent = '▼';
+  }
+}
 async function enrollCourse() {
   var btn = document.getElementById('enrollBtn');
   btn.disabled = true;
@@ -254,6 +268,9 @@ async function enrollCourse() {
   }
 }
 </script>
+
+<!-- Related Courses Recommendations -->
+{{> recommendations sourceType="course" sourceId=course.id contentType="course" recTitle="📚 Related Courses"}}
 
 {{> footer}}
 

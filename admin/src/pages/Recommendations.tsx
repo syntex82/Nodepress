@@ -47,25 +47,64 @@ export default function Recommendations() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [rulesRes, settingsRes, analyticsRes] = await Promise.all([
+      const [rulesRes, settingsRes, analyticsRes, ctrRes, topRes, dailyRes] = await Promise.all([
         recommendationsApi.getRules(),
         recommendationsApi.getSettings(),
-        recommendationsApi.getAnalytics(),
+        recommendationsApi.getAnalytics({ period: 'week' }),
+        recommendationsApi.getAnalyticsCTR('week'),
+        recommendationsApi.getAnalyticsTop('week', 10),
+        recommendationsApi.getAnalyticsDaily('week'),
       ]);
       const rulesData = rulesRes.data as any;
       setRules(Array.isArray(rulesData) ? rulesData : (rulesData?.rules || []));
       setSettings(settingsRes.data || null);
+
       const analyticsData = analyticsRes.data as any;
-      setAnalytics(analyticsData ? {
-        totalClicks: analyticsData.totalClicks || 0,
-        totalImpressions: analyticsData.totalInteractions || 0,
-        clickThroughRate: analyticsData.totalInteractions > 0
-          ? analyticsData.totalClicks / analyticsData.totalInteractions
-          : 0,
-        topPerforming: [],
-        byAlgorithm: [],
-        dailyStats: [],
-      } : null);
+      const ctrData = ctrRes.data as any;
+      const topData = topRes.data as any;
+      const dailyData = dailyRes.data as any;
+
+      // Convert clicksByRecommendationType object to byAlgorithm array
+      const byAlgorithm = analyticsData?.clicksByRecommendationType
+        ? Object.entries(analyticsData.clicksByRecommendationType).map(([algorithm, clicks]) => ({
+            algorithm,
+            clicks: clicks as number,
+            impressions: ctrData?.totalImpressions || 0,
+            ctr: ctrData?.totalImpressions > 0 ? ((clicks as number) / ctrData.totalImpressions) : 0,
+          }))
+        : [];
+
+      // Map top performing with proper structure
+      const topPerforming = (topData?.topPerforming || []).map((item: any) => ({
+        contentId: item.contentId,
+        contentType: item.contentType,
+        title: item.title || item.name || 'Unknown',
+        clicks: item.clicks || 0,
+        impressions: analyticsData?.totalInteractions || 0,
+        ctr: analyticsData?.totalInteractions > 0 ? (item.clicks / analyticsData.totalInteractions) : 0,
+      }));
+
+      // Merge daily clicks and impressions into single array
+      const clickStats = dailyData?.clickStats || [];
+      const interactionStats = dailyData?.interactionStats || [];
+      const allDates = new Set([
+        ...clickStats.map((s: any) => s.date),
+        ...interactionStats.map((s: any) => s.date),
+      ]);
+      const dailyStats = Array.from(allDates).sort().map((date) => ({
+        date: date as string,
+        clicks: clickStats.find((s: any) => s.date === date)?.count || 0,
+        impressions: interactionStats.find((s: any) => s.date === date)?.count || 0,
+      }));
+
+      setAnalytics({
+        totalClicks: analyticsData?.totalClicks || 0,
+        totalImpressions: ctrData?.totalImpressions || analyticsData?.totalInteractions || 0,
+        clickThroughRate: ctrData?.overallCTR ? ctrData.overallCTR / 100 : 0,
+        topPerforming,
+        byAlgorithm,
+        dailyStats,
+      });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load recommendations data');
     } finally {
@@ -724,7 +763,7 @@ function AnalyticsTab({ analytics }: { analytics: RecommendationAnalytics }) {
         ))}
       </div>
 
-      {/* Performance Chart Placeholder */}
+      {/* Performance Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
           <div className="flex items-center justify-between mb-6">
@@ -737,14 +776,59 @@ function AnalyticsTab({ analytics }: { analytics: RecommendationAnalytics }) {
                 <p className="text-sm text-slate-400">Clicks vs Impressions trend</p>
               </div>
             </div>
-          </div>
-          <div className="h-48 flex items-center justify-center border border-dashed border-slate-700/50 rounded-xl">
-            <div className="text-center">
-              <FiTrendingUp className="text-slate-600 mx-auto mb-2" size={32} />
-              <p className="text-slate-500">Analytics chart coming soon</p>
-              <p className="text-xs text-slate-600">Collect more data to see trends</p>
+            <div className="flex gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                <span className="text-slate-400">Clicks</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <span className="text-slate-400">Impressions</span>
+              </div>
             </div>
           </div>
+          {analytics.dailyStats.length === 0 ? (
+            <div className="h-48 flex items-center justify-center border border-dashed border-slate-700/50 rounded-xl">
+              <div className="text-center">
+                <FiTrendingUp className="text-slate-600 mx-auto mb-2" size={32} />
+                <p className="text-slate-500">No trend data yet</p>
+                <p className="text-xs text-slate-600">Data will appear as users interact</p>
+              </div>
+            </div>
+          ) : (
+            <div className="h-48 flex items-end gap-1 px-2">
+              {analytics.dailyStats.map((day, idx) => {
+                const maxVal = Math.max(...analytics.dailyStats.flatMap(d => [d.clicks, d.impressions]), 1);
+                const clickHeight = (day.clicks / maxVal) * 100;
+                const impHeight = (day.impressions / maxVal) * 100;
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    <div className="w-full flex gap-0.5 items-end h-36">
+                      <div
+                        className="flex-1 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${Math.max(clickHeight, 2)}%` }}
+                        title={`Clicks: ${day.clicks}`}
+                      />
+                      <div
+                        className="flex-1 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${Math.max(impHeight, 2)}%` }}
+                        title={`Impressions: ${day.impressions}`}
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-500 truncate w-full text-center">
+                      {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                    {/* Tooltip on hover */}
+                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+                      <p className="text-xs text-white font-medium">{new Date(day.date).toLocaleDateString()}</p>
+                      <p className="text-xs text-blue-400">Clicks: {day.clicks}</p>
+                      <p className="text-xs text-emerald-400">Impressions: {day.impressions}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Algorithm Performance */}
@@ -825,7 +909,10 @@ function AnalyticsTab({ analytics }: { analytics: RecommendationAnalytics }) {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <span className="w-6 h-6 bg-slate-700/50 rounded-lg flex items-center justify-center text-xs text-slate-400">{idx + 1}</span>
-                      <span className="font-mono text-sm text-white">{item.contentId.slice(0, 12)}...</span>
+                      <div>
+                        <span className="text-sm text-white">{item.title || item.contentId.slice(0, 20)}</span>
+                        <span className="block font-mono text-xs text-slate-500">{item.contentId.slice(0, 12)}...</span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">

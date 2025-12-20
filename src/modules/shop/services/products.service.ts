@@ -147,11 +147,24 @@ export class ProductsService {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Product not found');
 
-    const { variants, tags, ...productData } = dto;
+    const { variants, tags, slug: dtoSlug, ...productData } = dto;
 
-    // Handle slug update if name changed
+    // Handle slug update
     let slug = existing.slug;
-    if (dto.name && dto.name !== existing.name) {
+    if (dtoSlug && dtoSlug !== existing.slug) {
+      // Check if the new slug is already taken by another product
+      const slugExists = await this.prisma.product.findFirst({
+        where: {
+          slug: dtoSlug,
+          id: { not: id },
+        },
+      });
+      if (slugExists) {
+        throw new ConflictException(`Slug "${dtoSlug}" is already in use`);
+      }
+      slug = dtoSlug;
+    } else if (dto.name && dto.name !== existing.name && !dtoSlug) {
+      // Generate new slug only if name changed and no custom slug provided
       slug = this.generateSlug(dto.name);
     }
 

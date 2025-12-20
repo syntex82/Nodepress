@@ -17,6 +17,7 @@ import { ProfilesService } from '../users/profiles.service';
 import { AuthService } from '../auth/auth.service';
 import { RecommendationsService } from '../recommendations/recommendations.service';
 import { RecommendationTrackingService } from '../recommendations/recommendation-tracking.service';
+import { PrismaService } from '../../database/prisma.service';
 import { PostStatus } from '@prisma/client';
 import { CourseLevel, CoursePriceType } from '../lms/dto/course.dto';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -37,6 +38,7 @@ export class PublicController {
     private recommendationsService: RecommendationsService,
     @Inject(forwardRef(() => RecommendationTrackingService))
     private trackingService: RecommendationTrackingService,
+    private prisma: PrismaService,
   ) {}
 
   /**
@@ -335,6 +337,34 @@ export class PublicController {
     } catch (error) {
       console.error('Error rendering checkout page:', error);
       res.status(500).send(`Error rendering checkout page: ${error.message}`);
+    }
+  }
+
+  /**
+   * Order success page
+   * GET /order-success
+   */
+  @Get('order-success')
+  @UseGuards(OptionalJwtAuthGuard)
+  async orderSuccessPage(
+    @Req() req: Request,
+    @Query('order') orderId: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const user = (req as any).user;
+      let order: any = null;
+      if (orderId) {
+        order = await this.prisma.order.findUnique({
+          where: { id: orderId },
+          include: { items: true },
+        });
+      }
+      const html = await this.themeRenderer.renderOrderSuccess(order, user);
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering order success page:', error);
+      res.status(500).send(`Error rendering order success page: ${error.message}`);
     }
   }
 

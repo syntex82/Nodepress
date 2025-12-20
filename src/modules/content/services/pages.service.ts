@@ -167,12 +167,29 @@ export class PagesService {
    * Update page
    */
   async update(id: string, updatePageDto: UpdatePageDto) {
-    await this.findById(id);
+    const existingPage = await this.findById(id);
 
     const data: any = { ...updatePageDto };
 
-    if (updatePageDto.title) {
+    // Handle slug update - if slug is explicitly provided, validate uniqueness
+    if (updatePageDto.slug && updatePageDto.slug !== existingPage.slug) {
+      // Check if the new slug is already taken by another page
+      const slugExists = await this.prisma.page.findFirst({
+        where: {
+          slug: updatePageDto.slug,
+          id: { not: id },
+        },
+      });
+      if (slugExists) {
+        throw new Error(`Slug "${updatePageDto.slug}" is already in use`);
+      }
+      data.slug = updatePageDto.slug;
+    } else if (updatePageDto.title && updatePageDto.title !== existingPage.title && !updatePageDto.slug) {
+      // Generate new slug only if title changed and no custom slug provided
       data.slug = await this.generateSlug(updatePageDto.title, id);
+    } else {
+      // Don't change slug if neither slug nor title changed
+      delete data.slug;
     }
 
     if (updatePageDto.status === PostStatus.PUBLISHED) {

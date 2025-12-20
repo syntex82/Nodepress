@@ -69,6 +69,7 @@ export class LessonsService {
       include: {
         videoAsset: true,
         quiz: { select: { id: true, title: true } },
+        module: { select: { id: true, title: true } },
       },
     });
   }

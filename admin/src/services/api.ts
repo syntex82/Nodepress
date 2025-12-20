@@ -1022,9 +1022,23 @@ export interface Lesson {
   type: 'VIDEO' | 'ARTICLE' | 'QUIZ' | 'ASSIGNMENT';
   videoAssetId?: string;
   videoAsset?: VideoAsset;
+  moduleId?: string;
+  module?: { id: string; title: string };
   estimatedMinutes?: number;
   isPreview: boolean;
   isRequired: boolean;
+  quiz?: { id: string; title: string };
+}
+
+export interface CourseModule {
+  id: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  orderIndex: number;
+  isPublished: boolean;
+  lessons?: Lesson[];
+  _count?: { lessons: number };
 }
 
 export interface VideoAsset {
@@ -1104,6 +1118,16 @@ export const lmsAdminApi = {
   updateCourse: (id: string, data: Partial<Course>) => api.put<Course>(`/lms/admin/courses/${id}`, data),
   deleteCourse: (id: string) => api.delete(`/lms/admin/courses/${id}`),
   getCategories: () => api.get<string[]>('/lms/admin/courses/categories/list'),
+
+  // Modules (Curriculum Sections)
+  getModules: (courseId: string) => api.get<CourseModule[]>(`/lms/admin/courses/${courseId}/modules`),
+  getModule: (courseId: string, id: string) => api.get<CourseModule>(`/lms/admin/courses/${courseId}/modules/${id}`),
+  createModule: (courseId: string, data: Partial<CourseModule>) => api.post<CourseModule>(`/lms/admin/courses/${courseId}/modules`, data),
+  updateModule: (courseId: string, id: string, data: Partial<CourseModule>) => api.put<CourseModule>(`/lms/admin/courses/${courseId}/modules/${id}`, data),
+  deleteModule: (courseId: string, id: string) => api.delete(`/lms/admin/courses/${courseId}/modules/${id}`),
+  reorderModules: (courseId: string, moduleIds: string[]) => api.put(`/lms/admin/courses/${courseId}/modules/reorder`, { moduleIds }),
+  moveLessonToModule: (courseId: string, lessonId: string, moduleId: string | null, orderIndex?: number) =>
+    api.put(`/lms/admin/courses/${courseId}/modules/lessons/move`, { lessonId, moduleId, orderIndex }),
 
   // Lessons
   getLessons: (courseId: string) => api.get<Lesson[]>(`/lms/admin/courses/${courseId}/lessons`),
@@ -1496,7 +1520,7 @@ export interface RecommendationAnalytics {
   totalClicks: number;
   totalImpressions: number;
   clickThroughRate: number;
-  topPerforming: Array<{ contentId: string; contentType: string; clicks: number; impressions: number; ctr: number }>;
+  topPerforming: Array<{ contentId: string; contentType: string; title?: string; clicks: number; impressions: number; ctr: number }>;
   byAlgorithm: Array<{ algorithm: string; clicks: number; impressions: number; ctr: number }>;
   dailyStats: Array<{ date: string; clicks: number; impressions: number }>;
 }
@@ -1514,8 +1538,14 @@ export const recommendationsApi = {
   updateSettings: (data: Partial<RecommendationSettings>) => api.put<RecommendationSettings>('/admin/recommendations/settings', data),
 
   // Analytics
-  getAnalytics: (params?: { startDate?: string; endDate?: string }) =>
-    api.get<RecommendationAnalytics>('/admin/recommendations/analytics', { params }),
+  getAnalytics: (params?: { period?: string; contentType?: string }) =>
+    api.get('/admin/recommendations/analytics', { params }),
+  getAnalyticsCTR: (period?: string) =>
+    api.get('/admin/recommendations/analytics/ctr', { params: { period } }),
+  getAnalyticsTop: (period?: string, limit?: number) =>
+    api.get('/admin/recommendations/analytics/top', { params: { period, limit } }),
+  getAnalyticsDaily: (period?: string, contentType?: string) =>
+    api.get('/admin/recommendations/analytics/daily', { params: { period, contentType } }),
 
   // Cache
   clearCache: (contentType?: string) => api.post('/admin/recommendations/cache/clear', { contentType }),

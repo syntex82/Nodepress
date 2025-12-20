@@ -93,9 +93,9 @@ export class ThemeRendererService {
    */
   private async registerPartials(themeSlug: string) {
     try {
-      const partials = ['header', 'footer', 'sidebar'];
-
-      for (const partial of partials) {
+      // Partials in templates folder (legacy)
+      const templatePartials = ['header', 'footer', 'sidebar'];
+      for (const partial of templatePartials) {
         try {
           const partialPath = this.themesService.getTemplatePath(themeSlug, partial);
           const partialContent = await fs.readFile(partialPath, 'utf-8');
@@ -103,6 +103,22 @@ export class ThemeRendererService {
         } catch (_error) {
           // Partial doesn't exist, skip it
         }
+      }
+
+      // Partials in partials folder
+      const partialsDir = this.themesService.getPartialsPath(themeSlug);
+      try {
+        const files = await fs.readdir(partialsDir);
+        for (const file of files) {
+          if (file.endsWith('.hbs')) {
+            const partialName = file.replace('.hbs', '');
+            const partialPath = `${partialsDir}/${file}`;
+            const partialContent = await fs.readFile(partialPath, 'utf-8');
+            Handlebars.registerPartial(partialName, partialContent);
+          }
+        }
+      } catch (_error) {
+        // Partials directory doesn't exist, skip
       }
     } catch (error) {
       console.error('Error registering partials:', error);
@@ -231,8 +247,14 @@ export class ThemeRendererService {
   /**
    * Render archive/listing
    */
-  async renderArchive(posts: any[], pagination: any, user?: { id: string; role: string } | null) {
-    return this.render('archive', { posts, pagination }, user);
+  async renderArchive(
+    posts: any[],
+    pagination: any,
+    user?: { id: string; role: string } | null,
+    archiveTitle = 'Blog',
+    archiveDescription = 'Latest posts and articles',
+  ) {
+    return this.render('archive', { posts, pagination, archiveTitle, archiveDescription }, user);
   }
 
   /**
@@ -431,6 +453,23 @@ export class ThemeRendererService {
       {
         user,
         isAdmin: user?.role === 'ADMIN',
+      },
+      user,
+    );
+  }
+
+  /**
+   * Render order success page
+   */
+  async renderOrderSuccess(
+    order: any,
+    user?: { id: string; role: string; name?: string } | null,
+  ) {
+    return this.render(
+      'order-success',
+      {
+        order,
+        user,
       },
       user,
     );

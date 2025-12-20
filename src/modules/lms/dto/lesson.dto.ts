@@ -32,6 +32,10 @@ export class CreateLessonDto {
   videoAssetId?: string;
 
   @IsOptional()
+  @IsUUID()
+  moduleId?: string;
+
+  @IsOptional()
   @IsNumber()
   @Min(0)
   estimatedMinutes?: number;

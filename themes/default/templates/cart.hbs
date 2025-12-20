@@ -1,0 +1,265 @@
+{{> header}}
+<style>
+  .cart-section {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    padding: 120px 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+  .cart-container { max-width: 1100px; margin: 0 auto; }
+  .cart-title { font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 2rem; text-align: center; }
+  .cart-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; }
+  .cart-items-card {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  .cart-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .cart-item:first-child { padding-top: 0; }
+  .cart-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .cart-item-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .cart-item-details { flex: 1; }
+  .cart-item-title { font-weight: 600; color: white; margin-bottom: 0.25rem; }
+  .cart-item-type {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  .cart-item-type.course { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+  .cart-item-type.product { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+  .cart-item-price { color: #94a3b8; font-size: 0.95rem; }
+  .cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; }
+  .qty-controls { display: flex; align-items: center; gap: 0.5rem; }
+  .qty-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .qty-btn:hover { border-color: #8b5cf6; color: #8b5cf6; }
+  .qty-value { min-width: 24px; text-align: center; font-weight: 500; color: white; }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .remove-btn:hover { background: rgba(239, 68, 68, 0.1); }
+  .cart-summary {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+  }
+  .cart-summary h3 { color: white; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+  .summary-row { display: flex; justify-content: space-between; padding: 0.75rem 0; color: #94a3b8; }
+  .summary-row.total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+  }
+  .checkout-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+  .continue-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .continue-btn:hover { background: rgba(255, 255, 255, 0.2); }
+  .empty-cart {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+  }
+  .empty-cart .icon { font-size: 5rem; margin-bottom: 1.5rem; }
+  .empty-cart h2 { color: white; margin-bottom: 0.5rem; }
+  .empty-cart p { color: #94a3b8; margin-bottom: 2rem; }
+  .empty-cart .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .loading-state { text-align: center; padding: 3rem; color: #94a3b8; }
+  @media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; } .cart-summary { position: static; } }
+  @media (max-width: 600px) {
+    .cart-item { flex-wrap: wrap; }
+    .cart-item-image { width: 80px; height: 80px; }
+    .cart-item-actions { flex-direction: row; width: 100%; justify-content: space-between; margin-top: 0.5rem; }
+  }
+</style>
+
+<section class="cart-section">
+  <div class="cart-container">
+    <h1 class="cart-title">🛒 Shopping Cart</h1>
+    <div class="cart-layout" id="cartContent">
+      <div class="cart-items-card" id="cartItems">
+        <div class="loading-state">⏳ Loading cart...</div>
+      </div>
+      <div class="cart-summary" id="cartSummary">
+        <h3>Order Summary</h3>
+        <div class="summary-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+        <div class="summary-row"><span>Tax</span><span id="tax">$0.00</span></div>
+        <div class="summary-row total"><span>Total</span><span id="total">$0.00</span></div>
+        <a href="/checkout" class="checkout-btn" id="checkoutBtn">🔒 Proceed to Checkout</a>
+        <a href="/shop" class="continue-btn">Continue Shopping</a>
+      </div>
+    </div>
+    <div class="empty-cart" id="emptyCart">
+      <div class="icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Looks like you haven't added anything yet.</p>
+      <div class="actions">
+        <a href="/shop" class="checkout-btn" style="width:auto;padding:1rem 2rem;">🛍️ Browse Products</a>
+        <a href="/courses" class="continue-btn" style="width:auto;padding:1rem 2rem;">📚 Explore Courses</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  var API = '/api/shop/cart';
+
+  async function loadCart() {
+    var itemsContainer = document.getElementById('cartItems');
+    var emptyCart = document.getElementById('emptyCart');
+    var cartContent = document.getElementById('cartContent');
+    try {
+      var r = await fetch(API, { credentials: 'include' });
+      if (!r.ok) throw new Error('Failed to load cart');
+      var cart = await r.json();
+      if (!cart.items || cart.items.length === 0) {
+        cartContent.style.display = 'none';
+        emptyCart.style.display = 'block';
+        return;
+      }
+      cartContent.style.display = 'grid';
+      emptyCart.style.display = 'none';
+      renderItems(cart.items);
+      updateSummary(cart);
+    } catch (e) {
+      itemsContainer.innerHTML = '<div class="loading-state" style="color:#f87171;">Failed to load cart. Please refresh.</div>';
+    }
+  }
+
+  function renderItems(items) {
+    var container = document.getElementById('cartItems');
+    container.innerHTML = items.map(function(item) {
+      var isCourse = item.itemType === 'COURSE';
+      var img = item.image || '';
+      var title = item.name || 'Item';
+      var price = item.price || 0;
+      var imgHtml = img
+        ? '<img src="' + img + '" alt="' + title + '" class="cart-item-image" onerror="this.style.background=\'rgba(255,255,255,0.1)\';this.src=\'\'">'
+        : '<div class="cart-item-image" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">' + (isCourse ? '📚' : '📦') + '</div>';
+      var qtyHtml = isCourse ? '<span style="color:#94a3b8;">Qty: 1</span>' :
+        '<div class="qty-controls">' +
+          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity - 1) + ')">−</button>' +
+          '<span class="qty-value">' + item.quantity + '</span>' +
+          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity + 1) + ')">+</button>' +
+        '</div>';
+      return '<div class="cart-item">' +
+        imgHtml +
+        '<div class="cart-item-details">' +
+          '<div class="cart-item-title">' + title + '</div>' +
+          '<span class="cart-item-type ' + (isCourse ? 'course' : 'product') + '">' + (isCourse ? '📚 Course' : '📦 Product') + '</span>' +
+          '<div class="cart-item-price">$' + parseFloat(price).toFixed(2) + (isCourse ? '' : ' × ' + item.quantity) + '</div>' +
+        '</div>' +
+        '<div class="cart-item-actions">' + qtyHtml +
+          '<button class="remove-btn" onclick="removeItem(\'' + item.id + '\')">🗑️ Remove</button>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function updateSummary(cart) {
+    var subtotal = cart.subtotal || 0;
+    var tax = 0;
+    document.getElementById('subtotal').textContent = '$' + parseFloat(subtotal).toFixed(2);
+    document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+    document.getElementById('total').textContent = '$' + parseFloat(subtotal).toFixed(2);
+  }
+
+  window.updateQuantity = async function(id, qty) {
+    if (qty < 1) { removeItem(id); return; }
+    try {
+      await fetch(API + '/item/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: qty }),
+        credentials: 'include'
+      });
+      loadCart();
+    } catch (e) { console.error('Update error:', e); }
+  };
+
+  window.removeItem = async function(id) {
+    try {
+      await fetch(API + '/item/' + id, { method: 'DELETE', credentials: 'include' });
+      loadCart();
+    } catch (e) { console.error('Remove error:', e); }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadCart);
+  } else {
+    loadCart();
+  }
+})();
+</script>
+{{> footer}}
+

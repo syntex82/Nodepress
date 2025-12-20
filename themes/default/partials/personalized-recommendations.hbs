@@ -1,0 +1,152 @@
+<style>
+  .personalized-section {
+    max-width: 1200px;
+    margin: 2rem auto 3rem;
+    padding: 0 20px;
+  }
+  .personalized-section.hidden { display: none; }
+  .personalized-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .personalized-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .personalized-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+  .personalized-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: personalized-spin 0.8s linear infinite;
+  }
+  @keyframes personalized-spin { to { transform: rotate(360deg); } }
+  .personalized-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+  @media (max-width: 1024px) { .personalized-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 768px) { .personalized-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .personalized-grid { grid-template-columns: 1fr; } }
+  .personalized-card {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+  }
+  .personalized-card:hover {
+    border-color: #6366f1;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+  }
+  .personalized-card-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.6);
+  }
+  .personalized-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  .personalized-card:hover .personalized-card-img img { transform: scale(1.05); }
+  .personalized-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  }
+  .personalized-card-body { padding: 1rem; }
+  .personalized-card-type {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+  }
+  .personalized-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .personalized-card-excerpt {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 0.4rem;
+  }
+</style>
+<section class="personalized-section hidden" id="personalizedSection" data-content-type="{{contentType}}">
+  <div class="personalized-header">
+    <h2 class="personalized-title">{{#if recTitle}}{{recTitle}}{{else}}✨ Recommended for You{{/if}}</h2>
+    <div class="personalized-loading" id="personalizedLoading"><div class="personalized-spinner"></div><span>Loading...</span></div>
+  </div>
+  <div class="personalized-grid" id="personalizedGrid"></div>
+</section>
+<script>
+(function() {
+  var section = document.getElementById('personalizedSection');
+  if (!section) return;
+  var contentType = section.dataset.contentType || 'post';
+  var grid = document.getElementById('personalizedGrid');
+  var loading = document.getElementById('personalizedLoading');
+  fetch('/api/recommendations/personalized/' + contentType + '?limit=4', { credentials: 'include' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      loading.style.display = 'none';
+      if (!data.items || data.items.length === 0) return;
+      section.classList.remove('hidden');
+      grid.innerHTML = data.items.map(function(item) {
+        var url = '/post/' + item.slug;
+        var imgHtml = item.image ? '<img src="' + item.image + '" alt="' + item.title + '" onerror="this.parentElement.innerHTML=\'<div class=personalized-card-img-placeholder>📝</div>\'">' : '<div class="personalized-card-img-placeholder">📝</div>';
+        return '<a href="' + url + '" class="personalized-card">' +
+          '<div class="personalized-card-img">' + imgHtml + '</div>' +
+          '<div class="personalized-card-body">' +
+            '<span class="personalized-card-type">Post</span>' +
+            '<div class="personalized-card-title">' + item.title + '</div>' +
+            (item.excerpt ? '<div class="personalized-card-excerpt">' + item.excerpt + '</div>' : '') +
+          '</div></a>';
+      }).join('');
+    })
+    .catch(function() { loading.style.display = 'none'; });
+})();
+</script>
+

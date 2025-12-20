@@ -47,8 +47,18 @@ export default function PageEditor() {
     setSaving(true);
 
     try {
-      // Don't send slug - backend auto-generates it from title
-      const { slug, ...dataToSend } = formData;
+      // Prepare data - only include slug if it has a value
+      const dataToSend: any = {
+        title: formData.title,
+        content: formData.content,
+        status: formData.status,
+      };
+
+      // Only send slug if user has entered one (for custom slugs)
+      if (formData.slug && formData.slug.trim()) {
+        dataToSend.slug = formData.slug.trim().toLowerCase().replace(/\s+/g, '-');
+      }
+
       if (id) {
         await pagesApi.update(id, dataToSend);
         toast.success('Page updated successfully');

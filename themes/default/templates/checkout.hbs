@@ -1,0 +1,387 @@
+{{> header}}
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  .checkout-section {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    padding: 120px 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+  .checkout-container { max-width: 1100px; margin: 0 auto; }
+  .checkout-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+  }
+  .checkout-form-card {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+  }
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .form-section:last-of-type { border-bottom: none; margin-bottom: 1.5rem; }
+  .form-section h3 {
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .form-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  }
+  .form-input::placeholder { color: #64748b; }
+  select.form-input { cursor: pointer; }
+  #card-element {
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+  }
+  #card-errors { color: #f87171; margin-top: 0.5rem; font-size: 0.875rem; }
+  .checkout-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+  .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+  .order-summary {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+  }
+  .order-summary h3 { color: white; font-size: 1.25rem; margin-bottom: 1rem; }
+  #orderItems { max-height: 300px; overflow-y: auto; margin-bottom: 1rem; }
+  .order-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .order-item-img {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    object-fit: cover;
+  }
+  .order-item-info { flex: 1; }
+  .order-item-title { color: white; font-weight: 500; font-size: 0.9rem; }
+  .order-item-meta { color: #64748b; font-size: 0.8rem; }
+  .order-item-price { color: white; font-weight: 500; }
+  .order-totals { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem; }
+  .total-row { display: flex; justify-content: space-between; padding: 0.5rem 0; color: #94a3b8; }
+  .total-row.final { font-size: 1.25rem; font-weight: 700; color: white; padding-top: 0.75rem; }
+  .secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #64748b;
+    font-size: 0.8rem;
+  }
+  @media (max-width: 900px) {
+    .checkout-layout { grid-template-columns: 1fr; }
+    .order-summary { position: static; order: -1; }
+  }
+</style>
+
+<section class="checkout-section">
+  <div class="checkout-container">
+    <h1 class="checkout-title">🔒 Secure Checkout</h1>
+    <div class="checkout-layout">
+      <div class="checkout-form-card">
+        <form id="checkoutForm">
+          <div class="form-section">
+            <h3>📧 Contact Information</h3>
+            {{#if user}}<p style="color: #94a3b8; margin-bottom: 1rem;">Logged in as <strong style="color: #10b981;">{{user.email}}</strong></p>{{/if}}
+            <div class="form-group">
+              <label>Email Address *</label>
+              <input type="email" name="email" id="checkoutEmail" class="form-input" required value="{{#if user}}{{user.email}}{{/if}}" placeholder="your@email.com">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>🏠 Billing Address</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>First Name *</label>
+                <input type="text" name="firstName" class="form-input" required placeholder="John">
+              </div>
+              <div class="form-group">
+                <label>Last Name *</label>
+                <input type="text" name="lastName" class="form-input" required placeholder="Doe">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Street Address *</label>
+              <input type="text" name="address" class="form-input" required placeholder="123 Main Street">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>City *</label>
+                <input type="text" name="city" class="form-input" required placeholder="New York">
+              </div>
+              <div class="form-group">
+                <label>State / Province</label>
+                <input type="text" name="state" class="form-input" placeholder="NY">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Postal Code *</label>
+                <input type="text" name="postalCode" class="form-input" required placeholder="10001">
+              </div>
+              <div class="form-group">
+                <label>Country *</label>
+                <select name="country" class="form-input" required>
+                  <option value="">Select Country</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>💳 Payment Details</h3>
+            <div id="card-element"></div>
+            <div id="card-errors"></div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="placeOrderBtn">
+            <span class="btn-text">💰 Pay Now</span>
+            <span class="btn-loading" style="display: none;">Processing...</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="order-summary">
+        <h3>🛒 Order Summary</h3>
+        <div id="orderItems"><div style="color: #64748b; text-align: center; padding: 2rem;">Loading cart...</div></div>
+        <div class="order-totals">
+          <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+          <div class="total-row"><span>Tax</span><span id="tax">$0.00</span></div>
+          <div class="total-row final"><span>Total</span><span id="total">$0.00</span></div>
+        </div>
+        <div class="secure-badge">🔐 Secured by Stripe</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var API = '/api/shop';
+  var stripe = null;
+  var cardElement = null;
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    await initStripe();
+    await loadOrderSummary();
+    setupForm();
+  });
+
+  async function initStripe() {
+    try {
+      var r = await fetch(API + '/checkout/config', { credentials: 'include' });
+      if (!r.ok) throw new Error('Failed to load Stripe');
+      var config = await r.json();
+      if (config.publishableKey) {
+        stripe = Stripe(config.publishableKey);
+        var elements = stripe.elements();
+        cardElement = elements.create('card', {
+          style: {
+            base: { color: '#E2E8F0', fontFamily: 'system-ui, sans-serif', fontSize: '16px', '::placeholder': { color: '#64748b' } },
+            invalid: { color: '#f87171', iconColor: '#f87171' }
+          }
+        });
+        cardElement.mount('#card-element');
+        cardElement.on('change', function(e) {
+          document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+        });
+      }
+    } catch (e) {
+      document.getElementById('card-errors').textContent = 'Payment system failed to load. Please refresh.';
+    }
+  }
+
+  async function loadOrderSummary() {
+    try {
+      var r = await fetch(API + '/cart', { credentials: 'include' });
+      if (!r.ok) throw new Error();
+      var cart = await r.json();
+      if (!cart.items || cart.items.length === 0) {
+        window.location.href = '/cart';
+        return;
+      }
+      renderItems(cart.items);
+      updateTotals(cart);
+    } catch (e) {
+      document.getElementById('orderItems').innerHTML = '<p style="color:#f87171;">Failed to load cart</p>';
+    }
+  }
+
+  function renderItems(items) {
+    document.getElementById('orderItems').innerHTML = items.map(function(i) {
+      var isCourse = i.itemType === 'COURSE';
+      var title = i.name || 'Item';
+      var price = parseFloat(i.price || 0) * i.quantity;
+      var img = i.image || '';
+      var imgHtml = img
+        ? '<img src="' + img + '" alt="' + title + '" class="order-item-img" onerror="this.style.display=\'none\'">'
+        : '<div class="order-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;">' + (isCourse ? '📚' : '📦') + '</div>';
+      return '<div class="order-item">' +
+        imgHtml +
+        '<div class="order-item-info"><div class="order-item-title">' + title + '</div>' +
+        '<div class="order-item-meta">' + (isCourse ? 'Course' : 'Qty: ' + i.quantity) + '</div></div>' +
+        '<div class="order-item-price">$' + price.toFixed(2) + '</div></div>';
+    }).join('');
+  }
+
+  function updateTotals(cart) {
+    var sub = parseFloat(cart.subtotal || 0);
+    document.getElementById('subtotal').textContent = '$' + sub.toFixed(2);
+    document.getElementById('tax').textContent = '$0.00';
+    document.getElementById('total').textContent = '$' + sub.toFixed(2);
+  }
+
+  function setupForm() {
+    var form = document.getElementById('checkoutForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var txt = btn.querySelector('.btn-text');
+      var load = btn.querySelector('.btn-loading');
+      txt.style.display = 'none';
+      load.style.display = 'inline';
+      btn.disabled = true;
+
+      var fd = new FormData(form);
+      var email = fd.get('email');
+      if (!email) { showError('Email is required'); resetBtn(); return; }
+      if (!stripe || !cardElement) { showError('Payment not ready. Refresh page.'); resetBtn(); return; }
+
+      try {
+        load.textContent = 'Creating order...';
+        var orderData = {
+          email: email,
+          billingAddress: {
+            firstName: fd.get('firstName') || '', lastName: fd.get('lastName') || '',
+            address1: fd.get('address') || '', city: fd.get('city') || '',
+            state: fd.get('state') || '', postalCode: fd.get('postalCode') || '',
+            country: fd.get('country') || ''
+          }
+        };
+
+        var r = await fetch(API + '/checkout/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData),
+          credentials: 'include'
+        });
+        if (!r.ok) { var err = await r.json(); throw new Error(err.message || 'Order failed'); }
+        var result = await r.json();
+
+        load.textContent = 'Processing payment...';
+        var payment = await stripe.confirmCardPayment(result.clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              email: email,
+              name: (fd.get('firstName') + ' ' + fd.get('lastName')).trim(),
+              address: { line1: fd.get('address'), city: fd.get('city'), state: fd.get('state'), postal_code: fd.get('postalCode'), country: fd.get('country') }
+            }
+          }
+        });
+
+        if (payment.error) throw new Error(payment.error.message);
+        load.textContent = 'Success!';
+        window.location.href = '/order-success?order=' + result.order.id;
+      } catch (e) {
+        showError(e.message || 'Checkout failed');
+        resetBtn();
+      }
+
+      function resetBtn() { txt.style.display = 'inline'; load.style.display = 'none'; load.textContent = 'Processing...'; btn.disabled = false; }
+    });
+  }
+
+  function showError(msg) {
+    var old = document.querySelector('.checkout-error');
+    if (old) old.remove();
+    var div = document.createElement('div');
+    div.className = 'checkout-error';
+    div.textContent = msg;
+    document.getElementById('checkoutForm').insertBefore(div, document.getElementById('checkoutForm').firstChild);
+  }
+})();
+</script>
+{{> footer}}
+

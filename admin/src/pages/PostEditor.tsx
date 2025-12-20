@@ -51,7 +51,7 @@ export default function PostEditor() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim()) {
       toast.error('Title is required');
       return;
@@ -59,11 +59,24 @@ export default function PostEditor() {
 
     setSaving(true);
     try {
+      // Prepare data - only include slug if it has a value
+      const dataToSend: any = {
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        status: formData.status,
+      };
+
+      // Only send slug if user has entered one (for custom slugs)
+      if (formData.slug && formData.slug.trim()) {
+        dataToSend.slug = formData.slug.trim().toLowerCase().replace(/\s+/g, '-');
+      }
+
       if (id) {
-        await postsApi.update(id, formData);
+        await postsApi.update(id, dataToSend);
         toast.success('Post updated successfully');
       } else {
-        await postsApi.create(formData);
+        await postsApi.create(dataToSend);
         toast.success('Post created successfully');
       }
       navigate('/posts');

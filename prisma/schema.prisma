@@ -1483,6 +1483,7 @@ model Course {
   updatedAt           DateTime      @updatedAt
 
   // Relations
+  modules             CourseModule[]
   lessons             Lesson[]
   quizzes             Quiz[]
   enrollments         Enrollment[]
@@ -1516,28 +1517,50 @@ enum CourseStatus {
   ARCHIVED
 }
 
+// CourseModule model - sections/modules to group lessons
+model CourseModule {
+  id           String   @id @default(uuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?  @db.Text
+  orderIndex   Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  lessons      Lesson[]
+
+  @@index([courseId])
+  @@index([orderIndex])
+}
+
 // Lesson model - individual lessons within a course
 model Lesson {
-  id               String       @id @default(uuid())
+  id               String        @id @default(uuid())
   courseId         String
-  course           Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course           Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  moduleId         String?
+  module           CourseModule? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   title            String
-  content          String?      @db.Text
-  orderIndex       Int          @default(0)
-  type             LessonType   @default(VIDEO)
+  content          String?       @db.Text
+  orderIndex       Int           @default(0)
+  type             LessonType    @default(VIDEO)
   videoAssetId     String?
-  videoAsset       VideoAsset?  @relation(fields: [videoAssetId], references: [id], onDelete: SetNull)
+  videoAsset       VideoAsset?   @relation(fields: [videoAssetId], references: [id], onDelete: SetNull)
   estimatedMinutes Int?
-  isPreview        Boolean      @default(false)
-  isRequired       Boolean      @default(true)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  isPreview        Boolean       @default(false)
+  isRequired       Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   // Relations
   progress         LessonProgress[]
-  quiz             Quiz?        @relation("LessonQuiz")
+  quiz             Quiz?         @relation("LessonQuiz")
 
   @@index([courseId])
+  @@index([moduleId])
   @@index([orderIndex])
 }
 

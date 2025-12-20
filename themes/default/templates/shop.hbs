@@ -2,46 +2,51 @@
 
 <style>
   .shop-page {
-    background: #f8fafc;
-    min-height: calc(100vh - 70px);
-    padding: 60px 40px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    padding: 100px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+  .shop-container {
+    max-width: 1200px;
+    margin: 0 auto;
   }
   .shop-header {
     text-align: center;
-    max-width: 700px;
-    margin: 0 auto 3rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   .shop-header h1 {
     font-size: 2.5rem;
-    color: #0f172a;
-    margin-bottom: 1rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.75rem;
   }
   .shop-header p {
-    color: #64748b;
+    color: #94a3b8;
     font-size: 1.1rem;
   }
   .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
   .product-card {
-    background: white;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
-    border: 1px solid #e2e8f0;
   }
   .product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-4px);
   }
   .product-image {
     height: 200px;
-    background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(16, 185, 129, 0.3) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,15 +65,17 @@
   }
   .product-body h3 {
     font-size: 1.1rem;
+    font-weight: 700;
     margin-bottom: 0.5rem;
-    color: #0f172a;
+    color: #fff;
   }
   .product-body h3 a {
     color: inherit;
     text-decoration: none;
+    transition: color 0.2s;
   }
   .product-body h3 a:hover {
-    color: #6366f1;
+    color: #818cf8;
   }
   .product-price {
     font-size: 1.25rem;
@@ -78,7 +85,7 @@
   }
   .product-price .original {
     text-decoration: line-through;
-    color: #94a3b8;
+    color: #64748b;
     font-size: 0.9rem;
     font-weight: 400;
     margin-left: 0.5rem;
@@ -100,54 +107,148 @@
   }
   .empty-state {
     text-align: center;
-    padding: 60px 20px;
-    color: #64748b;
+    padding: 4rem 2rem;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
   }
   .empty-state span {
     font-size: 4rem;
     display: block;
     margin-bottom: 1rem;
   }
+  .empty-state h2 {
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .empty-state p {
+    color: #94a3b8;
+  }
+  @media (max-width: 768px) {
+    .shop-page { padding-top: 80px; }
+    .shop-header h1 { font-size: 2rem; }
+    .products-grid { grid-template-columns: 1fr; }
+  }
 </style>
 
-<section class="shop-page">
-  <div class="shop-header">
-    <h1>🛍️ Shop</h1>
-    <p>Browse our collection of products and merchandise.</p>
-  </div>
+<div class="shop-page">
+  <div class="shop-container">
+    <div class="shop-header">
+      <h1>🛍️ Shop</h1>
+      <p>Browse our collection of products and merchandise.</p>
+    </div>
 
-  {{#if products.length}}
-  <div class="products-grid">
-    {{#each products}}
-    <div class="product-card">
-      <div class="product-image">
-        {{#if images.[0]}}
-        <img src="{{images.[0]}}" alt="{{name}}">
-        {{else}}
-        <div class="product-placeholder">🛍️</div>
-        {{/if}}
-      </div>
-      <div class="product-body">
-        <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
-        <div class="product-price">
-          ${{price}}
-          {{#if compareAtPrice}}
-          <span class="original">${{compareAtPrice}}</span>
+    {{#if products.length}}
+    <div class="products-grid">
+      {{#each products}}
+      <div class="product-card">
+        <div class="product-image">
+          {{#if images.[0]}}
+          <img src="{{images.[0]}}" alt="{{name}}">
+          {{else}}
+          <div class="product-placeholder">🛍️</div>
           {{/if}}
         </div>
-        <a href="/shop/product/{{slug}}" class="btn-cart">View Product</a>
+        <div class="product-body">
+          <h3><a href="/shop/product/{{slug}}">{{name}}</a></h3>
+          <div class="product-price">
+            ${{price}}
+            {{#if compareAtPrice}}
+            <span class="original">${{compareAtPrice}}</span>
+            {{/if}}
+          </div>
+          <div class="product-actions">
+            <button class="btn-cart add-to-cart-btn" data-product-id="{{id}}">🛒 Add to Cart</button>
+            <a href="/shop/product/{{slug}}" class="btn-view">View</a>
+          </div>
+        </div>
       </div>
+      {{/each}}
     </div>
-    {{/each}}
+    {{else}}
+    <div class="empty-state">
+      <span>📭</span>
+      <h2>No products available yet</h2>
+      <p>Check back soon for new products!</p>
+    </div>
+    {{/if}}
   </div>
-  {{else}}
-  <div class="empty-state">
-    <span>📭</span>
-    <h2>No products available yet</h2>
-    <p>Check back soon for new products!</p>
-  </div>
-  {{/if}}
-</section>
+</div>
 
+<style>
+  .product-actions { display: flex; gap: 0.5rem; }
+  .btn-cart { flex: 1; border: none; cursor: pointer; }
+  .btn-cart:disabled { opacity: 0.7; cursor: not-allowed; }
+  .btn-view {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+  .btn-view:hover { background: rgba(255, 255, 255, 0.2); }
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+  }
+  .notification.success { background: #10b981; }
+  .notification.error { background: #ef4444; }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+
+<script>
+(function() {
+  function showNotification(message, type) {
+    var div = document.createElement('div');
+    div.className = 'notification ' + type;
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 3000);
+  }
+
+  document.querySelectorAll('.add-to-cart-btn').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      var productId = this.dataset.productId;
+      var originalText = this.innerHTML;
+      this.innerHTML = '⏳ Adding...';
+      this.disabled = true;
+
+      try {
+        var response = await fetch('/api/shop/cart/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: productId, quantity: 1 }),
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          showNotification('Added to cart!', 'success');
+          this.innerHTML = '✓ Added!';
+          setTimeout(function() { btn.innerHTML = originalText; btn.disabled = false; }.bind(this), 1500);
+        } else {
+          var err = await response.json().catch(function() { return {}; });
+          showNotification(err.message || 'Failed to add to cart', 'error');
+          this.innerHTML = originalText;
+          this.disabled = false;
+        }
+      } catch (e) {
+        showNotification('Failed to add to cart', 'error');
+        this.innerHTML = originalText;
+        this.disabled = false;
+      }
+    });
+  });
+})();
+</script>
 {{> footer}}
 

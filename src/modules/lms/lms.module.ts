@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 // Services
 import { CoursesService } from './services/courses.service';
 import { LessonsService } from './services/lessons.service';
+import { ModulesService } from './services/modules.service';
 import { QuizzesService } from './services/quizzes.service';
 import { EnrollmentsService } from './services/enrollments.service';
 import { ProgressService } from './services/progress.service';
@@ -18,6 +19,7 @@ import { CoursePlaceholderService } from './services/course-placeholder.service'
 // Controllers
 import { CoursesController, PublicCoursesController } from './controllers/courses.controller';
 import { LessonsController } from './controllers/lessons.controller';
+import { ModulesController } from './controllers/modules.controller';
 import { QuizzesController } from './controllers/quizzes.controller';
 import { EnrollmentsController } from './controllers/enrollments.controller';
 import { LearningController } from './controllers/learning.controller';
@@ -29,6 +31,7 @@ import { CertificatesController } from './controllers/certificates.controller';
     CoursesController,
     PublicCoursesController,
     LessonsController,
+    ModulesController,
     QuizzesController,
     EnrollmentsController,
     LearningController,
@@ -37,6 +40,7 @@ import { CertificatesController } from './controllers/certificates.controller';
   providers: [
     CoursesService,
     LessonsService,
+    ModulesService,
     QuizzesService,
     EnrollmentsService,
     ProgressService,
@@ -47,6 +51,7 @@ import { CertificatesController } from './controllers/certificates.controller';
   exports: [
     CoursesService,
     LessonsService,
+    ModulesService,
     QuizzesService,
     EnrollmentsService,
     ProgressService,

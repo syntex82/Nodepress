@@ -162,13 +162,29 @@ export class PostsService {
    * Update post
    */
   async update(id: string, updatePostDto: UpdatePostDto) {
-    await this.findById(id);
+    const existingPost = await this.findById(id);
 
     const data: any = { ...updatePostDto };
 
-    // Generate new slug if title changed
-    if (updatePostDto.title) {
+    // Handle slug update - if slug is explicitly provided, validate uniqueness
+    if (updatePostDto.slug && updatePostDto.slug !== existingPost.slug) {
+      // Check if the new slug is already taken by another post
+      const slugExists = await this.prisma.post.findFirst({
+        where: {
+          slug: updatePostDto.slug,
+          id: { not: id },
+        },
+      });
+      if (slugExists) {
+        throw new Error(`Slug "${updatePostDto.slug}" is already in use`);
+      }
+      data.slug = updatePostDto.slug;
+    } else if (updatePostDto.title && updatePostDto.title !== existingPost.title && !updatePostDto.slug) {
+      // Generate new slug only if title changed and no custom slug provided
       data.slug = await this.generateSlug(updatePostDto.title, id);
+    } else {
+      // Don't change slug if neither slug nor title changed
+      delete data.slug;
     }
 
     // Set publishedAt when status changes to PUBLISHED

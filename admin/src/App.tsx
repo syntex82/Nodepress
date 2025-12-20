@@ -46,6 +46,7 @@ import LmsCourseCategories from './pages/lms/CourseCategories';
 import LmsLessons from './pages/lms/Lessons';
 import LmsQuizzes from './pages/lms/Quizzes';
 import LmsQuizQuestions from './pages/lms/QuizQuestions';
+import LmsCurriculumBuilder from './pages/lms/CurriculumBuilder';
 // LMS student pages
 import LmsCourseCatalog from './pages/lms/CourseCatalog';
 import LmsCourseLanding from './pages/lms/CourseLanding';
@@ -163,6 +164,7 @@ function App() {
                 <Route path="lms/courses/new" element={<ProtectedRoute feature="lms" action="canCreate"><LmsCourseEditor /></ProtectedRoute>} />
                 <Route path="lms/courses/:id" element={<ProtectedRoute feature="lms" action="canEdit"><LmsCourseEditor /></ProtectedRoute>} />
                 <Route path="lms/courses/:courseId/lessons" element={<ProtectedRoute feature="lms" action="canEdit"><LmsLessons /></ProtectedRoute>} />
+                <Route path="lms/courses/:courseId/curriculum" element={<ProtectedRoute feature="lms" action="canEdit"><LmsCurriculumBuilder /></ProtectedRoute>} />
                 <Route path="lms/courses/:courseId/quizzes" element={<ProtectedRoute feature="lms" action="canEdit"><LmsQuizzes /></ProtectedRoute>} />
                 <Route path="lms/courses/:courseId/quizzes/:quizId/questions" element={<ProtectedRoute feature="lms" action="canEdit"><LmsQuizQuestions /></ProtectedRoute>} />
                 <Route path="lms/course/:slug" element={<LmsCourseLanding />} />

@@ -277,6 +277,13 @@ export class ThemesService implements OnModuleInit {
   }
 
   /**
+   * Get theme partials directory path
+   */
+  getPartialsPath(themeSlug: string): string {
+    return path.join(this.themesDir, themeSlug, 'partials');
+  }
+
+  /**
    * Validate theme ZIP file without extracting
    */
   validateThemeZip(file: Express.Multer.File): ThemeValidationResult {

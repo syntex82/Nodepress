@@ -1,7 +1,7 @@
 /**
  * Courses Service for LMS Module
  */
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { CreateCourseDto, UpdateCourseDto, CourseQueryDto } from '../dto/course.dto';
 
@@ -102,12 +102,16 @@ export class CoursesService {
       where: { id },
       include: {
         instructor: { select: { id: true, name: true, avatar: true, bio: true } },
-        lessons: {
+        modules: {
           orderBy: { orderIndex: 'asc' },
-          include: { videoAsset: true, quiz: true },
+          include: {
+            lessons: { orderBy: { orderIndex: 'asc' }, include: { videoAsset: true, quiz: true } },
+            _count: { select: { lessons: true } },
+          },
         },
+        lessons: { orderBy: { orderIndex: 'asc' }, include: { videoAsset: true, quiz: true } },
         quizzes: { include: { _count: { select: { questions: true } } } },
-        _count: { select: { lessons: true, enrollments: true, quizzes: true } },
+        _count: { select: { lessons: true, enrollments: true, quizzes: true, modules: true } },
       },
     });
     if (!course) throw new NotFoundException('Course not found');
@@ -119,16 +123,20 @@ export class CoursesService {
       where: { slug },
       include: {
         instructor: { select: { id: true, name: true, avatar: true, bio: true } },
+        modules: {
+          orderBy: { orderIndex: 'asc' },
+          where: { isPublished: true },
+          include: {
+            lessons: {
+              orderBy: { orderIndex: 'asc' },
+              select: { id: true, title: true, type: true, estimatedMinutes: true, isPreview: true, orderIndex: true },
+            },
+          },
+        },
         lessons: {
           orderBy: { orderIndex: 'asc' },
-          select: {
-            id: true,
-            title: true,
-            type: true,
-            estimatedMinutes: true,
-            isPreview: true,
-            orderIndex: true,
-          },
+          where: { moduleId: null },
+          select: { id: true, title: true, type: true, estimatedMinutes: true, isPreview: true, orderIndex: true },
         },
         _count: { select: { lessons: true, enrollments: true } },
       },
@@ -142,10 +150,41 @@ export class CoursesService {
     if (!isAdmin && course.instructorId !== userId) {
       throw new ForbiddenException('Not authorized to update this course');
     }
+
+    // Handle slug update
+    let slug = course.slug;
+    if (dto.slug && dto.slug !== course.slug) {
+      // Check if the new slug is already taken by another course
+      const slugExists = await this.prisma.course.findFirst({
+        where: {
+          slug: dto.slug,
+          id: { not: id },
+        },
+      });
+      if (slugExists) {
+        throw new ConflictException(`Slug "${dto.slug}" is already in use`);
+      }
+      slug = dto.slug;
+    } else if (dto.title && dto.title !== course.title && !dto.slug) {
+      // Generate new slug only if title changed and no custom slug provided
+      slug = this.generateSlug(dto.title);
+      // Ensure uniqueness
+      let finalSlug = slug;
+      let counter = 1;
+      while (await this.prisma.course.findFirst({ where: { slug: finalSlug, id: { not: id } } })) {
+        finalSlug = `${slug}-${counter}`;
+        counter++;
+      }
+      slug = finalSlug;
+    }
+
+    const { slug: _slugFromDto, ...restDto } = dto;
+
     return this.prisma.course.update({
       where: { id },
       data: {
-        ...dto,
+        ...restDto,
+        slug,
         priceAmount: dto.priceAmount !== undefined ? dto.priceAmount : undefined,
         whatYouLearn: dto.whatYouLearn || undefined,
         requirements: dto.requirements || undefined,

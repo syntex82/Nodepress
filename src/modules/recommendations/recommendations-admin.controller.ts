@@ -243,6 +243,18 @@ export class RecommendationsAdminController {
     );
   }
 
+  /**
+   * Get daily stats for trend chart
+   * GET /api/admin/recommendations/analytics/daily
+   */
+  @Get('analytics/daily')
+  async getDailyStats(
+    @Query('period') period?: string,
+    @Query('contentType') contentType?: string,
+  ) {
+    return this.analyticsService.getDailyStats(period || 'week', contentType);
+  }
+
   // ============================================
   // Cache Management
   // ============================================

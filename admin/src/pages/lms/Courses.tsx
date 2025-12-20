@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { lmsAdminApi, Course } from '../../services/api';
-import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiList, FiHelpCircle, FiUsers, FiBook } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiList, FiHelpCircle, FiUsers, FiBook, FiFolder } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function Courses() {
@@ -285,6 +285,13 @@ export default function Courses() {
                           title="Edit Course"
                         >
                           <FiEdit2 size={16} />
+                        </Link>
+                        <Link
+                          to={`/lms/courses/${course.id}/curriculum`}
+                          className="p-2 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
+                          title="Curriculum Builder"
+                        >
+                          <FiFolder size={16} />
                         </Link>
                         <Link
                           to={`/lms/courses/${course.id}/lessons`}
