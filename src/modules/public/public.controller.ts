@@ -18,6 +18,7 @@ import { AuthService } from '../auth/auth.service';
 import { RecommendationsService } from '../recommendations/recommendations.service';
 import { RecommendationTrackingService } from '../recommendations/recommendation-tracking.service';
 import { PrismaService } from '../../database/prisma.service';
+import { DevelopersService } from '../marketplace/services/developers.service';
 import { PostStatus } from '@prisma/client';
 import { CourseLevel, CoursePriceType } from '../lms/dto/course.dto';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -39,6 +40,8 @@ export class PublicController {
     @Inject(forwardRef(() => RecommendationTrackingService))
     private trackingService: RecommendationTrackingService,
     private prisma: PrismaService,
+    @Inject(forwardRef(() => DevelopersService))
+    private developersService: DevelopersService,
   ) {}
 
   /**
@@ -668,6 +671,133 @@ export class PublicController {
     } catch (error) {
       console.error('Error rendering profile:', error);
       res.status(404).send('Profile not found');
+    }
+  }
+
+  // ============================================
+  // DEVELOPER MARKETPLACE ROUTES
+  // ============================================
+
+  /**
+   * Hire a Developer page - browse all developers
+   * GET /hire-developer
+   */
+  @Get('hire-developer')
+  @UseGuards(OptionalJwtAuthGuard)
+  async hireDeveloper(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('category') category?: string,
+    @Query('skills') skills?: string,
+    @Query('minRate') minRate?: string,
+    @Query('maxRate') maxRate?: string,
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+  ) {
+    try {
+      const user = (req as any).user;
+      const result = await this.developersService.findAll({
+        status: 'ACTIVE' as any,
+        category: category as any,
+        skills: skills ? skills.split(',') : undefined,
+        minRate: minRate ? parseFloat(minRate) : undefined,
+        maxRate: maxRate ? parseFloat(maxRate) : undefined,
+        search,
+        page: page ? parseInt(page) : 1,
+        limit: 12,
+      });
+
+      const categories = [
+        { value: 'FRONTEND', label: 'Frontend Developer' },
+        { value: 'BACKEND', label: 'Backend Developer' },
+        { value: 'FULLSTACK', label: 'Full-Stack Developer' },
+        { value: 'WORDPRESS', label: 'WordPress Developer' },
+        { value: 'MOBILE', label: 'Mobile Developer' },
+        { value: 'DEVOPS', label: 'DevOps Engineer' },
+        { value: 'DESIGN', label: 'UI/UX Designer' },
+        { value: 'DATABASE', label: 'Database Expert' },
+        { value: 'SECURITY', label: 'Security Specialist' },
+      ];
+
+      const html = await this.themeRenderer.render('hire-developer', {
+        title: 'Hire a Developer',
+        developers: result.developers,
+        pagination: result.pagination,
+        categories,
+        filters: { category, skills, minRate, maxRate, search },
+        user,
+      });
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering hire-developer page:', error);
+      res.status(500).send('Error loading page');
+    }
+  }
+
+  /**
+   * Developer Marketplace - categorized view
+   * GET /developer-marketplace
+   */
+  @Get('developer-marketplace')
+  @UseGuards(OptionalJwtAuthGuard)
+  async developerMarketplace(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+
+      // Get featured developers
+      const featured = await this.developersService.findAll({
+        status: 'ACTIVE' as any,
+        sortBy: 'rating',
+        limit: 6,
+      });
+
+      // Get developers by category
+      const categories = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'MOBILE', 'DEVOPS', 'DESIGN'];
+      const byCategory = await Promise.all(
+        categories.map(async (cat) => ({
+          category: cat,
+          label: cat.charAt(0) + cat.slice(1).toLowerCase().replace('_', ' '),
+          developers: (await this.developersService.findAll({
+            status: 'ACTIVE' as any,
+            category: cat as any,
+            limit: 4,
+          })).developers,
+        })),
+      );
+
+      const html = await this.themeRenderer.render('developer-marketplace', {
+        title: 'Developer Marketplace',
+        featured: featured.developers,
+        byCategory: byCategory.filter((c) => c.developers.length > 0),
+        user,
+      });
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering developer-marketplace:', error);
+      res.status(500).send('Error loading page');
+    }
+  }
+
+  /**
+   * Developer Profile page
+   * GET /developer/:slug
+   */
+  @Get('developer/:slug')
+  @UseGuards(OptionalJwtAuthGuard)
+  async developerProfile(@Req() req: Request, @Param('slug') slug: string, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      const developer = await this.developersService.findBySlug(slug);
+
+      const html = await this.themeRenderer.render('developer-profile', {
+        title: developer.displayName,
+        developer,
+        user,
+      });
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering developer profile:', error);
+      res.status(404).send('Developer not found');
     }
   }
 

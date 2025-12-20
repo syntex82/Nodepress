@@ -29,6 +29,7 @@ export default function Layout() {
     shop: false,
     lms: false,
     email: false,
+    devMarketplace: false,
     theme: false,
   });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -112,6 +113,14 @@ export default function Layout() {
     { name: 'Logs', path: '/email/logs', icon: FiInfo, tooltipKey: 'emailLogs' },
   ];
 
+  const devMarketplaceNavigation: Array<{ name: string; path: string; icon: any; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Dashboard', path: '/dev-marketplace', icon: FiBarChart2, tooltipKey: 'dashboard' },
+    { name: 'Developers', path: '/dev-marketplace/developers', icon: FiUsers, tooltipKey: 'users' },
+    { name: 'Requests', path: '/dev-marketplace/requests', icon: FiMail, tooltipKey: 'messages' },
+    { name: 'Projects', path: '/dev-marketplace/projects', icon: FiPackage, tooltipKey: 'products' },
+    { name: 'Apply', path: '/dev-marketplace/apply', icon: FiAward, tooltipKey: 'dashboard' },
+  ];
+
   // Filter navigation based on permissions
   const filteredMainNav = mainNavigation.filter(item => canAccess(userRole, item.permission));
   const filteredContentNav = contentNavigation.filter(item => canAccess(userRole, item.permission));
@@ -119,6 +128,7 @@ export default function Layout() {
   const canViewShop = canAccess(userRole, 'shop');
   const canViewLms = canAccess(userRole, 'lms');
   const canViewEmail = userRole === 'ADMIN';
+  const canViewMarketplace = canAccess(userRole, 'marketplace');
   const canCustomize = canAccess(userRole, 'themes');
 
   const isActive = (path: string) => {
@@ -438,6 +448,46 @@ export default function Layout() {
                               }`}
                             >
                               <Icon size={16} className={active ? 'text-purple-400' : 'text-slate-500'} />
+                              {item.name}
+                            </Link>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Developer Marketplace Section */}
+              {canViewMarketplace && (
+                <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                  <button
+                    onClick={() => toggleSection('devMarketplace')}
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FiUsers size={14} className="text-teal-400" />
+                      <span>Dev Marketplace</span>
+                    </div>
+                    {expandedSections.devMarketplace ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                  </button>
+                  {expandedSections.devMarketplace && (
+                    <div className="pb-2">
+                      {devMarketplaceNavigation.map((item) => {
+                        const Icon = item.icon;
+                        const tooltip = NAV_TOOLTIPS[item.tooltipKey];
+                        const active = isActive(item.path);
+                        return (
+                          <Tooltip key={item.path} title={tooltip.title} content={tooltip.content} position="right" variant="help" delay={400}>
+                            <Link
+                              to={item.path}
+                              className={`group flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                active
+                                  ? 'bg-teal-500/20 text-teal-300 border-l-2 border-teal-500'
+                                  : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                              }`}
+                            >
+                              <Icon size={16} className={active ? 'text-teal-400' : 'text-slate-500'} />
                               {item.name}
                             </Link>
                           </Tooltip>

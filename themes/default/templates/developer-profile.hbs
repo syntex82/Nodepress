@@ -1,0 +1,175 @@
+{{!-- Developer Profile Page --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{> partials/head title=title}}
+</head>
+<body class="bg-gray-50">
+  {{> partials/header user=user}}
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <!-- Profile Header -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+      <div class="h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+      <div class="px-6 pb-6 -mt-16">
+        <div class="flex flex-col md:flex-row md:items-end gap-4">
+          <img src="{{#if developer.profileImage}}{{developer.profileImage}}{{else}}/images/default-avatar.png{{/if}}" 
+            alt="{{developer.displayName}}" class="w-32 h-32 rounded-xl border-4 border-white object-cover shadow-lg">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h1 class="text-2xl font-bold text-gray-900">{{developer.displayName}}</h1>
+              {{#if developer.isVerified}}
+              <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">✓ Verified</span>
+              {{/if}}
+            </div>
+            <p class="text-gray-600 mb-2">{{developer.headline}}</p>
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+              <span class="flex items-center gap-1">
+                <span class="text-yellow-400">★</span>
+                <strong>{{developer.rating}}</strong> ({{developer.reviewCount}} reviews)
+              </span>
+              <span>{{developer.projectsCompleted}} projects completed</span>
+              <span>{{developer.yearsOfExperience}} years experience</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-bold text-green-600">${{developer.hourlyRate}}<span class="text-lg text-gray-400">/hr</span></div>
+            <span class="inline-block px-3 py-1 rounded-full text-sm {{#if (eq developer.availability 'available')}}bg-green-100 text-green-800{{else}}bg-yellow-100 text-yellow-800{{/if}}">
+              {{developer.availability}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- About -->
+        <section class="bg-white rounded-xl shadow-sm p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">About</h2>
+          <p class="text-gray-600 whitespace-pre-line">{{developer.bio}}</p>
+        </section>
+
+        <!-- Skills -->
+        <section class="bg-white rounded-xl shadow-sm p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Skills & Expertise</h2>
+          <div class="flex flex-wrap gap-2">
+            {{#each developer.skills}}
+            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{{this}}</span>
+            {{/each}}
+          </div>
+          {{#if developer.languages.length}}
+          <h3 class="font-semibold text-gray-700 mt-4 mb-2">Programming Languages</h3>
+          <div class="flex flex-wrap gap-2">
+            {{#each developer.languages}}
+            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">{{this}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
+          {{#if developer.frameworks.length}}
+          <h3 class="font-semibold text-gray-700 mt-4 mb-2">Frameworks & Libraries</h3>
+          <div class="flex flex-wrap gap-2">
+            {{#each developer.frameworks}}
+            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{{this}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
+        </section>
+
+        <!-- Reviews -->
+        {{#if developer.reviews.length}}
+        <section class="bg-white rounded-xl shadow-sm p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Reviews</h2>
+          <div class="space-y-4">
+            {{#each developer.reviews}}
+            <div class="border-b border-gray-100 pb-4 last:border-0">
+              <div class="flex items-center gap-3 mb-2">
+                <img src="{{#if reviewer.avatar}}{{reviewer.avatar}}{{else}}/images/default-avatar.png{{/if}}" 
+                  alt="{{reviewer.name}}" class="w-10 h-10 rounded-full">
+                <div>
+                  <p class="font-medium text-gray-900">{{reviewer.name}}</p>
+                  <div class="flex items-center gap-1 text-sm">
+                    <span class="text-yellow-400">{{#times overallRating}}★{{/times}}</span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-600">{{content}}</p>
+            </div>
+            {{/each}}
+          </div>
+        </section>
+        {{/if}}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Hire CTA -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <h3 class="font-bold text-gray-900 mb-4">Hire {{developer.displayName}}</h3>
+          {{#if user}}
+          <a href="/admin/marketplace/hire/{{developer.id}}" 
+            class="block w-full text-center bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition mb-3">
+            Send Hiring Request
+          </a>
+          {{else}}
+          <a href="/admin/login?redirect=/developer/{{developer.slug}}" 
+            class="block w-full text-center bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition mb-3">
+            Login to Hire
+          </a>
+          {{/if}}
+          <p class="text-sm text-gray-500 text-center">Response time: ~{{developer.responseTime}} hours</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <h3 class="font-bold text-gray-900 mb-4">Quick Stats</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Category</span>
+              <span class="font-medium">{{developer.category}}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Min. Budget</span>
+              <span class="font-medium">${{developer.minimumBudget}}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Available Hours</span>
+              <span class="font-medium">{{developer.availableHours}} hrs/week</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Completion Rate</span>
+              <span class="font-medium text-green-600">{{developer.completionRate}}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <h3 class="font-bold text-gray-900 mb-4">Links</h3>
+          <div class="space-y-2">
+            {{#if developer.websiteUrl}}
+            <a href="{{developer.websiteUrl}}" target="_blank" class="flex items-center gap-2 text-blue-600 hover:underline">
+              🌐 Website
+            </a>
+            {{/if}}
+            {{#if developer.githubUrl}}
+            <a href="{{developer.githubUrl}}" target="_blank" class="flex items-center gap-2 text-gray-700 hover:underline">
+              GitHub
+            </a>
+            {{/if}}
+            {{#if developer.linkedinUrl}}
+            <a href="{{developer.linkedinUrl}}" target="_blank" class="flex items-center gap-2 text-blue-700 hover:underline">
+              LinkedIn
+            </a>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  {{> partials/footer}}
+</body>
+</html>
+

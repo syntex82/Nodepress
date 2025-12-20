@@ -37,6 +37,7 @@ import { EmailModule } from './modules/email/email.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BackupModule } from './modules/backup/backup.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     NotificationsModule,
     BackupModule,
     RecommendationsModule,
+    MarketplaceModule,
   ],
 })
 export class AppModule {}

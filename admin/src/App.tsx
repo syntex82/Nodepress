@@ -73,6 +73,15 @@ import EmailLogs from './pages/email/EmailLogs';
 import EmailTemplateDesigner from './pages/email/EmailTemplateDesigner';
 // Recommendations
 import Recommendations from './pages/Recommendations';
+// Developer Marketplace
+import {
+  MarketplaceDashboard,
+  Developers as MarketplaceDevelopers,
+  HiringRequests,
+  Projects as MarketplaceProjects,
+  DeveloperApplication,
+  HireForm,
+} from './pages/marketplace';
 
 function App() {
   const { isAuthenticated, _hasHydrated } = useAuthStore();
@@ -146,6 +155,14 @@ function App() {
                 <Route path="theme-designer" element={<ProtectedRoute feature="themes"><ThemeDesigner /></ProtectedRoute>} />
                 <Route path="theme-content" element={<ProtectedRoute feature="themes"><ThemeContentManager /></ProtectedRoute>} />
                 <Route path="marketplace" element={<ProtectedRoute feature="themes" requiredRole="ADMIN"><MarketplaceAdmin /></ProtectedRoute>} />
+
+                {/* Developer Marketplace */}
+                <Route path="dev-marketplace" element={<ProtectedRoute feature="marketplace"><MarketplaceDashboard /></ProtectedRoute>} />
+                <Route path="dev-marketplace/developers" element={<ProtectedRoute feature="marketplace" requiredRole="ADMIN"><MarketplaceDevelopers /></ProtectedRoute>} />
+                <Route path="dev-marketplace/requests" element={<ProtectedRoute feature="marketplace"><HiringRequests /></ProtectedRoute>} />
+                <Route path="dev-marketplace/projects" element={<ProtectedRoute feature="marketplace"><MarketplaceProjects /></ProtectedRoute>} />
+                <Route path="dev-marketplace/apply" element={<ProtectedRoute feature="marketplace"><DeveloperApplication /></ProtectedRoute>} />
+                <Route path="dev-marketplace/hire/:developerId" element={<ProtectedRoute feature="marketplace"><HireForm /></ProtectedRoute>} />
 
                 {/* Shop Admin - specific routes before parameterized */}
                 <Route path="shop/products" element={<ProtectedRoute feature="shop"><ShopProducts /></ProtectedRoute>} />

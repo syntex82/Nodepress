@@ -115,6 +115,12 @@ model User {
   // Recommendations System
   userInteractions      UserInteraction[]
   recommendationClicks  RecommendationClick[]
+
+  // Developer Marketplace
+  developerProfile      Developer?
+  clientHiringRequests  HiringRequest[] @relation("ClientHiringRequests")
+  clientProjects        Project[] @relation("ClientProjects")
+  developerReviews      DeveloperReview[] @relation("ReviewerDeveloperReviews")
 }
 
 // Follow relationship for users
@@ -2173,6 +2179,445 @@ model RecommendationSettings {
   id                    String   @id @default(uuid())
   key                   String   @unique
   value                 Json     // setting value
+  description           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// ============================================
+// DEVELOPER MARKETPLACE
+// ============================================
+
+// Developer status enum
+enum DeveloperStatus {
+  PENDING         // Application pending review
+  ACTIVE          // Approved and active
+  INACTIVE        // Developer chose to pause
+  SUSPENDED       // Suspended by admin
+  REJECTED        // Application rejected
+}
+
+// Developer specialty/category
+enum DeveloperCategory {
+  FRONTEND
+  BACKEND
+  FULLSTACK
+  WORDPRESS
+  MOBILE
+  DEVOPS
+  DESIGN
+  DATABASE
+  SECURITY
+  OTHER
+}
+
+// Hiring request status
+enum HiringRequestStatus {
+  PENDING         // Initial request
+  ACCEPTED        // Developer accepted
+  REJECTED        // Developer rejected
+  CANCELLED       // Client cancelled
+  IN_PROGRESS     // Work in progress
+  COMPLETED       // Work completed
+  DISPUTED        // Payment/work dispute
+}
+
+// Project status
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+// Transaction type
+enum MarketplaceTransactionType {
+  ESCROW_DEPOSIT      // Client deposits funds
+  ESCROW_RELEASE      // Funds released to developer
+  ESCROW_REFUND       // Funds refunded to client
+  PLATFORM_FEE        // Platform commission
+  DEVELOPER_PAYOUT    // Developer withdrawal
+  DISPUTE_RESOLUTION  // Dispute settlement
+}
+
+// Transaction status
+enum MarketplaceTransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+// Payout status
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// Dispute status
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_CLIENT
+  RESOLVED_DEVELOPER
+  CLOSED
+}
+
+// Developer model - freelance developer profiles
+model Developer {
+  id                String            @id @default(uuid())
+  userId            String            @unique
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Profile information
+  displayName       String
+  slug              String            @unique
+  headline          String?           // Short professional headline
+  bio               String?           @db.Text
+  profileImage      String?
+  coverImage        String?
+
+  // Professional details
+  category          DeveloperCategory @default(FULLSTACK)
+  skills            String[]          // Array of skills
+  languages         String[]          // Programming languages
+  frameworks        String[]          // Frameworks/libraries
+  tools             String[]          // Development tools
+  spokenLanguages   String[]          // Human languages for communication
+
+  // Experience and credentials
+  yearsOfExperience Int               @default(0)
+  education         Json?             // Array of education items
+  certifications    Json?             // Array of certifications
+  portfolio         Json?             // Array of portfolio items with title, description, url, images
+
+  // Pricing
+  hourlyRate        Decimal           @db.Decimal(10, 2)
+  minimumBudget     Decimal?          @db.Decimal(10, 2) // Minimum project budget
+  currency          String            @default("USD")
+
+  // Availability
+  availability      String            @default("available") // available, busy, unavailable
+  availableHours    Int               @default(40) // Weekly available hours
+  timezone          String?
+
+  // Status and verification
+  status            DeveloperStatus   @default(PENDING)
+  isVerified        Boolean           @default(false)
+  verifiedAt        DateTime?
+  isFeatured        Boolean           @default(false)
+  featuredUntil     DateTime?
+
+  // Stats (denormalized for performance)
+  rating            Float             @default(0)
+  reviewCount       Int               @default(0)
+  projectsCompleted Int               @default(0)
+  totalEarnings     Decimal           @default(0) @db.Decimal(10, 2)
+  responseTime      Int?              // Average response time in hours
+  completionRate    Float             @default(100) // Percentage
+
+  // Social/contact
+  websiteUrl        String?
+  githubUrl         String?
+  linkedinUrl       String?
+  twitterUrl        String?
+
+  // Platform data
+  applicationNote   String?           @db.Text // Developer's application message
+  rejectionReason   String?
+  suspensionReason  String?
+
+  // Stripe Connect for payouts
+  stripeConnectId   String?           @unique
+  stripeAccountStatus String?         // pending, active, restricted
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  hiringRequests    HiringRequest[]   @relation("DeveloperHiringRequests")
+  projects          Project[]         @relation("DeveloperProjects")
+  reviews           DeveloperReview[] @relation("DeveloperReviews")
+  payouts           DeveloperPayout[]
+
+  @@index([status])
+  @@index([category])
+  @@index([rating])
+  @@index([isFeatured])
+  @@index([availability])
+  @@index([slug])
+}
+
+// HiringRequest model - initial hiring requests from clients
+model HiringRequest {
+  id                String              @id @default(uuid())
+
+  // Parties involved
+  clientId          String
+  client            User                @relation("ClientHiringRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  developerId       String
+  developer         Developer           @relation("DeveloperHiringRequests", fields: [developerId], references: [id], onDelete: Cascade)
+
+  // Request details
+  title             String
+  description       String              @db.Text
+  requirements      String?             @db.Text
+  attachments       Json?               // Array of file URLs
+
+  // Budget and timeline
+  budgetType        String              @default("fixed") // fixed, hourly
+  budgetAmount      Decimal             @db.Decimal(10, 2)
+  estimatedHours    Int?
+  deadline          DateTime?
+
+  // Status tracking
+  status            HiringRequestStatus @default(PENDING)
+  responseMessage   String?             @db.Text // Developer's response
+  respondedAt       DateTime?
+
+  // Conversion to project
+  projectId         String?             @unique
+  project           Project?            @relation("HiringRequestProject")
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([clientId])
+  @@index([developerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Project model - active work between client and developer
+model Project {
+  id                String        @id @default(uuid())
+
+  // Parties involved
+  clientId          String
+  client            User          @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Cascade)
+  developerId       String
+  developer         Developer     @relation("DeveloperProjects", fields: [developerId], references: [id], onDelete: Cascade)
+
+  // Project details
+  title             String
+  description       String        @db.Text
+  requirements      String?       @db.Text
+  deliverables      Json?         // Array of deliverable items
+
+  // Budget and payment
+  budgetType        String        @default("fixed") // fixed, hourly
+  totalBudget       Decimal       @db.Decimal(10, 2)
+  hourlyRate        Decimal?      @db.Decimal(10, 2)
+  hoursLogged       Decimal       @default(0) @db.Decimal(10, 2)
+  amountPaid        Decimal       @default(0) @db.Decimal(10, 2)
+  amountInEscrow    Decimal       @default(0) @db.Decimal(10, 2)
+  platformFee       Decimal       @default(0) @db.Decimal(10, 2) // Platform commission
+  platformFeePercent Float        @default(10) // Default 10%
+
+  // Timeline
+  startDate         DateTime?
+  deadline          DateTime?
+  completedAt       DateTime?
+
+  // Status
+  status            ProjectStatus @default(DRAFT)
+  progress          Int           @default(0) // Percentage 0-100
+
+  // Milestones
+  milestones        Json?         // Array of milestone objects
+
+  // Files and communication
+  files             Json?         // Array of shared file URLs
+
+  // Rating (after completion)
+  clientRating      Int?          // 1-5 stars
+  clientReview      String?       @db.Text
+  developerRating   Int?          // 1-5 stars
+  developerReview   String?       @db.Text
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  hiringRequest     HiringRequest? @relation("HiringRequestProject", fields: [id], references: [projectId])
+  transactions      MarketplaceTransaction[]
+  messages          ProjectMessage[]
+  disputes          ProjectDispute[]
+
+  @@index([clientId])
+  @@index([developerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ProjectMessage model - communication within a project
+model ProjectMessage {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  senderId    String
+  content     String   @db.Text
+  attachments Json?    // Array of file URLs
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// MarketplaceTransaction model - all financial transactions
+model MarketplaceTransaction {
+  id                String                       @id @default(uuid())
+
+  // Project reference
+  projectId         String
+  project           Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Transaction details
+  type              MarketplaceTransactionType
+  amount            Decimal                      @db.Decimal(10, 2)
+  currency          String                       @default("USD")
+  description       String?
+
+  // Status
+  status            MarketplaceTransactionStatus @default(PENDING)
+
+  // Payment processor details (Stripe)
+  stripePaymentIntentId String?
+  stripeTransferId      String?
+  stripeChargeId        String?
+
+  // Parties
+  fromUserId        String?                      // Client for deposits
+  toUserId          String?                      // Developer for payouts
+
+  // Metadata
+  metadata          Json?
+  processedAt       DateTime?
+  failureReason     String?
+
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+
+  @@index([projectId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// DeveloperReview model - reviews for developers
+model DeveloperReview {
+  id          String    @id @default(uuid())
+  developerId String
+  developer   Developer @relation("DeveloperReviews", fields: [developerId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User      @relation("ReviewerDeveloperReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  projectId   String?   // Optional link to specific project
+
+  // Rating breakdown
+  overallRating       Int    // 1-5 stars
+  communicationRating Int?   // 1-5 stars
+  qualityRating       Int?   // 1-5 stars
+  timelinessRating    Int?   // 1-5 stars
+  valueRating         Int?   // 1-5 stars
+
+  // Review content
+  title       String?
+  content     String?   @db.Text
+  isVerified  Boolean   @default(false) // Verified purchase/project
+  isApproved  Boolean   @default(true)  // Moderated
+
+  // Response from developer
+  response    String?   @db.Text
+  respondedAt DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([developerId, reviewerId, projectId])
+  @@index([developerId])
+  @@index([reviewerId])
+  @@index([overallRating])
+  @@index([isApproved])
+}
+
+// DeveloperPayout model - payouts to developers
+model DeveloperPayout {
+  id              String       @id @default(uuid())
+  developerId     String
+  developer       Developer    @relation(fields: [developerId], references: [id], onDelete: Cascade)
+
+  amount          Decimal      @db.Decimal(10, 2)
+  currency        String       @default("USD")
+
+  // Status
+  status          PayoutStatus @default(PENDING)
+
+  // Stripe payout details
+  stripePayoutId  String?
+  stripeTransferId String?
+
+  // Bank/account details (encrypted/masked)
+  payoutMethod    String       @default("stripe") // stripe, paypal, bank
+  accountLast4    String?      // Last 4 digits for display
+
+  // Processing
+  requestedAt     DateTime     @default(now())
+  processedAt     DateTime?
+  failureReason   String?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([developerId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+// ProjectDispute model - handle payment/work disputes
+model ProjectDispute {
+  id              String        @id @default(uuid())
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Who initiated
+  initiatorId     String
+  initiatorType   String        // 'client' or 'developer'
+
+  // Dispute details
+  reason          String
+  description     String        @db.Text
+  evidence        Json?         // Array of file URLs
+
+  // Resolution
+  status          DisputeStatus @default(OPEN)
+  resolution      String?       @db.Text
+  resolvedById    String?       // Admin who resolved
+  resolvedAt      DateTime?
+
+  // Financial impact
+  refundAmount    Decimal?      @db.Decimal(10, 2)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// MarketplaceSettings model - platform configuration
+model MarketplaceSettings {
+  id                    String   @id @default(uuid())
+  key                   String   @unique
+  value                 Json
   description           String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

@@ -31,6 +31,7 @@ export interface RolePermissions {
   plugins: Permission;
   email: Permission;
   recommendations: Permission;
+  marketplace: Permission;
 }
 
 // Define permissions for each role
@@ -54,6 +55,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     plugins: { canView: true, canCreate: true, canEdit: true, canDelete: true },
     email: { canView: true, canCreate: true, canEdit: true, canDelete: true },
     recommendations: { canView: true, canCreate: true, canEdit: true, canDelete: true },
+    marketplace: { canView: true, canCreate: true, canEdit: true, canDelete: true },
   },
   EDITOR: {
     dashboard: { canView: true, canCreate: false, canEdit: false, canDelete: false },
@@ -74,6 +76,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     plugins: { canView: true, canCreate: false, canEdit: false, canDelete: false },
     email: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     recommendations: { canView: true, canCreate: false, canEdit: false, canDelete: false },
+    marketplace: { canView: true, canCreate: true, canEdit: true, canDelete: false },
   },
   AUTHOR: {
     dashboard: { canView: true, canCreate: false, canEdit: false, canDelete: false },
@@ -94,6 +97,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     plugins: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     email: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     recommendations: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    marketplace: { canView: true, canCreate: true, canEdit: true, canDelete: false },
   },
   VIEWER: {
     dashboard: { canView: true, canCreate: false, canEdit: false, canDelete: false },
@@ -114,6 +118,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     plugins: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     email: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     recommendations: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    marketplace: { canView: true, canCreate: false, canEdit: false, canDelete: false },
   },
 };
 

@@ -1,0 +1,122 @@
+{{!-- Developer Marketplace Page --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{> partials/head title=title}}
+</head>
+<body class="bg-gray-50">
+  {{> partials/header user=user}}
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 md:p-12 text-white mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">Developer Marketplace</h1>
+      <p class="text-xl text-blue-100 max-w-2xl mb-6">
+        Connect with top-tier developers ready to bring your vision to life. 
+        From web apps to mobile solutions, find the perfect match for your project.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="/hire-developer" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+          Browse All Developers
+        </a>
+        {{#unless user}}
+        <a href="/admin/login" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">
+          Post a Project
+        </a>
+        {{/unless}}
+      </div>
+    </div>
+
+    <!-- Featured Developers -->
+    {{#if featured.length}}
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Featured Developers</h2>
+        <a href="/hire-developer?sortBy=rating" class="text-blue-600 hover:underline">View all →</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{#each featured}}
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition group">
+          <div class="h-24 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+          <div class="p-6 -mt-12">
+            <img src="{{#if profileImage}}{{profileImage}}{{else}}/images/default-avatar.png{{/if}}" 
+              alt="{{displayName}}" class="w-20 h-20 rounded-full border-4 border-white object-cover mb-4">
+            <h3 class="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition">{{displayName}}</h3>
+            <p class="text-sm text-gray-500 mb-2">{{headline}}</p>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="flex text-yellow-400">
+                {{#times 5}}
+                {{#if (lte this ../rating)}}★{{else}}☆{{/if}}
+                {{/times}}
+              </div>
+              <span class="text-sm text-gray-500">({{reviewCount}})</span>
+            </div>
+            <div class="flex flex-wrap gap-1 mb-4">
+              {{#each skills}}
+              {{#if (lt @index 3)}}
+              <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">{{this}}</span>
+              {{/if}}
+              {{/each}}
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-lg font-bold text-green-600">${{hourlyRate}}/hr</span>
+              <a href="/developer/{{slug}}" class="text-blue-600 hover:underline text-sm font-medium">View Profile</a>
+            </div>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    <!-- Developers by Category -->
+    {{#each byCategory}}
+    {{#if developers.length}}
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">{{label}} Developers</h2>
+        <a href="/hire-developer?category={{category}}" class="text-blue-600 hover:underline">View all →</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{#each developers}}
+        <a href="/developer/{{slug}}" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition block">
+          <div class="flex items-center gap-3 mb-3">
+            <img src="{{#if profileImage}}{{profileImage}}{{else}}/images/default-avatar.png{{/if}}" 
+              alt="{{displayName}}" class="w-12 h-12 rounded-full object-cover">
+            <div>
+              <h3 class="font-semibold text-gray-900">{{displayName}}</h3>
+              <div class="flex items-center gap-1 text-sm">
+                <span class="text-yellow-400">★</span>
+                <span>{{rating}}</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-sm text-gray-500 line-clamp-2 mb-2">{{headline}}</p>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-400">{{projectsCompleted}} projects</span>
+            <span class="font-semibold text-green-600">${{hourlyRate}}/hr</span>
+          </div>
+        </a>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+    {{/each}}
+
+    <!-- CTA Section -->
+    <section class="bg-gray-900 rounded-2xl p-8 md:p-12 text-center text-white">
+      <h2 class="text-3xl font-bold mb-4">Are You a Developer?</h2>
+      <p class="text-gray-300 max-w-2xl mx-auto mb-6">
+        Join our marketplace and connect with clients looking for your skills. 
+        Set your own rates, choose your projects, and grow your freelance career.
+      </p>
+      <a href="/admin/marketplace/apply" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+        Apply as Developer
+      </a>
+    </section>
+  </main>
+
+  {{> partials/footer}}
+</body>
+</html>
+
