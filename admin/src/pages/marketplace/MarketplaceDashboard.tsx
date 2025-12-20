@@ -52,9 +52,9 @@ export default function MarketplaceDashboard() {
   const fetchStatistics = async () => {
     try {
       const [devStats, projectStats, financialStats] = await Promise.all([
-        api.get('/api/marketplace/developers/admin/statistics'),
-        api.get('/api/marketplace/projects/admin/statistics'),
-        api.get('/api/marketplace/payments/admin/statistics'),
+        api.get('/marketplace/developers/admin/statistics'),
+        api.get('/marketplace/projects/admin/statistics'),
+        api.get('/marketplace/payments/admin/statistics'),
       ]);
       setStats({
         developers: devStats.data,

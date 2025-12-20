@@ -75,8 +75,8 @@ export default function Projects() {
       params.append('limit', pagination.limit.toString());
 
       const endpoint = filter.role === 'client'
-        ? `/api/marketplace/projects/my/client?${params}`
-        : `/api/marketplace/projects/my/developer?${params}`;
+        ? `/marketplace/projects/my/client?${params}`
+        : `/marketplace/projects/my/developer?${params}`;
 
       const { data } = await api.get(endpoint);
       setProjects(data.projects || []);

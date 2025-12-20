@@ -50,7 +50,7 @@ export default function HireForm() {
 
   const fetchDeveloper = async () => {
     try {
-      const { data } = await api.get(`/api/marketplace/developers/${developerId}`);
+      const { data } = await api.get(`/marketplace/developers/${developerId}`);
       setDeveloper(data);
     } catch (err) {
       setError('Developer not found');
@@ -65,7 +65,7 @@ export default function HireForm() {
     setError('');
 
     try {
-      await api.post('/api/marketplace/hiring-requests', {
+      await api.post('/marketplace/hiring-requests', {
         developerId,
         ...form,
       });

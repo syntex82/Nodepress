@@ -73,7 +73,7 @@ export default function Developers() {
       params.append('page', pagination.page.toString());
       params.append('limit', pagination.limit.toString());
 
-      const { data } = await api.get(`/api/marketplace/developers/admin/all?${params}`);
+      const { data } = await api.get(`/marketplace/developers/admin/all?${params}`);
       setDevelopers(data.developers || []);
       setPagination(prev => ({ ...prev, ...data.pagination }));
     } catch (error: any) {
@@ -92,7 +92,7 @@ export default function Developers() {
 
   const handleAction = async (id: string, action: string, reason?: string) => {
     try {
-      await api.patch(`/api/marketplace/developers/${id}/${action}`, { reason });
+      await api.patch(`/marketplace/developers/${id}/${action}`, { reason });
       toast.success(`Developer ${action}d successfully`);
       fetchDevelopers();
     } catch (error: any) {

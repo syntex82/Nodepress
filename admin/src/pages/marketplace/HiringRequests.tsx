@@ -64,8 +64,8 @@ export default function HiringRequests() {
       params.append('limit', pagination.limit.toString());
 
       const endpoint = filter.role === 'client'
-        ? `/api/marketplace/hiring-requests/my/client?${params}`
-        : `/api/marketplace/hiring-requests/my/developer?${params}`;
+        ? `/marketplace/hiring-requests/my/client?${params}`
+        : `/marketplace/hiring-requests/my/developer?${params}`;
 
       const { data } = await api.get(endpoint);
       setRequests(data.requests || []);

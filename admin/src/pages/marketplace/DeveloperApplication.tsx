@@ -54,7 +54,7 @@ export default function DeveloperApplication() {
     setError('');
 
     try {
-      await api.post('/api/marketplace/developers', {
+      await api.post('/marketplace/developers', {
         ...form,
         skills: form.skills.split(',').map(s => s.trim()).filter(Boolean),
         languages: form.languages.split(',').map(s => s.trim()).filter(Boolean),
