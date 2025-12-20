@@ -3,9 +3,9 @@
  * Admin page for managing developer profiles
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios';
+import api from '../../services/api';
 
 interface Developer {
   id: string;

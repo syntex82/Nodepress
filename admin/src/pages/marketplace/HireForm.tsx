@@ -3,9 +3,9 @@
  * Form for clients to send hiring requests
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../api/axios';
+import api from '../../services/api';
 
 interface Developer {
   id: string;
