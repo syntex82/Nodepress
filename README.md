@@ -237,6 +237,49 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 
 <br />
 
+### 👨‍💻 Developer Marketplace
+
+| Feature | Description |
+|---------|-------------|
+| **Developer Profiles** | Rich developer profiles with skills, portfolio, hourly rates, and availability |
+| **Hire a Developer** | Public page for clients to browse and hire developers |
+| **Hiring Requests** | Workflow for submitting and responding to hiring requests |
+| **Project Management** | Full project lifecycle with milestones, progress tracking, and messaging |
+| **Escrow Payments** | Secure escrow system - funds held until work is completed |
+| **Stripe Connect** | Developer payouts via Stripe Connect with automated transfers |
+| **Rating & Reviews** | 5-star rating system with verified reviews after project completion |
+| **Dispute Resolution** | Built-in dispute handling with admin mediation |
+| **Developer Dashboard** | Analytics, earnings, and project management for developers |
+| **Marketplace Admin** | Complete admin panel for managing developers, projects, and payments |
+
+<details>
+<summary><strong>🔧 Click to view Developer Marketplace Routes</strong></summary>
+
+<br />
+
+**Public Routes:**
+| Route | Description |
+|-------|-------------|
+| `/hire-developer` | Browse and search available developers |
+| `/developer-marketplace` | Full marketplace with filters and categories |
+| `/developer/:slug` | Individual developer profile page |
+
+**API Endpoints:**
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/marketplace/developers` | List all developers |
+| `POST /api/marketplace/developers` | Apply as developer |
+| `GET /api/marketplace/hiring-requests` | List hiring requests |
+| `POST /api/marketplace/hiring-requests` | Create hiring request |
+| `GET /api/marketplace/projects` | List projects |
+| `POST /api/marketplace/projects` | Create project |
+| `GET /api/marketplace/payments/transactions` | Transaction history |
+| `POST /api/marketplace/payments/payout` | Request payout |
+
+</details>
+
+<br />
+
 ---
 
 ## 🛠 Tech Stack
@@ -654,6 +697,10 @@ wordpress-node/
 │   │   │   ├── 📂 enrollments/       # Student enrollments
 │   │   │   ├── 📂 progress/          # Progress tracking
 │   │   │   └── 📂 certificates/      # Certificate generation
+│   │   ├── 📂 marketplace/           # Developer Marketplace
+│   │   │   ├── 📂 controllers/       # API endpoints
+│   │   │   ├── 📂 services/          # Business logic
+│   │   │   └── 📂 dto/               # Data transfer objects
 │   │   ├── 📂 messages/              # Direct messaging
 │   │   └── 📂 public/                # Public routes
 │   ├── 📂 common/                    # Shared utilities & decorators
@@ -669,6 +716,7 @@ wordpress-node/
 │   │   ├── 📂 pages/                 # Page components
 │   │   │   ├── 📂 shop/              # Shop admin pages
 │   │   │   ├── 📂 lms/               # LMS admin pages
+│   │   │   ├── 📂 marketplace/       # Developer marketplace admin
 │   │   │   └── 📂 storefront/        # Public storefront pages
 │   │   ├── 📂 services/              # API service layer
 │   │   ├── 📂 stores/                # Zustand state stores
@@ -1210,6 +1258,24 @@ Authorization: Bearer <token>
 | `POST` | `/api/lms/enroll/:courseId` | Enroll in course |
 | `GET` | `/api/lms/my-courses` | Get enrolled courses |
 | `POST` | `/api/lms/progress` | Update progress |
+
+<br />
+
+### 👨‍💻 Marketplace API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/marketplace/developers` | List developers |
+| `GET` | `/api/marketplace/developers/:id` | Get developer profile |
+| `POST` | `/api/marketplace/developers` | Apply as developer |
+| `GET` | `/api/marketplace/hiring-requests` | List hiring requests |
+| `POST` | `/api/marketplace/hiring-requests` | Create hiring request |
+| `PATCH` | `/api/marketplace/hiring-requests/:id/status` | Update request status |
+| `GET` | `/api/marketplace/projects` | List projects |
+| `POST` | `/api/marketplace/projects` | Create project |
+| `POST` | `/api/marketplace/projects/:id/review` | Submit review |
+| `GET` | `/api/marketplace/payments/transactions` | Transaction history |
+| `POST` | `/api/marketplace/payments/payout` | Request payout |
 
 <br />
 
