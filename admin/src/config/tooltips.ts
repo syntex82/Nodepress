@@ -86,6 +86,32 @@ export const NAV_TOOLTIPS = {
     content: 'Public course catalog where students can browse and enroll in available courses.',
   },
 
+  // Marketplace
+  marketplaceDashboard: {
+    title: 'Marketplace Overview',
+    content: 'Monitor marketplace performance. View developer statistics, active projects, financial metrics, and pending payouts.',
+  },
+  developers: {
+    title: 'Developer Management',
+    content: 'Review and manage developer applications. Approve, reject, or suspend developer profiles.',
+  },
+  hiringRequests: {
+    title: 'Hiring Requests',
+    content: 'View and manage hiring requests between clients and developers. Track request status and communications.',
+  },
+  marketplaceProjects: {
+    title: 'Marketplace Projects',
+    content: 'Monitor active projects, track progress, manage milestones, and handle disputes.',
+  },
+  developerApplication: {
+    title: 'Developer Application',
+    content: 'Apply to become a marketplace developer. Set your skills, rates, and availability.',
+  },
+  hireDeveloper: {
+    title: 'Hire Developer',
+    content: 'Send a hiring request to a developer. Describe your project, set budget, and timeline.',
+  },
+
   // Email
   emailTemplates: {
     title: 'Email Templates',
@@ -140,5 +166,48 @@ export const FEATURE_TOOLTIPS = {
   sort: { title: 'Sort', content: 'Change the order items are displayed.' },
   visibility: { title: 'Toggle Visibility', content: 'Show or hide this item without deleting it.' },
   dragReorder: { title: 'Drag to Reorder', content: 'Drag items to rearrange their order. Changes save automatically.' },
+};
+
+export const MARKETPLACE_TOOLTIPS = {
+  // Dashboard Stats
+  totalDevelopers: { title: 'Total Developers', content: 'Number of developers registered on the marketplace. Click to manage developer profiles.' },
+  pendingApproval: { title: 'Pending Approval', content: 'Developers awaiting approval. Review applications to grow your marketplace.' },
+  activeProjects: { title: 'Active Projects', content: 'Currently ongoing projects between clients and developers.' },
+  totalEscrow: { title: 'Escrow Balance', content: 'Total funds held in escrow for active projects. Released when milestones are completed.' },
+  platformFees: { title: 'Platform Fees', content: 'Total fees earned from marketplace transactions.' },
+
+  // Actions
+  approveDeveloper: { title: 'Approve', content: 'Approve this developer application. They will be able to receive hiring requests.' },
+  rejectDeveloper: { title: 'Reject', content: 'Reject this developer application. They can reapply after making improvements.' },
+  suspendDeveloper: { title: 'Suspend', content: 'Temporarily suspend this developer. They cannot accept new projects.' },
+  reactivateDeveloper: { title: 'Reactivate', content: 'Reactivate a suspended developer account.' },
+  viewStatistics: { title: 'View Statistics', content: 'See detailed marketplace analytics and performance metrics.' },
+  viewDetails: { title: 'View Details', content: 'Open detailed view for this item.' },
+
+  // Filters
+  statusFilter: { title: 'Filter by Status', content: 'Show only items with a specific status.' },
+  categoryFilter: { title: 'Filter by Category', content: 'Show developers or projects in a specific category.' },
+  roleToggle: { title: 'Switch View', content: 'Toggle between client and developer perspectives.' },
+  clearFilters: { title: 'Clear Filters', content: 'Reset all filters to show all items.' },
+
+  // Projects
+  projectProgress: { title: 'Project Progress', content: 'Completion percentage based on completed milestones.' },
+  escrowAmount: { title: 'In Escrow', content: 'Funds secured for this project, released upon milestone completion.' },
+
+  // Forms - Developer Application
+  displayName: { title: 'Display Name', content: 'Your public name shown to clients on the marketplace.' },
+  headline: { title: 'Professional Headline', content: 'A brief tagline describing your expertise (e.g., "Senior Full-Stack Developer").' },
+  category: { title: 'Category', content: 'Your primary area of expertise. This helps clients find you.' },
+  skills: { title: 'Skills', content: 'List your key skills separated by commas. These are searchable by clients.' },
+  hourlyRate: { title: 'Hourly Rate', content: 'Your standard hourly rate. Clients see this when browsing developers.' },
+  minimumBudget: { title: 'Minimum Budget', content: 'Minimum project budget you\'re willing to accept.' },
+
+  // Forms - Hire Developer
+  projectTitle: { title: 'Project Title', content: 'A clear, descriptive title for your project.' },
+  projectDescription: { title: 'Project Description', content: 'Detailed description of what you need built. Be specific about features and requirements.' },
+  budgetType: { title: 'Budget Type', content: 'Fixed price for defined scope, or hourly for ongoing work.' },
+  budgetAmount: { title: 'Budget Amount', content: 'Your budget for this project. Be realistic to attract quality developers.' },
+  estimatedHours: { title: 'Estimated Hours', content: 'Approximate hours needed to complete the project.' },
+  deadline: { title: 'Deadline', content: 'Expected completion date for the project.' },
 };
 

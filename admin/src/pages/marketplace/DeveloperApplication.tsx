@@ -5,7 +5,14 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  FiUser, FiCode, FiDollarSign, FiLink, FiSend,
+  FiAlertCircle, FiHelpCircle, FiGithub, FiLinkedin, FiGlobe
+} from 'react-icons/fi';
 import api from '../../services/api';
+import Tooltip from '../../components/Tooltip';
+import { MARKETPLACE_TOOLTIPS } from '../../config/tooltips';
+import toast from 'react-hot-toast';
 
 const categories = [
   { value: 'FRONTEND', label: 'Frontend Developer' },
@@ -53,132 +60,299 @@ export default function DeveloperApplication() {
         languages: form.languages.split(',').map(s => s.trim()).filter(Boolean),
         frameworks: form.frameworks.split(',').map(s => s.trim()).filter(Boolean),
       });
-      navigate('/admin/marketplace/my-profile');
+      toast.success('Application submitted successfully!');
+      navigate('/marketplace/my-profile');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit application');
+      toast.error('Failed to submit application');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-2">Apply as Developer</h1>
-      <p className="text-gray-600 mb-6">Join our marketplace and start earning by helping clients with their projects.</p>
+  const inputClass = "w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all";
+  const labelClass = "block text-sm font-medium text-slate-300 mb-2";
 
-      {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{error}</div>}
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+            Apply as Developer
+          </h1>
+          <p className="text-slate-400 mt-1">Join our marketplace and start earning by helping clients with their projects.</p>
+        </div>
+        <Tooltip title="Help" content="Fill out this form to apply as a developer. Your application will be reviewed by our team." position="left" variant="help">
+          <button className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400">
+            <FiHelpCircle size={22} />
+          </button>
+        </Tooltip>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl flex items-center gap-3">
+          <FiAlertCircle size={20} />
+          <span>{error}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-          <h2 className="font-semibold text-lg border-b pb-2">Basic Information</h2>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Display Name *</label>
-            <input type="text" required value={form.displayName}
-              onChange={e => setForm({ ...form, displayName: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="John Doe" />
+        {/* Basic Information */}
+        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <FiUser className="text-blue-400" size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Basic Information</h2>
+              <p className="text-sm text-slate-400">Tell us about yourself</p>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Professional Headline *</label>
-            <input type="text" required value={form.headline}
-              onChange={e => setForm({ ...form, headline: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="Senior Full-Stack Developer" />
-          </div>
+          <div className="space-y-4">
+            <Tooltip title={MARKETPLACE_TOOLTIPS.displayName.title} content={MARKETPLACE_TOOLTIPS.displayName.content} position="top">
+              <div>
+                <label className={labelClass}>Display Name <span className="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  required
+                  value={form.displayName}
+                  onChange={e => setForm({ ...form, displayName: e.target.value })}
+                  className={inputClass}
+                  placeholder="John Doe"
+                />
+              </div>
+            </Tooltip>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
-            <textarea rows={4} value={form.bio}
-              onChange={e => setForm({ ...form, bio: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="Tell clients about yourself..." />
-          </div>
+            <Tooltip title={MARKETPLACE_TOOLTIPS.headline.title} content={MARKETPLACE_TOOLTIPS.headline.content} position="top">
+              <div>
+                <label className={labelClass}>Professional Headline <span className="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  required
+                  value={form.headline}
+                  onChange={e => setForm({ ...form, headline: e.target.value })}
+                  className={inputClass}
+                  placeholder="Senior Full-Stack Developer"
+                />
+              </div>
+            </Tooltip>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-            <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-              className="w-full rounded-md border-gray-300">
-              {categories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
-            </select>
+            <div>
+              <label className={labelClass}>Bio</label>
+              <textarea
+                rows={4}
+                value={form.bio}
+                onChange={e => setForm({ ...form, bio: e.target.value })}
+                className={inputClass}
+                placeholder="Tell clients about yourself, your experience, and what makes you unique..."
+              />
+            </div>
+
+            <Tooltip title={MARKETPLACE_TOOLTIPS.category.title} content={MARKETPLACE_TOOLTIPS.category.content} position="top">
+              <div>
+                <label className={labelClass}>Category <span className="text-red-400">*</span></label>
+                <select
+                  value={form.category}
+                  onChange={e => setForm({ ...form, category: e.target.value })}
+                  className={inputClass}
+                >
+                  {categories.map(cat => (
+                    <option key={cat.value} value={cat.value} className="bg-slate-800">{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+            </Tooltip>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-          <h2 className="font-semibold text-lg border-b pb-2">Skills & Experience</h2>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Skills (comma-separated)</label>
-            <input type="text" value={form.skills}
-              onChange={e => setForm({ ...form, skills: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="React, Node.js, TypeScript" />
+        {/* Skills & Experience */}
+        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-purple-500/20 rounded-lg">
+              <FiCode className="text-purple-400" size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Skills & Experience</h2>
+              <p className="text-sm text-slate-400">Highlight your technical expertise</p>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Programming Languages</label>
-            <input type="text" value={form.languages}
-              onChange={e => setForm({ ...form, languages: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="JavaScript, Python, Go" />
-          </div>
+          <div className="space-y-4">
+            <Tooltip title={MARKETPLACE_TOOLTIPS.skills.title} content={MARKETPLACE_TOOLTIPS.skills.content} position="top">
+              <div>
+                <label className={labelClass}>Skills (comma-separated)</label>
+                <input
+                  type="text"
+                  value={form.skills}
+                  onChange={e => setForm({ ...form, skills: e.target.value })}
+                  className={inputClass}
+                  placeholder="React, Node.js, TypeScript, PostgreSQL"
+                />
+              </div>
+            </Tooltip>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Frameworks</label>
-            <input type="text" value={form.frameworks}
-              onChange={e => setForm({ ...form, frameworks: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="React, NestJS, Django" />
-          </div>
+            <div>
+              <label className={labelClass}>Programming Languages</label>
+              <input
+                type="text"
+                value={form.languages}
+                onChange={e => setForm({ ...form, languages: e.target.value })}
+                className={inputClass}
+                placeholder="JavaScript, Python, Go, Rust"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
-            <input type="number" min={0} max={50} value={form.yearsOfExperience}
-              onChange={e => setForm({ ...form, yearsOfExperience: parseInt(e.target.value) })}
-              className="w-full rounded-md border-gray-300" />
+            <div>
+              <label className={labelClass}>Frameworks</label>
+              <input
+                type="text"
+                value={form.frameworks}
+                onChange={e => setForm({ ...form, frameworks: e.target.value })}
+                className={inputClass}
+                placeholder="React, NestJS, Django, Next.js"
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Years of Experience</label>
+              <input
+                type="number"
+                min={0}
+                max={50}
+                value={form.yearsOfExperience}
+                onChange={e => setForm({ ...form, yearsOfExperience: parseInt(e.target.value) || 0 })}
+                className={inputClass}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-          <h2 className="font-semibold text-lg border-b pb-2">Pricing</h2>
-          
+        {/* Pricing */}
+        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-emerald-500/20 rounded-lg">
+              <FiDollarSign className="text-emerald-400" size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Pricing</h2>
+              <p className="text-sm text-slate-400">Set your rates</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate ($) *</label>
-              <input type="number" min={1} required value={form.hourlyRate}
-                onChange={e => setForm({ ...form, hourlyRate: parseInt(e.target.value) })}
-                className="w-full rounded-md border-gray-300" />
+            <Tooltip title={MARKETPLACE_TOOLTIPS.hourlyRate.title} content={MARKETPLACE_TOOLTIPS.hourlyRate.content} position="top">
+              <div>
+                <label className={labelClass}>Hourly Rate ($) <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    value={form.hourlyRate}
+                    onChange={e => setForm({ ...form, hourlyRate: parseInt(e.target.value) || 0 })}
+                    className={`${inputClass} pl-8`}
+                  />
+                </div>
+              </div>
+            </Tooltip>
+            <Tooltip title={MARKETPLACE_TOOLTIPS.minimumBudget.title} content={MARKETPLACE_TOOLTIPS.minimumBudget.content} position="top">
+              <div>
+                <label className={labelClass}>Minimum Budget ($)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.minimumBudget}
+                    onChange={e => setForm({ ...form, minimumBudget: parseInt(e.target.value) || 0 })}
+                    className={`${inputClass} pl-8`}
+                  />
+                </div>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+
+        {/* Links & Application Note */}
+        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-amber-500/20 rounded-lg">
+              <FiLink className="text-amber-400" size={20} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Budget ($)</label>
-              <input type="number" min={0} value={form.minimumBudget}
-                onChange={e => setForm({ ...form, minimumBudget: parseInt(e.target.value) })}
-                className="w-full rounded-md border-gray-300" />
+              <h2 className="text-lg font-bold text-white">Links & Application Note</h2>
+              <p className="text-sm text-slate-400">Share your online presence</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <FiGlobe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <input
+                  type="url"
+                  value={form.websiteUrl}
+                  placeholder="Website URL"
+                  onChange={e => setForm({ ...form, websiteUrl: e.target.value })}
+                  className={`${inputClass} pl-10`}
+                />
+              </div>
+              <div className="relative">
+                <FiGithub className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <input
+                  type="url"
+                  value={form.githubUrl}
+                  placeholder="GitHub URL"
+                  onChange={e => setForm({ ...form, githubUrl: e.target.value })}
+                  className={`${inputClass} pl-10`}
+                />
+              </div>
+              <div className="relative">
+                <FiLinkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <input
+                  type="url"
+                  value={form.linkedinUrl}
+                  placeholder="LinkedIn URL"
+                  onChange={e => setForm({ ...form, linkedinUrl: e.target.value })}
+                  className={`${inputClass} pl-10`}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Why do you want to join?</label>
+              <textarea
+                rows={3}
+                value={form.applicationNote}
+                onChange={e => setForm({ ...form, applicationNote: e.target.value })}
+                className={inputClass}
+                placeholder="Tell us why you'd be a great addition to our marketplace..."
+              />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-          <h2 className="font-semibold text-lg border-b pb-2">Links & Application Note</h2>
-          
-          <div className="grid grid-cols-3 gap-4">
-            <input type="url" value={form.websiteUrl} placeholder="Website URL"
-              onChange={e => setForm({ ...form, websiteUrl: e.target.value })}
-              className="rounded-md border-gray-300" />
-            <input type="url" value={form.githubUrl} placeholder="GitHub URL"
-              onChange={e => setForm({ ...form, githubUrl: e.target.value })}
-              className="rounded-md border-gray-300" />
-            <input type="url" value={form.linkedinUrl} placeholder="LinkedIn URL"
-              onChange={e => setForm({ ...form, linkedinUrl: e.target.value })}
-              className="rounded-md border-gray-300" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Why do you want to join?</label>
-            <textarea rows={3} value={form.applicationNote}
-              onChange={e => setForm({ ...form, applicationNote: e.target.value })}
-              className="w-full rounded-md border-gray-300" placeholder="Tell us why you'd be a great addition..." />
-          </div>
-        </div>
-
-        <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
-          {loading ? 'Submitting...' : 'Submit Application'}
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3.5 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20 transition-all"
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              Submitting...
+            </>
+          ) : (
+            <>
+              <FiSend size={18} />
+              Submit Application
+            </>
+          )}
         </button>
       </form>
     </div>
