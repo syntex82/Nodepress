@@ -436,20 +436,37 @@ print_step "$CURRENT_STEP/$TOTAL_STEPS" "Installing npm dependencies..."
 ((CURRENT_STEP++))
 print_step "$CURRENT_STEP/$TOTAL_STEPS" "Building applications..."
 
-{
-    # Build admin frontend
-    print_info "Building admin frontend..."
-    sudo -u "$ACTUAL_USER" bash -c "cd $APP_DIR/admin && npm run build" > /dev/null 2>&1
-    print_success "Admin frontend built"
+# Build admin frontend
+print_info "Building admin frontend..."
+if sudo -u "$ACTUAL_USER" bash -c "cd $APP_DIR/admin && npm run build" > /dev/null 2>&1; then
+    if [ -f "$APP_DIR/admin/dist/index.html" ]; then
+        print_success "Admin frontend built"
+    else
+        print_fail "Admin build completed but dist/index.html not found"
+        INSTALLATION_ERRORS+=("Admin build - missing output")
+    fi
+else
+    print_fail "Failed to build admin frontend"
+    print_info "Trying with verbose output..."
+    sudo -u "$ACTUAL_USER" bash -c "cd $APP_DIR/admin && npm run build" 2>&1 | tail -20
+    INSTALLATION_ERRORS+=("Admin build")
+fi
 
-    # Build backend
-    print_info "Building backend..."
-    sudo -u "$ACTUAL_USER" bash -c "cd $APP_DIR && npm run build" > /dev/null 2>&1
-    print_success "Backend built"
-} || {
-    print_fail "Failed to build applications"
-    INSTALLATION_ERRORS+=("Build")
-}
+# Build backend
+print_info "Building backend..."
+if sudo -u "$ACTUAL_USER" bash -c "cd $APP_DIR && npm run build" > /dev/null 2>&1; then
+    if [ -f "$APP_DIR/dist/main.js" ]; then
+        print_success "Backend built"
+    else
+        print_fail "Backend build completed but dist/main.js not found"
+        INSTALLATION_ERRORS+=("Backend build - missing output")
+    fi
+else
+    print_fail "Failed to build backend"
+    print_info "Trying with verbose output..."
+    sudo -u "$ACTUAL_USER" bash -c "cd $APP_DIR && npm run build" 2>&1 | tail -20
+    INSTALLATION_ERRORS+=("Backend build")
+fi
 
 # ══════════════════════════════════════════════════════════════
 # STEP 9: Setup database schema and seed

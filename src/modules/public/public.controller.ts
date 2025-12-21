@@ -58,6 +58,11 @@ export class PublicController {
   @Get('admin')
   async adminSpaRoot(@Res() res: Response) {
     const adminIndexPath = join(process.cwd(), 'admin', 'dist', 'index.html');
+    const { existsSync } = await import('fs');
+
+    if (!existsSync(adminIndexPath)) {
+      return res.status(503).send(this.getAdminNotBuiltMessage());
+    }
     res.sendFile(adminIndexPath);
   }
 
@@ -69,7 +74,102 @@ export class PublicController {
   @Get('admin/*')
   async adminSpaFallback(@Res() res: Response) {
     const adminIndexPath = join(process.cwd(), 'admin', 'dist', 'index.html');
+    const { existsSync } = await import('fs');
+
+    if (!existsSync(adminIndexPath)) {
+      return res.status(503).send(this.getAdminNotBuiltMessage());
+    }
     res.sendFile(adminIndexPath);
+  }
+
+  /**
+   * Returns a helpful error message when admin panel is not built
+   */
+  private getAdminNotBuiltMessage(): string {
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel Not Built - WordPress Node CMS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 600px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 { color: #e53e3e; margin-bottom: 16px; font-size: 24px; }
+    p { color: #4a5568; line-height: 1.6; margin-bottom: 16px; }
+    .code {
+      background: #1a202c;
+      color: #68d391;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Consolas', monospace;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    .code div { margin: 4px 0; }
+    .comment { color: #718096; }
+    .steps { margin: 20px 0; }
+    .steps li { margin: 8px 0; color: #4a5568; }
+    .tip {
+      background: #ebf8ff;
+      border-left: 4px solid #4299e1;
+      padding: 12px 16px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    .tip strong { color: #2b6cb0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚠️ Admin Panel Not Built</h1>
+    <p>The admin panel files are missing. This usually happens on a fresh installation.</p>
+
+    <div class="steps">
+      <strong>To fix this, run these commands:</strong>
+      <div class="code">
+        <div><span class="comment"># Navigate to the admin directory</span></div>
+        <div>cd admin</div>
+        <div></div>
+        <div><span class="comment"># Install dependencies</span></div>
+        <div>npm install</div>
+        <div></div>
+        <div><span class="comment"># Build the admin panel</span></div>
+        <div>npm run build</div>
+        <div></div>
+        <div><span class="comment"># Restart the server</span></div>
+        <div>cd .. && node dist/main.js</div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> If you're using the setup script, make sure it completed without errors.
+      Check the console output for any build failures.
+    </div>
+
+    <p style="margin-top: 20px; font-size: 14px; color: #718096;">
+      After building, refresh this page to access the admin panel.
+    </p>
+  </div>
+</body>
+</html>
+`;
   }
 
   /**

@@ -4,10 +4,11 @@
  * Optimized for horizontal scaling with Redis caching and job queues
  */
 
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { existsSync } from 'fs';
 
 // Infrastructure modules
 import { PrismaModule } from './database/prisma.module';
@@ -40,6 +41,30 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 import { UpdatesModule } from './modules/updates/updates.module';
 
+// Check if admin dist exists
+const adminDistPath = join(process.cwd(), 'admin', 'dist');
+const adminDistExists = existsSync(join(adminDistPath, 'index.html'));
+
+if (!adminDistExists) {
+  const logger = new Logger('AppModule');
+  logger.warn('⚠️ Admin panel not built! The /admin route will not work.');
+  logger.warn('   Run: cd admin && npm install && npm run build');
+}
+
+// Build static module imports conditionally
+const staticModules = adminDistExists
+  ? [
+      ServeStaticModule.forRoot({
+        rootPath: adminDistPath,
+        serveRoot: '/admin',
+        exclude: ['/api/{*path}', '/uploads/{*path}', '/health/{*path}'],
+        serveStaticOptions: {
+          fallthrough: true,
+        },
+      }),
+    ]
+  : [];
+
 @Module({
   imports: [
     // Configuration module - loads .env file
@@ -49,15 +74,8 @@ import { UpdatesModule } from './modules/updates/updates.module';
       cache: true, // Cache env vars for performance
     }),
 
-    // Serve static files for admin SPA
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'admin', 'dist'),
-      serveRoot: '/admin',
-      exclude: ['/api/{*path}', '/uploads/{*path}', '/health/{*path}'],
-      serveStaticOptions: {
-        fallthrough: true,
-      },
-    }),
+    // Serve static files for admin SPA (only if built)
+    ...staticModules,
 
     // Infrastructure modules (order matters - Redis before Queue)
     PrismaModule,

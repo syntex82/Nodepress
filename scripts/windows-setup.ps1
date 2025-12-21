@@ -487,16 +487,38 @@ try {
     # Build admin frontend
     Write-Info "Building admin frontend..."
     Set-Location "$APP_DIR\admin"
-    npm run build 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Admin build failed" }
-    Write-Success "Admin frontend built"
+    $buildOutput = npm run build 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "Admin build failed"
+        Write-Host ($buildOutput | Select-Object -Last 20) -ForegroundColor Yellow
+        throw "Admin build failed"
+    }
+
+    # Verify admin dist exists
+    if (Test-Path "$APP_DIR\admin\dist\index.html") {
+        Write-Success "Admin frontend built"
+    } else {
+        Write-Fail "Admin build completed but dist\index.html not found"
+        $installationErrors += "Admin build - missing output"
+    }
 
     # Build backend
     Write-Info "Building backend..."
     Set-Location $APP_DIR
-    npm run build 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Backend build failed" }
-    Write-Success "Backend built"
+    $buildOutput = npm run build 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "Backend build failed"
+        Write-Host ($buildOutput | Select-Object -Last 20) -ForegroundColor Yellow
+        throw "Backend build failed"
+    }
+
+    # Verify backend dist exists
+    if (Test-Path "$APP_DIR\dist\main.js") {
+        Write-Success "Backend built"
+    } else {
+        Write-Fail "Backend build completed but dist\main.js not found"
+        $installationErrors += "Backend build - missing output"
+    }
 } catch {
     Write-Fail "Failed to build applications: $_"
     $installationErrors += "Build: $_"
