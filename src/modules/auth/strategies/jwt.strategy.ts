@@ -51,7 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       const { password: _password, ...result } = user;
       void _password; // Intentionally unused
       return result;
-    } catch (error) {
+    } catch (_error) {
       // User not found or other error - token is invalid
       throw new UnauthorizedException();
     }

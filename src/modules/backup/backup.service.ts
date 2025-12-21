@@ -11,10 +11,7 @@ import * as path from 'path';
 import * as archiver from 'archiver';
 import * as AdmZip from 'adm-zip';
 import { createHash } from 'crypto';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+// exec/execAsync removed - not currently used but may be needed for pg_dump in future
 
 export interface CreateBackupDto {
   name: string;
@@ -380,7 +377,6 @@ export class BackupService {
       if (restoreThemes) {
         const themeEntries = zipEntries.filter(e => e.entryName.startsWith('themes/'));
         if (themeEntries.length > 0) {
-          const themesDir = path.join(process.cwd(), 'themes');
           for (const entry of themeEntries) {
             if (!entry.isDirectory) {
               const targetPath = path.join(process.cwd(), entry.entryName);
@@ -399,7 +395,6 @@ export class BackupService {
       if (restorePlugins) {
         const pluginEntries = zipEntries.filter(e => e.entryName.startsWith('plugins/'));
         if (pluginEntries.length > 0) {
-          const pluginsDir = path.join(process.cwd(), 'plugins');
           for (const entry of pluginEntries) {
             if (!entry.isDirectory) {
               const targetPath = path.join(process.cwd(), entry.entryName);

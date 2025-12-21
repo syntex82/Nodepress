@@ -3,11 +3,10 @@
  * API endpoints for hiring requests
  */
 
-import { Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
 import { HiringRequestsService } from '../services/hiring-requests.service';
 import { ProjectsService } from '../services/projects.service';
 import { CreateHiringRequestDto, UpdateHiringRequestStatusDto, HiringRequestStatus } from '../dto';
