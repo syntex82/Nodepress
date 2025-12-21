@@ -212,6 +212,21 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 | **IP Blocking** | Block malicious IPs and IP ranges |
 | **File Integrity Monitoring** | Detect unauthorized file changes |
 | **Security Dashboard** | Centralized view of all security metrics and threats |
+| **Encrypted Configuration** | AES-256-GCM encryption for sensitive database fields (SMTP passwords, API keys) |
+| **Environment Validation** | Startup validation of required security variables in production |
+
+<br />
+
+### ⚙️ Admin Configuration & Setup
+
+| Feature | Description |
+|---------|-------------|
+| **Setup Wizard** | Guided first-time installation with admin account creation and optional SMTP setup |
+| **Email Settings Panel** | Configure SMTP server, credentials, and test email delivery via admin UI |
+| **Domain Settings Panel** | Set frontend URL, admin URL, site name, and support email via admin UI |
+| **Database-Driven Config** | Runtime-configurable settings stored in database (no server restart needed) |
+| **Config Encryption** | All sensitive settings encrypted with AES-256-GCM before storage |
+| **Environment Override** | Production environment variables override database config when needed |
 
 <br />
 
@@ -688,6 +703,19 @@ After seeding the database, use these default credentials:
 
 <br />
 
+### 🧙 First-Time Setup Wizard
+
+For **fresh installations** or **production deployments**, use the Setup Wizard for a guided configuration experience:
+
+1. Navigate to `http://localhost:3000/admin/setup`
+2. Create your admin account with a secure password
+3. Configure SMTP settings for email functionality (optional - can be done later)
+4. Complete the setup and start using WordPress Node CMS!
+
+> 💡 **Note:** The Setup Wizard only appears on fresh installations. Once setup is complete, it redirects to the login page. You can always configure settings later via **Settings → Email** and **Settings → Domain** in the admin panel.
+
+<br />
+
 ---
 
 ## 📁 Project Structure
@@ -703,7 +731,11 @@ wordpress-node/
 │   │   ├── 📂 media/                 # Media library & uploads
 │   │   ├── 📂 themes/                # Theme system
 │   │   ├── 📂 plugins/               # Plugin system
-│   │   ├── 📂 settings/              # Site settings
+│   │   ├── 📂 settings/              # Site settings & configuration
+│   │   │   ├── 📄 encryption.service.ts      # AES-256-GCM encryption
+│   │   │   ├── 📄 system-config.service.ts   # Database config management
+│   │   │   ├── 📄 system-config.controller.ts # Config API endpoints
+│   │   │   └── 📄 setup-wizard.controller.ts  # First-time setup API
 │   │   ├── 📂 shop/                  # E-commerce module
 │   │   │   ├── 📂 products/          # Product management
 │   │   │   ├── 📂 categories/        # Product categories
@@ -734,6 +766,8 @@ wordpress-node/
 │   │   │   ├── 📂 ThemeDesigner/     # Visual theme builder
 │   │   │   └── 📂 layout/            # Layout components
 │   │   ├── 📂 pages/                 # Page components
+│   │   │   ├── 📄 SetupWizard.tsx    # First-time installation wizard
+│   │   │   ├── 📄 Settings.tsx       # Settings with Email/Domain tabs
 │   │   │   ├── 📂 shop/              # Shop admin pages
 │   │   │   ├── 📂 lms/               # LMS admin pages
 │   │   │   ├── 📂 marketplace/       # Developer marketplace admin
@@ -1505,10 +1539,11 @@ Having issues? Check these common problems and solutions:
 
 | Issue | Solution |
 |-------|----------|
-| **SMTP not configured** | Add SMTP settings to `.env` |
-| **Gmail blocking** | Enable "Less secure apps" or use App Password with 2FA |
-| **Wrong credentials** | Verify SMTP_USER and SMTP_PASS in `.env` |
+| **SMTP not configured** | Configure via **Settings → Email** in admin panel, or add SMTP settings to `.env` |
+| **Gmail blocking** | Enable 2FA and use App Password from [Google Account Settings](https://myaccount.google.com/apppasswords) |
+| **Wrong credentials** | Verify SMTP settings in admin panel or `.env` file |
 | **Check spam folder** | Emails may be in recipient's spam/junk folder |
+| **Test email fails** | Use the "Send Test Email" button in **Settings → Email** to diagnose issues |
 
 <br />
 
