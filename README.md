@@ -481,8 +481,6 @@ Before you begin, ensure you have the following installed:
 ---
 
 ### 🐧 Ubuntu Server - One-Command Install
-             sudo chmod +x ubuntu-setup.sh
-             sudo bash ubuntu-setup.sh
 
 <div align="center">
 
@@ -490,7 +488,17 @@ Before you begin, ensure you have the following installed:
 
 </div>
 
+#### Fresh Installation
 
+```bash
+# Clone the repository
+git clone https://github.com/syntex82/WordPress-Node.git
+cd WordPress-Node
+
+# Run the setup script
+chmod +x scripts/ubuntu-setup.sh
+sudo ./scripts/ubuntu-setup.sh
+```
 
 <details>
 <summary><strong>📋 What the script installs automatically</strong></summary>
@@ -509,24 +517,45 @@ Before you begin, ensure you have the following installed:
 The script also:
 - ✅ Installs all npm dependencies (backend + admin)
 - ✅ **Builds the admin frontend** (`npm run build`)
+- ✅ **Builds the backend** (`npm run build`)
 - ✅ Creates PostgreSQL database and user
 - ✅ Generates secure secrets for JWT and sessions
 - ✅ Creates `.env` file with all configuration
 - ✅ Pushes database schema (`npx prisma db push`)
 - ✅ Seeds admin user with default credentials
-- ✅ Ensures themes directory exists with proper permissions
+- ✅ Sets up systemd service for auto-start
 - ✅ Includes pre-built themes: **my-theme** (default) and **tester**
 
 </details>
 
 <br />
 
-**After installation completes:**
+#### 🔄 Updating Existing Installation
+
+To update an existing Ubuntu installation with the latest fixes and features:
 
 ```bash
-cd ~/wordpress-node
-npm run dev
+cd /home/WordPress-Node
+
+# Discard any local changes to scripts (required before pulling)
+git checkout scripts/
+
+# Pull latest code
+git pull origin main
+
+# Run the update script
+chmod +x scripts/update.sh
+sudo ./scripts/update.sh
 ```
+
+The update script will:
+- ✅ Create a backup before updating
+- ✅ Install new dependencies
+- ✅ Rebuild admin panel and backend
+- ✅ Apply database migrations
+- ✅ Restart the systemd service
+
+<br />
 
 **Access the application:**
 
@@ -1592,46 +1621,42 @@ Copy and paste these commands to get up and running quickly:
 ### 🪟 Windows (PowerShell as Administrator)
 
 ```powershell
-# Clone and setup (one-liner)
-git clone https://github.com/syntex82/WordPress-Node.git; cd WordPress-Node; powershell -ExecutionPolicy Bypass -File .\scripts\windows-setup.ps1
+# Fresh installation
+git clone https://github.com/syntex82/WordPress-Node.git
+cd WordPress-Node
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-setup.ps1
 
-# After setup completes, start the app
+# Start the server
 npm run dev
 ```
 
 ### 🐧 Ubuntu/Linux
 
 ```bash
-# Clone and setup (one-liner)
-git clone https://github.com/syntex82/WordPress-Node.git && cd WordPress-Node && chmod +x scripts/ubuntu-setup.sh && sudo bash scripts/ubuntu-setup.sh
-
-# After setup completes, start the app
-cd ~/wordpress-node && npm run dev
-```
-
-### 🔧 Manual Quick Setup (Any OS)
-
-```bash
-# 1. Clone the repository
+# Fresh installation
 git clone https://github.com/syntex82/WordPress-Node.git
 cd WordPress-Node
+chmod +x scripts/ubuntu-setup.sh
+sudo ./scripts/ubuntu-setup.sh
+```
 
-# 2. Copy environment file
-cp .env.example .env
-# Edit .env with your DATABASE_URL and secrets
+### 🔄 Updating Existing Installations
 
-# 3. Install dependencies
+```bash
+# Ubuntu/Linux - Update to latest version
+cd /home/WordPress-Node
+git checkout scripts/          # Reset any local script changes
+git pull origin main           # Pull latest code
+chmod +x scripts/update.sh
+sudo ./scripts/update.sh       # Rebuild and restart
+
+# Windows - Update to latest version
+cd WordPress-Node
+git checkout scripts/
+git pull origin main
+cd admin; npm install; npm run build; cd ..
 npm install
-cd admin && npm install && cd ..
-
-# 4. Setup database (generate client + push schema + seed data)
-npm run db:setup
-
-# 5. Build the admin panel
-cd admin && npm run build && cd ..
-
-# 6. Start the application
-npm run dev
+npm run build
 ```
 
 ### 🔑 Default Login Credentials
