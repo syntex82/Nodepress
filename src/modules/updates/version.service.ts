@@ -177,9 +177,18 @@ export class VersionService {
     const versions: VersionInfo[] = releases
       .filter(r => !r.draft)
       .map(release => {
-        const asset = release.assets?.find((a: any) =>
-          a.name.endsWith('.zip') || a.name.includes('wordpress-node')
+        // Prefer .tar.gz, then .zip, then zipball_url
+        const tarAsset = release.assets?.find((a: any) =>
+          a.name.endsWith('.tar.gz') && !a.name.endsWith('.sha256')
         );
+        const zipAsset = release.assets?.find((a: any) =>
+          a.name.endsWith('.zip') && !a.name.endsWith('.sha256')
+        );
+        const checksumAsset = release.assets?.find((a: any) =>
+          a.name.endsWith('.tar.gz.sha256') || a.name.endsWith('.zip.sha256')
+        );
+
+        const asset = tarAsset || zipAsset;
 
         return {
           version: release.tag_name?.replace(/^v/, '') || release.name,
@@ -187,7 +196,7 @@ export class VersionService {
           changelog: release.body || '',
           releaseNotes: release.body || '',
           downloadUrl: asset?.browser_download_url || release.zipball_url || '',
-          checksum: '',
+          checksum: checksumAsset?.browser_download_url || '',
           fileSize: asset?.size || 0,
           minNodeVersion: '18.0.0',
           minNpmVersion: '8.0.0',

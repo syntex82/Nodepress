@@ -1,0 +1,134 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# WordPress Node CMS - Release Workflow
+# ═══════════════════════════════════════════════════════════════════════════════
+# Creates a GitHub release with pre-built dist files when a version tag is pushed
+# Usage: git tag v1.0.1 && git push origin v1.0.1
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: 📦 Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  release:
+    name: 🚀 Build & Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔖 Get version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          echo "release_dir=wordpress-node-${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # ─────────────────────────────────────────────────────────────────────────
+      # Build Backend
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: 📦 Install backend dependencies
+        run: npm ci
+
+      - name: 🗄️ Generate Prisma Client
+        run: npx prisma generate
+
+      - name: 🏗️ Build Backend
+        run: npm run build
+
+      # ─────────────────────────────────────────────────────────────────────────
+      # Build Frontend
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: 📦 Install frontend dependencies
+        working-directory: admin
+        run: npm ci || npm install
+
+      - name: 🏗️ Build Frontend
+        working-directory: admin
+        run: npm run build
+
+      # ─────────────────────────────────────────────────────────────────────────
+      # Create Release Package
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: 📁 Create release package
+        run: |
+          RELEASE_DIR="${{ steps.version.outputs.release_dir }}"
+
+          mkdir -p $RELEASE_DIR
+
+          # Copy essential files
+          cp -r dist $RELEASE_DIR/
+          cp -r admin/dist $RELEASE_DIR/admin-dist
+          cp -r prisma $RELEASE_DIR/
+          cp -r themes $RELEASE_DIR/
+          cp -r scripts $RELEASE_DIR/
+          cp package.json $RELEASE_DIR/
+          cp package-lock.json $RELEASE_DIR/ 2>/dev/null || true
+          cp .env.example $RELEASE_DIR/ 2>/dev/null || true
+          cp README.md $RELEASE_DIR/
+
+          # Create tarball
+          tar -czvf "${RELEASE_DIR}.tar.gz" $RELEASE_DIR
+
+          # Create zip
+          zip -r "${RELEASE_DIR}.zip" $RELEASE_DIR
+
+          # Generate checksums
+          sha256sum "${RELEASE_DIR}.tar.gz" > "${RELEASE_DIR}.tar.gz.sha256"
+          sha256sum "${RELEASE_DIR}.zip" > "${RELEASE_DIR}.zip.sha256"
+
+      - name: 📋 Generate Release Notes
+        run: |
+          VERSION="${{ steps.version.outputs.tag }}"
+          cat > RELEASE_NOTES.md << EOF
+          ## What's Changed
+
+          ### Installation
+          \`\`\`bash
+          # Download and extract
+          wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/wordpress-node-${VERSION}.tar.gz
+          tar -xzf wordpress-node-${VERSION}.tar.gz
+          cd wordpress-node-${VERSION}
+
+          # Install dependencies and start
+          npm install --production
+          mv admin-dist admin/dist
+          node dist/main.js
+          \`\`\`
+
+          ### Updating Existing Installation
+          Use the auto-update feature in Admin Panel → System → Updates
+
+          Or run: \`sudo ./scripts/update.sh\`
+          EOF
+
+      - name: 🚀 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: WordPress Node CMS ${{ steps.version.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, 'alpha') || contains(steps.version.outputs.tag, 'beta') || contains(steps.version.outputs.tag, 'rc') }}
+          files: |
+            ${{ steps.version.outputs.release_dir }}.tar.gz
+            ${{ steps.version.outputs.release_dir }}.tar.gz.sha256
+            ${{ steps.version.outputs.release_dir }}.zip
+            ${{ steps.version.outputs.release_dir }}.zip.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
