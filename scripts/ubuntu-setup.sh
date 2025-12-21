@@ -348,6 +348,7 @@ NODE_ENV=development
 PORT=${APP_PORT}
 HOST=0.0.0.0
 APP_URL=http://localhost:${APP_PORT}
+FRONTEND_URL=http://localhost:${APP_PORT}/admin
 
 # ─────────────────────────────────────────────────────────────
 # AUTHENTICATION (auto-generated secure secrets)
