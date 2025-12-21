@@ -8,12 +8,20 @@ import { Link } from 'react-router-dom';
 import {
   FiUsers, FiBriefcase, FiDollarSign, FiTrendingUp,
   FiUserCheck, FiClock, FiCheckCircle, FiAlertCircle,
-  FiHelpCircle, FiStar, FiGrid, FiBarChart2
+  FiHelpCircle, FiStar, FiGrid, FiBarChart2, FiSettings, FiSave
 } from 'react-icons/fi';
 import api from '../../services/api';
 import Tooltip from '../../components/Tooltip';
 import { MARKETPLACE_TOOLTIPS } from '../../config/tooltips';
 import toast from 'react-hot-toast';
+
+interface MarketplaceConfig {
+  platformFeePercent: number;
+  minPayoutAmount: number;
+  maxEscrowDays: number;
+  autoReleaseDays: number;
+  enabled: boolean;
+}
 
 interface Statistics {
   developers: {
@@ -44,10 +52,42 @@ export default function MarketplaceDashboard() {
   const [stats, setStats] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [config, setConfig] = useState<MarketplaceConfig>({
+    platformFeePercent: 10,
+    minPayoutAmount: 10,
+    maxEscrowDays: 90,
+    autoReleaseDays: 14,
+    enabled: true,
+  });
+  const [savingConfig, setSavingConfig] = useState(false);
 
   useEffect(() => {
     fetchStatistics();
+    fetchConfig();
   }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await api.get('/system-config/marketplace');
+      setConfig(response.data);
+    } catch (err) {
+      console.error('Error fetching marketplace config:', err);
+    }
+  };
+
+  const saveConfig = async () => {
+    setSavingConfig(true);
+    try {
+      await api.put('/system-config/marketplace', config);
+      toast.success('Marketplace settings saved successfully');
+      setShowSettings(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to save settings');
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
   const fetchStatistics = async () => {
     try {
@@ -187,12 +227,142 @@ export default function MarketplaceDashboard() {
           </h1>
           <p className="text-slate-400 mt-1">Monitor your developer marketplace performance</p>
         </div>
-        <Tooltip title="Help" content="View marketplace statistics, manage developers, and monitor projects" position="left" variant="help">
-          <button className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400">
-            <FiHelpCircle size={22} />
-          </button>
-        </Tooltip>
+        <div className="flex items-center gap-2">
+          <Tooltip title="Settings" content="Configure marketplace settings like platform fees" position="bottom">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={`p-3 rounded-xl border transition-all ${
+                showSettings
+                  ? 'bg-blue-600 border-blue-500 text-white'
+                  : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50 text-slate-400 hover:text-blue-400'
+              }`}
+            >
+              <FiSettings size={22} />
+            </button>
+          </Tooltip>
+          <Tooltip title="Help" content="View marketplace statistics, manage developers, and monitor projects" position="left" variant="help">
+            <button className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400">
+              <FiHelpCircle size={22} />
+            </button>
+          </Tooltip>
+        </div>
       </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-blue-500/30 p-6 shadow-xl shadow-blue-500/10">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <FiSettings className="text-blue-400" size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Marketplace Settings</h2>
+                <p className="text-sm text-slate-400">Configure fees and payout rules</p>
+              </div>
+            </div>
+            <button
+              onClick={saveConfig}
+              disabled={savingConfig}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              <FiSave size={16} />
+              {savingConfig ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Platform Fee */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Platform Fee (%)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                step="0.5"
+                value={config.platformFeePercent}
+                onChange={(e) => setConfig({ ...config, platformFeePercent: parseFloat(e.target.value) || 0 })}
+                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-xs text-slate-500">Fee charged on each project (0-50%)</p>
+            </div>
+
+            {/* Minimum Payout */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Minimum Payout ($)
+              </label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={config.minPayoutAmount}
+                onChange={(e) => setConfig({ ...config, minPayoutAmount: parseFloat(e.target.value) || 1 })}
+                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-xs text-slate-500">Minimum amount for withdrawals</p>
+            </div>
+
+            {/* Max Escrow Days */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Max Escrow Days
+              </label>
+              <input
+                type="number"
+                min="7"
+                max="365"
+                step="1"
+                value={config.maxEscrowDays}
+                onChange={(e) => setConfig({ ...config, maxEscrowDays: parseInt(e.target.value) || 90 })}
+                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-xs text-slate-500">Maximum days funds held in escrow</p>
+            </div>
+
+            {/* Auto Release Days */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Auto-Release Days
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="60"
+                step="1"
+                value={config.autoReleaseDays}
+                onChange={(e) => setConfig({ ...config, autoReleaseDays: parseInt(e.target.value) || 14 })}
+                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-xs text-slate-500">Days before auto-release after completion</p>
+            </div>
+          </div>
+
+          {/* Marketplace Toggle */}
+          <div className="mt-6 pt-6 border-t border-slate-700/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-white">Marketplace Status</p>
+                <p className="text-sm text-slate-400">Enable or disable the developer marketplace</p>
+              </div>
+              <button
+                onClick={() => setConfig({ ...config, enabled: !config.enabled })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  config.enabled ? 'bg-emerald-500' : 'bg-slate-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    config.enabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -567,7 +567,6 @@ The script also:
 - ✅ Generates secure secrets for JWT and sessions
 - ✅ Creates `.env` file with all configuration
 - ✅ Pushes database schema (`npx prisma db push`)
-- ✅ Seeds admin user with default credentials
 - ✅ Creates uploads and themes directories
 - ✅ Includes pre-built themes: **my-theme** (default) and **tester**
 
@@ -575,22 +574,73 @@ The script also:
 
 <br />
 
-**After installation completes:**
+#### 🚀 Starting the Servers
 
-```bash
+After setup completes, you need to start the servers:
+
+**Option 1: Production Mode (Recommended)**
+
+Start from the `WordPress-Node` directory - this serves both backend and the pre-built admin panel:
+
+```powershell
+cd WordPress-Node
 npm run dev
 ```
 
-**Access the application:**
+**Option 2: Development Mode (Hot Reloading for Admin)**
+
+For frontend development with hot reloading, run both servers:
+
+```powershell
+# Terminal 1 - Backend Server (from WordPress-Node directory)
+cd WordPress-Node
+npm run dev
+
+# Terminal 2 - Admin Frontend with Hot Reload (from admin directory)
+cd WordPress-Node\admin
+npm run dev
+```
+
+| Mode | Backend URL | Admin URL | Use Case |
+|------|-------------|-----------|----------|
+| **Production** | `http://localhost:3000` | `http://localhost:3000/admin` | Normal usage |
+| **Development** | `http://localhost:3000` | `http://localhost:5173` | Admin panel development |
+
+<br />
+
+#### 🧙 Setup Wizard (Fresh Install)
+
+For fresh installations without a seeded admin account, use the **Setup Wizard**:
+
+1. **Navigate to:** `http://localhost:3000/admin/setup`
+2. **Step 1 - Welcome:** Click "Get Started"
+3. **Step 2 - Admin Account:** Enter your name, email, and password (min 8 characters)
+4. **Step 3 - Email Settings:** Configure SMTP or skip for later
+5. **Step 4 - Complete:** Click "Go to Login" to finish
+
+> 💡 **Note:** The Setup Wizard only appears on fresh installations. If you ran the seed script, an admin already exists and you'll be redirected to login.
+
+**To reset and use the Setup Wizard:**
+```powershell
+# Delete existing users and setup status to trigger wizard
+npx prisma db execute --stdin <<< "DELETE FROM ""SetupStatus""; DELETE FROM ""User"";"
+```
+
+Then navigate to `http://localhost:3000/admin/setup`
+
+<br />
+
+#### 🌐 Access Points
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Frontend** | `http://localhost:3000` | Public-facing website with theme |
+| **Setup Wizard** | `http://localhost:3000/admin/setup` | First-time installation wizard |
 | **Admin Panel** | `http://localhost:3000/admin` | Administration dashboard |
+| **Frontend** | `http://localhost:3000` | Public-facing website with theme |
 | **API** | `http://localhost:3000/api` | RESTful API endpoints |
 | **Health Check** | `http://localhost:3000/health` | Server health status |
 
-**Default Login Credentials:**
+**Default Login Credentials (if seeded):**
 ```
 📧 Email:    admin@starter.dev
 🔑 Password: Admin123!
@@ -603,7 +653,7 @@ npm run dev
 The setup script automatically creates a `.env` file in your project root directory with all the necessary configuration:
 
 ```
-c:\Users\<YourUsername>\OneDrive\Desktop\wordpress\.env
+c:\Users\<YourUsername>\WordPress-Node\.env
 ```
 
 **To modify the admin password or email after setup:**
@@ -615,7 +665,8 @@ c:\Users\<YourUsername>\OneDrive\Desktop\wordpress\.env
    ```
 3. Edit these values as needed
 4. Save the file
-5. Restart the application with `npm run dev`
+5. Re-run the seed: `npx prisma db seed`
+6. Restart the application with `npm run dev`
 
 <br />
 
@@ -625,8 +676,8 @@ c:\Users\<YourUsername>\OneDrive\Desktop\wordpress\.env
 
 ```bash
 # 1️⃣ Clone the repository
-git clone https://github.com/yourusername/wordpress-node.git
-cd wordpress-node
+git clone https://github.com/syntex82/WordPress-Node.git
+cd WordPress-Node
 
 # 2️⃣ Install all dependencies
 npm install
@@ -636,17 +687,18 @@ cd admin && npm install && cd ..
 cp .env.example .env
 # ⚠️ Edit .env with your database credentials (see below)
 
-# 4️⃣ Setup database (generate client, push schema, seed data)
-npm run db:setup
+# 4️⃣ Setup database (generate client, push schema)
+npx prisma generate
+npx prisma db push
 
-# 5️⃣ Start the development server
+# 5️⃣ Build the admin panel
+cd admin && npm run build && cd ..
+
+# 6️⃣ Start the server
 npm run dev
 ```
 
-> 💡 **One-liner alternative for step 4:** If you prefer individual commands, you can run:
-> - `npx prisma generate` - Generate Prisma client
-> - `npx prisma db push` - Push schema to database
-> - `npx prisma db seed` - Seed with initial data (optional)
+> 💡 **Optional:** Run `npx prisma db seed` to create a default admin account. Otherwise, use the Setup Wizard.
 
 > 📝 **Note:** `npx prisma db push` syncs your database schema without creating migration files - perfect for development. For production with migration history, use `npx prisma migrate deploy` instead.
 
@@ -664,7 +716,7 @@ DATABASE_URL="postgresql://user:password@localhost:5432/wordpress_node?schema=pu
 JWT_SECRET="your-super-secret-jwt-key-min-32-characters"
 SESSION_SECRET="your-session-secret-key"
 
-# Admin Account for seeding (required)
+# Optional - Only needed if using seed script
 ADMIN_EMAIL="admin@starter.dev"
 ADMIN_PASSWORD="Admin123!"
 ```
@@ -673,26 +725,75 @@ ADMIN_PASSWORD="Admin123!"
 
 <br />
 
-### 🌐 Access Points
+### 🚀 Starting the Servers
 
-Once running, access the application at:
+After setup, you have two options for running the application:
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Admin Panel** | http://localhost:3000/admin | Administration dashboard |
-| **API** | http://localhost:3000/api | RESTful API endpoints |
-| **Public Site** | http://localhost:3000 | Public-facing website (with theme) |
-| **Storefront** | http://localhost:3000/admin/storefront | E-commerce storefront |
-| **Course Catalog** | http://localhost:3000/admin/lms/catalog | LMS course browsing |
-| **Health Check** | http://localhost:3000/health | Server health status |
+#### Option 1: Production Mode (Single Server)
 
-> 💡 **Development Mode:** If running `cd admin && npm run dev` separately, the admin panel will be on http://localhost:5173
+Run from the `WordPress-Node` directory - serves both backend API and pre-built admin panel:
+
+```bash
+cd WordPress-Node
+npm run dev
+```
+
+#### Option 2: Development Mode (Hot Reloading)
+
+For frontend development with hot reloading, run two terminals:
+
+```bash
+# Terminal 1 - Backend Server
+cd WordPress-Node
+npm run dev
+
+# Terminal 2 - Admin Frontend (Hot Reload)
+cd WordPress-Node/admin
+npm run dev
+```
+
+| Mode | Backend | Admin Panel | Best For |
+|------|---------|-------------|----------|
+| **Production** | `http://localhost:3000` | `http://localhost:3000/admin` | Normal usage |
+| **Development** | `http://localhost:3000` | `http://localhost:5173` | Admin panel development |
 
 <br />
 
-### 🔑 Default Login
+### 🌐 Access Points
 
-After seeding the database, use these default credentials:
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Setup Wizard** | http://localhost:3000/admin/setup | First-time installation wizard |
+| **Admin Panel** | http://localhost:3000/admin | Administration dashboard |
+| **Public Site** | http://localhost:3000 | Public-facing website (with theme) |
+| **API** | http://localhost:3000/api | RESTful API endpoints |
+| **Health Check** | http://localhost:3000/health | Server health status |
+
+<br />
+
+### 🧙 First-Time Setup Wizard
+
+For **fresh installations** (no seeded admin), use the **Setup Wizard** for a guided configuration:
+
+1. **Navigate to:** `http://localhost:3000/admin/setup`
+2. **Welcome:** Click "Get Started"
+3. **Create Admin:** Enter your name, email, and password (minimum 8 characters)
+4. **Email Settings:** Configure SMTP or click "Skip" to set up later
+5. **Complete:** Click "Go to Login" to finish setup
+
+> 💡 **Note:** The Setup Wizard only appears when no admin account exists. If you ran `npx prisma db seed`, an admin already exists and you'll be redirected to login.
+
+**To reset and use the Setup Wizard:**
+```bash
+# Delete users and setup status to trigger the wizard
+npx prisma db execute --stdin <<< 'DELETE FROM "SetupStatus"; DELETE FROM "User";'
+```
+
+<br />
+
+### 🔑 Default Login (If Seeded)
+
+If you ran `npx prisma db seed`, use these credentials:
 
 ```
 📧 Email:    admin@starter.dev
@@ -700,19 +801,6 @@ After seeding the database, use these default credentials:
 ```
 
 > 💡 **Tip:** You can customize these in your `.env` file using `ADMIN_EMAIL` and `ADMIN_PASSWORD` before running the seed command.
-
-<br />
-
-### 🧙 First-Time Setup Wizard
-
-For **fresh installations** or **production deployments**, use the Setup Wizard for a guided configuration experience:
-
-1. Navigate to `http://localhost:3000/admin/setup`
-2. Create your admin account with a secure password
-3. Configure SMTP settings for email functionality (optional - can be done later)
-4. Complete the setup and start using WordPress Node CMS!
-
-> 💡 **Note:** The Setup Wizard only appears on fresh installations. Once setup is complete, it redirects to the login page. You can always configure settings later via **Settings → Email** and **Settings → Domain** in the admin panel.
 
 <br />
 

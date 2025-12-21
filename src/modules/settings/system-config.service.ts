@@ -26,6 +26,14 @@ export interface DomainConfig {
   siteName: string;
 }
 
+export interface MarketplaceConfig {
+  platformFeePercent: number;
+  minPayoutAmount: number;
+  maxEscrowDays: number;
+  autoReleaseDays: number;
+  enabled: boolean;
+}
+
 // Keys that should be encrypted
 const ENCRYPTED_KEYS = ['smtp_pass', 'api_key', 'webhook_secret'];
 
@@ -178,6 +186,37 @@ export class SystemConfigService implements OnModuleInit {
     await this.set('admin_url', config.adminUrl, 'domain', 'Admin panel URL');
     await this.set('support_email', config.supportEmail, 'domain', 'Support email address');
     await this.set('site_name', config.siteName, 'domain', 'Site name');
+  }
+
+  /**
+   * Get Marketplace configuration
+   */
+  async getMarketplaceConfig(): Promise<MarketplaceConfig> {
+    return {
+      platformFeePercent: parseFloat(await this.get('marketplace_fee_percent', '10')),
+      minPayoutAmount: parseFloat(await this.get('marketplace_min_payout', '10')),
+      maxEscrowDays: parseInt(await this.get('marketplace_max_escrow_days', '90'), 10),
+      autoReleaseDays: parseInt(await this.get('marketplace_auto_release_days', '14'), 10),
+      enabled: (await this.get('marketplace_enabled', 'true')) === 'true',
+    };
+  }
+
+  /**
+   * Save Marketplace configuration
+   */
+  async saveMarketplaceConfig(config: MarketplaceConfig): Promise<void> {
+    await this.set('marketplace_fee_percent', config.platformFeePercent.toString(), 'marketplace', 'Platform fee percentage');
+    await this.set('marketplace_min_payout', config.minPayoutAmount.toString(), 'marketplace', 'Minimum payout amount');
+    await this.set('marketplace_max_escrow_days', config.maxEscrowDays.toString(), 'marketplace', 'Maximum escrow days');
+    await this.set('marketplace_auto_release_days', config.autoReleaseDays.toString(), 'marketplace', 'Auto-release days after completion');
+    await this.set('marketplace_enabled', config.enabled.toString(), 'marketplace', 'Marketplace enabled');
+  }
+
+  /**
+   * Get platform fee percentage (convenience method)
+   */
+  async getPlatformFeePercent(): Promise<number> {
+    return parseFloat(await this.get('marketplace_fee_percent', '10'));
   }
 
   /**

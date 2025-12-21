@@ -5,7 +5,7 @@
  */
 
 import { Controller, Get, Post, Put, Body, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
-import { SystemConfigService, SmtpConfig, DomainConfig } from './system-config.service';
+import { SystemConfigService, SmtpConfig, DomainConfig, MarketplaceConfig } from './system-config.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -131,6 +131,32 @@ export class SystemConfigController {
   @Get('setup-status')
   async getSetupStatus() {
     return this.systemConfig.getSetupStatus();
+  }
+
+  /**
+   * Get marketplace configuration
+   * GET /api/system-config/marketplace
+   */
+  @Get('marketplace')
+  async getMarketplaceConfig() {
+    return this.systemConfig.getMarketplaceConfig();
+  }
+
+  /**
+   * Save marketplace configuration
+   * PUT /api/system-config/marketplace
+   */
+  @Put('marketplace')
+  async saveMarketplaceConfig(@Body() config: MarketplaceConfig) {
+    // Validate fee percentage
+    if (config.platformFeePercent < 0 || config.platformFeePercent > 50) {
+      throw new HttpException('Platform fee must be between 0% and 50%', HttpStatus.BAD_REQUEST);
+    }
+    if (config.minPayoutAmount < 1) {
+      throw new HttpException('Minimum payout must be at least $1', HttpStatus.BAD_REQUEST);
+    }
+    await this.systemConfig.saveMarketplaceConfig(config);
+    return { success: true, message: 'Marketplace settings saved successfully' };
   }
 }
 

@@ -6,6 +6,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { SystemConfigService } from '../../settings/system-config.service';
 import { CreateProjectDto, UpdateProjectDto, ProjectStatus, LogHoursDto, CreateProjectReviewDto } from '../dto';
 import { DevelopersService } from './developers.service';
 
@@ -15,6 +16,7 @@ export class ProjectsService {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private developersService: DevelopersService,
+    private systemConfig: SystemConfigService,
   ) {}
 
   /**
@@ -25,7 +27,8 @@ export class ProjectsService {
     if (!developer) throw new NotFoundException('Developer not found');
     if (developer.status !== 'ACTIVE') throw new BadRequestException('Developer is not active');
 
-    const platformFeePercent = 10; // 10% platform fee
+    // Get platform fee from system config (default 10%)
+    const platformFeePercent = await this.systemConfig.getPlatformFeePercent();
     const platformFee = dto.totalBudget * (platformFeePercent / 100);
 
     const project = await this.prisma.project.create({
@@ -74,7 +77,8 @@ export class ProjectsService {
     if (request.status !== 'ACCEPTED') throw new BadRequestException('Request must be accepted first');
     if (request.projectId) throw new BadRequestException('Project already created');
 
-    const platformFeePercent = 10;
+    // Get platform fee from system config (default 10%)
+    const platformFeePercent = await this.systemConfig.getPlatformFeePercent();
     const platformFee = Number(request.budgetAmount) * (platformFeePercent / 100);
 
     const project = await this.prisma.project.create({
