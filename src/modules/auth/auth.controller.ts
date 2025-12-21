@@ -68,4 +68,24 @@ export class AuthController {
   async logout() {
     return { message: 'Logged out successfully' };
   }
+
+  /**
+   * Request password reset
+   * POST /api/auth/forgot-password
+   */
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  /**
+   * Reset password with token
+   * POST /api/auth/reset-password
+   */
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() body: { token: string; password: string }) {
+    return this.authService.resetPassword(body.token, body.password);
+  }
 }

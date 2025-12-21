@@ -58,6 +58,10 @@ model User {
   lastLoginAt         DateTime?
   lastLoginIp         String?
 
+  // Password reset
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
   // Relations
   posts           Post[]
   pages           Page[]
@@ -819,6 +823,7 @@ enum SecurityEventType {
   LOCKOUT_TRIGGERED
   LOCKOUT_RELEASED
   PASSWORD_CHANGE
+  PASSWORD_RESET_REQUESTED
   EMAIL_CHANGE
   TWO_FA_ENABLED
   TWO_FA_DISABLED

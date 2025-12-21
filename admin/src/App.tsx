@@ -8,6 +8,8 @@ import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
 import PostEditor from './pages/PostEditor';
@@ -106,6 +108,8 @@ function App() {
           {/* ==================== PUBLIC ROUTES (No auth required) ==================== */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Public Profile */}
           <Route path="/u/:identifier" element={<PublicProfile />} />

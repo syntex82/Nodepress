@@ -5,7 +5,16 @@
 
 import { getBaseEmailTemplate } from './base-template';
 
-export function getPasswordResetTemplate(): string {
+interface PasswordResetTemplateData {
+  user: { firstName: string };
+  resetUrl: string;
+  expiresIn: string;
+  supportUrl: string;
+}
+
+export function getPasswordResetTemplate(data: PasswordResetTemplateData): string {
+  const { user, resetUrl, expiresIn, supportUrl } = data;
+
   const content = `
 <!-- Hero Section -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -109,11 +118,18 @@ export function getPasswordResetTemplate(): string {
   <tr>
     <td style="padding-top: 16px;">
       <p style="margin: 0; font-size: 13px; color: #6b7280;">
-        <strong style="color: #111827;">Didn't request this?</strong> <a href="{{supportUrl}}" style="color: #f59e0b; text-decoration: none; font-weight: 600;">Contact our support team</a> immediately if you believe your account has been compromised.
+        <strong style="color: #111827;">Didn't request this?</strong> <a href="${supportUrl}" style="color: #f59e0b; text-decoration: none; font-weight: 600;">Contact our support team</a> immediately if you believe your account has been compromised.
       </p>
     </td>
   </tr>
 </table>`;
 
-  return getBaseEmailTemplate(content, { preheader: 'Reset your password securely' });
+  // Replace placeholders with actual values
+  const processedContent = content
+    .replace(/\{\{user\.firstName\}\}/g, user.firstName)
+    .replace(/\{\{resetUrl\}\}/g, resetUrl)
+    .replace(/\{\{expiresIn\}\}/g, expiresIn)
+    .replace(/\{\{supportUrl\}\}/g, supportUrl);
+
+  return getBaseEmailTemplate(processedContent, { preheader: 'Reset your password securely' });
 }

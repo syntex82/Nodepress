@@ -4,25 +4,32 @@
  * Enhanced with security features: rate limiting, account lockout, 2FA
  */
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
+import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '../../database/prisma.service';
 import { SecurityEventType } from '@prisma/client';
+import { EmailService } from '../email/email.service';
+import { getPasswordResetTemplate } from '../email/templates/password-reset-template';
 
 @Injectable()
 export class AuthService {
   private readonly MAX_FAILED_ATTEMPTS = 5;
   private readonly LOCKOUT_DURATION_MINUTES = 15;
+  private readonly PASSWORD_RESET_EXPIRY_HOURS = 1;
 
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -288,6 +295,167 @@ export class AuthService {
       });
     } catch (error) {
       console.error('Failed to log security event:', error);
+    }
+  }
+
+  /**
+   * Request password reset - generates token and sends email
+   */
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    // Always return success message to prevent email enumeration
+    const successMessage = { message: 'If an account with that email exists, a password reset link has been sent.' };
+
+    if (!user) {
+      return successMessage;
+    }
+
+    // Generate secure random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const expiresAt = new Date(Date.now() + this.PASSWORD_RESET_EXPIRY_HOURS * 60 * 60 * 1000);
+
+    // Save hashed token to database
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: hashedToken,
+        passwordResetExpires: expiresAt,
+      },
+    });
+
+    // Build reset URL
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+    const supportUrl = this.configService.get<string>('SUPPORT_URL', `${frontendUrl}/contact`);
+
+    // Get email template
+    const emailHtml = getPasswordResetTemplate({
+      user: { firstName: user.name.split(' ')[0] || user.name },
+      resetUrl,
+      expiresIn: `${this.PASSWORD_RESET_EXPIRY_HOURS} hour`,
+      supportUrl,
+    });
+
+    // Send email
+    try {
+      await this.emailService.send({
+        to: user.email,
+        toName: user.name,
+        subject: 'Reset Your Password',
+        html: emailHtml,
+        recipientId: user.id,
+        metadata: { type: 'password_reset' },
+      });
+
+      // Log security event
+      await this.logSecurityEvent(
+        user.id,
+        SecurityEventType.PASSWORD_RESET_REQUESTED,
+        undefined,
+        undefined,
+        { email: user.email },
+      );
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      // Still return success to prevent email enumeration
+    }
+
+    return successMessage;
+  }
+
+  /**
+   * Reset password using token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    // Hash the provided token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid token
+    const user = await this.prisma.user.findFirst({
+      where: {
+        passwordResetToken: hashedToken,
+        passwordResetExpires: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired password reset token');
+    }
+
+    // Validate password strength
+    this.validatePasswordStrength(newPassword);
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password and clear reset token
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        failedLoginAttempts: 0,
+        accountLockedUntil: null,
+      },
+    });
+
+    // Add to password history
+    await this.prisma.passwordHistory.create({
+      data: {
+        userId: user.id,
+        password: hashedPassword,
+      },
+    });
+
+    // Log security event
+    await this.logSecurityEvent(
+      user.id,
+      SecurityEventType.PASSWORD_CHANGE,
+      undefined,
+      undefined,
+      { method: 'reset_token' },
+    );
+
+    return { message: 'Password has been reset successfully. You can now log in with your new password.' };
+  }
+
+  /**
+   * Validate password strength
+   */
+  private validatePasswordStrength(password: string): void {
+    const minLength = 8;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};\':"|,.<>\/?`~]/.test(password);
+
+    const errors: string[] = [];
+
+    if (password.length < minLength) {
+      errors.push(`Password must be at least ${minLength} characters long`);
+    }
+    if (!hasUppercase) {
+      errors.push('Password must contain at least one uppercase letter');
+    }
+    if (!hasLowercase) {
+      errors.push('Password must contain at least one lowercase letter');
+    }
+    if (!hasNumber) {
+      errors.push('Password must contain at least one number');
+    }
+    if (!hasSpecial) {
+      errors.push('Password must contain at least one special character');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(errors.join('. '));
     }
   }
 }
