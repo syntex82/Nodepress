@@ -391,6 +391,12 @@ export class UpdatesService {
   }
 
   private async copyDirectory(src: string, dest: string, exclude: string[]): Promise<void> {
+    // Ensure source directory exists
+    if (!fs.existsSync(src)) {
+      this.logger.warn(`Source directory does not exist: ${src}`);
+      return;
+    }
+
     // Ensure destination directory exists
     if (!fs.existsSync(dest)) {
       fs.mkdirSync(dest, { recursive: true });
@@ -401,16 +407,27 @@ export class UpdatesService {
       if (exclude.includes(entry.name)) continue;
       const srcPath = path.join(src, entry.name);
       const destPath = path.join(dest, entry.name);
-      if (entry.isDirectory()) {
-        fs.mkdirSync(destPath, { recursive: true });
-        await this.copyDirectory(srcPath, destPath, exclude);
-      } else {
-        // Ensure parent directory exists before copying file
-        const parentDir = path.dirname(destPath);
-        if (!fs.existsSync(parentDir)) {
-          fs.mkdirSync(parentDir, { recursive: true });
+
+      try {
+        if (entry.isDirectory()) {
+          fs.mkdirSync(destPath, { recursive: true });
+          await this.copyDirectory(srcPath, destPath, exclude);
+        } else {
+          // Verify source file exists before copying
+          if (!fs.existsSync(srcPath)) {
+            this.logger.warn(`Skipping missing file: ${srcPath}`);
+            continue;
+          }
+          // Ensure parent directory exists before copying file
+          const parentDir = path.dirname(destPath);
+          if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+          }
+          fs.copyFileSync(srcPath, destPath);
         }
-        fs.copyFileSync(srcPath, destPath);
+      } catch (err: any) {
+        // Log but don't fail on individual file copy errors during backup
+        this.logger.warn(`Failed to copy ${srcPath}: ${err.message}`);
       }
     }
   }
