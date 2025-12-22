@@ -391,6 +391,11 @@ export class UpdatesService {
   }
 
   private async copyDirectory(src: string, dest: string, exclude: string[]): Promise<void> {
+    // Ensure destination directory exists
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+
     const entries = fs.readdirSync(src, { withFileTypes: true });
     for (const entry of entries) {
       if (exclude.includes(entry.name)) continue;
@@ -400,6 +405,11 @@ export class UpdatesService {
         fs.mkdirSync(destPath, { recursive: true });
         await this.copyDirectory(srcPath, destPath, exclude);
       } else {
+        // Ensure parent directory exists before copying file
+        const parentDir = path.dirname(destPath);
+        if (!fs.existsSync(parentDir)) {
+          fs.mkdirSync(parentDir, { recursive: true });
+        }
         fs.copyFileSync(srcPath, destPath);
       }
     }
