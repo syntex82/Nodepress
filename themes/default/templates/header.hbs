@@ -259,14 +259,146 @@
       border: none;
       color: white;
       cursor: pointer;
+      z-index: 1001;
     }
+    .mobile-menu-btn .menu-open { display: block; }
+    .mobile-menu-btn .menu-close { display: none; }
+    .mobile-menu-btn.active .menu-open { display: none; }
+    .mobile-menu-btn.active .menu-close { display: block; }
+
+    /* Mobile Navigation Overlay */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+      padding: 80px 20px 40px;
+      flex-direction: column;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .mobile-nav.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .mobile-nav-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .mobile-nav-links a {
+      display: block;
+      padding: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 500;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .mobile-nav-links a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    .mobile-nav-auth {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .mobile-nav-auth a {
+      display: block;
+      padding: 1rem;
+      text-align: center;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .mobile-nav-auth .mobile-login {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .mobile-nav-auth .mobile-register {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    .mobile-nav-auth .mobile-user {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
+    }
+    .mobile-nav-auth .mobile-user-avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: white;
+    }
+    .mobile-nav-auth .mobile-user-info {
+      flex: 1;
+    }
+    .mobile-nav-auth .mobile-user-info strong {
+      display: block;
+      color: white;
+    }
+    .mobile-nav-auth .mobile-user-info span {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    .mobile-nav-user-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .mobile-nav-user-links a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .mobile-nav-user-links a:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+    }
+    .mobile-nav-user-links a.admin { color: #10b981; }
+    .mobile-nav-user-links a.logout { color: #f87171; }
+
     @media (max-width: 900px) {
       .nav-main { display: none; }
       .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+      .mobile-nav { display: flex; }
+      .user-menu { display: none; }
+      .nav-auth-btn { display: none; }
     }
     @media (max-width: 600px) {
       .header-content { padding: 0.75rem 20px; }
       .user-name { display: none; }
+      .nav-divider { display: none; }
     }
   </style>
 </head>
@@ -319,12 +451,45 @@
         <a href="/register" class="nav-auth-btn register">Get Started</a>
         {{/if}}
 
-        <button class="mobile-menu-btn">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+          <svg class="menu-open" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          <svg class="menu-close" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Navigation -->
+  <nav class="mobile-nav" id="mobileNav">
+    <ul class="mobile-nav-links">
+      <li><a href="/#features">Features</a></li>
+      <li><a href="/courses">Courses</a></li>
+      <li><a href="/shop">Shop</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="/cart">🛒 Cart</a></li>
+      <li><a href="https://github.com/syntex82/WordPress-Node#readme" target="_blank">Docs</a></li>
+    </ul>
+    <div class="mobile-nav-auth">
+      {{#if user}}
+      <div class="mobile-user">
+        <div class="mobile-user-avatar">{{substring user.name 0 1}}</div>
+        <div class="mobile-user-info">
+          <strong>{{user.name}}</strong>
+          <span>{{user.email}}</span>
+        </div>
+      </div>
+      <div class="mobile-nav-user-links">
+        <a href="/my-account"><span>👤</span> My Account</a>
+        <a href="/my-courses"><span>📚</span> My Courses</a>
+        <a href="/admin" class="admin"><span>⚙️</span> Admin Panel</a>
+        <a href="/logout" class="logout"><span>🚪</span> Sign Out</a>
+      </div>
+      {{else}}
+      <a href="/login" class="mobile-login">Sign In</a>
+      <a href="/register" class="mobile-register">Get Started Free</a>
+      {{/if}}
+    </div>
+  </nav>
 
   <main style="padding-top: 60px;">
 
@@ -338,5 +503,24 @@
     if (el && count > 0) { el.textContent = count; el.style.display = 'flex'; }
   } catch(e) {}
 })();
+
+// Mobile menu toggle
+var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+var mobileNav = document.getElementById('mobileNav');
+if (mobileMenuBtn && mobileNav) {
+  mobileMenuBtn.addEventListener('click', function() {
+    mobileMenuBtn.classList.toggle('active');
+    mobileNav.classList.toggle('open');
+    document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
+  });
+  // Close menu when clicking a link
+  mobileNav.querySelectorAll('a').forEach(function(link) {
+    link.addEventListener('click', function() {
+      mobileMenuBtn.classList.remove('active');
+      mobileNav.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+}
 </script>
 

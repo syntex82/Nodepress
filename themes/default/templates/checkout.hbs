@@ -144,6 +144,16 @@
     .checkout-layout { grid-template-columns: 1fr; }
     .order-summary { position: static; order: -1; }
   }
+  @media (max-width: 600px) {
+    .checkout-section { padding: 80px 15px 40px; }
+    .checkout-title { font-size: 1.75rem; }
+    .checkout-form-card, .order-summary { padding: 1.25rem; border-radius: 12px; }
+    .form-row { grid-template-columns: 1fr; }
+    .order-item { flex-wrap: wrap; }
+    .order-item-image { width: 60px; height: 60px; }
+    .form-input, .form-select { padding: 12px 14px; }
+    .submit-btn { padding: 14px 20px; }
+  }
 </style>
 
 <section class="checkout-section">

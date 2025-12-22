@@ -123,6 +123,18 @@
     font-weight: 600;
     margin: 0 0.5rem;
   }
+
+  /* Mobile Styles */
+  @media (max-width: 600px) {
+    .account-page { padding: 40px 15px; }
+    .account-header h1 { font-size: 1.5rem; }
+    .account-card { padding: 1.5rem; border-radius: 12px; }
+    .account-card h2 { font-size: 1.1rem; }
+    .info-row { flex-direction: column; gap: 0.25rem; }
+    .quick-links { grid-template-columns: 1fr; }
+    .quick-link { padding: 1.25rem; }
+    .quick-link span { font-size: 1.5rem; }
+  }
 </style>
 
 <section class="account-page">

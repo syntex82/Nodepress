@@ -105,6 +105,18 @@
     background: rgba(255, 255, 255, 0.2);
   }
   .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
+
+  /* Mobile Styles */
+  @media (max-width: 600px) {
+    .success-section { padding: 80px 15px 40px; }
+    .success-card { padding: 2rem 1.5rem; border-radius: 16px; }
+    .success-icon { width: 80px; height: 80px; font-size: 2.5rem; }
+    .success-title { font-size: 1.5rem; }
+    .success-message { font-size: 1rem; }
+    .order-details { padding: 1rem; }
+    .success-actions { flex-direction: column; }
+    .action-btn { width: 100%; text-align: center; }
+  }
 </style>
 
 <section class="success-section">

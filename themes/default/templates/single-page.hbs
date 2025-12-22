@@ -1,20 +1,72 @@
 {{> header}}
 
-<article class="single-page" style="max-width: 900px; margin: 0 auto; padding: 60px 40px;">
-  <header class="page-header" style="margin-bottom: 3rem; border-bottom: 2px solid #eee; padding-bottom: 2rem;">
-    <h1 style="font-size: 42px; margin-bottom: 1rem; font-weight: 700;">{{page.title}}</h1>
-  </header>
+<style>
+  .single-page-wrapper {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    padding: 100px 20px 80px;
+  }
+  .single-page {
+    max-width: 900px;
+    margin: 0 auto;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 3rem;
+  }
+  .page-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 2rem;
+  }
+  .page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+  }
+  .page-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+    color: #e2e8f0;
+  }
+  .page-content p { margin-bottom: 1.5rem; }
+  .page-content h2, .page-content h3 { color: white; margin: 2rem 0 1rem; }
+  .page-content a { color: #10b981; }
+  .page-content img { max-width: 100%; height: auto; border-radius: 8px; }
+  .page-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #64748b;
+    font-size: 0.9rem;
+  }
 
-  <div class="page-content" style="line-height: 1.8; font-size: 16px; color: #333;">
-    {{{page.content}}}
-  </div>
+  @media (max-width: 600px) {
+    .single-page-wrapper { padding: 80px 15px 40px; }
+    .single-page { padding: 1.5rem; border-radius: 16px; }
+    .page-header h1 { font-size: 1.75rem; }
+    .page-content { font-size: 1rem; }
+  }
+</style>
 
-  {{#if page.updatedAt}}
-    <footer class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #eee; color: #666; font-size: 14px;">
+<div class="single-page-wrapper">
+  <article class="single-page">
+    <header class="page-header">
+      <h1>{{page.title}}</h1>
+    </header>
+
+    <div class="page-content">
+      {{{page.content}}}
+    </div>
+
+    {{#if page.updatedAt}}
+    <footer class="page-footer">
       Last updated: {{page.updatedAt}}
     </footer>
-  {{/if}}
-</article>
+    {{/if}}
+  </article>
+</div>
 
 {{> footer}}
 

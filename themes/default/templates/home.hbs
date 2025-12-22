@@ -756,10 +756,12 @@
     margin: 0;
     font-size: 0.9rem;
   }
+  /* Tablet Styles */
   @media (max-width: 900px) {
     .wp-hero-content {
       grid-template-columns: 1fr;
       text-align: center;
+      padding: 0 20px;
     }
     .wp-hero-text h1 {
       font-size: 2.5rem;
@@ -767,11 +769,113 @@
     .wp-hero-buttons {
       justify-content: center;
     }
+    .wp-hero-visual {
+      display: none;
+    }
     .wp-arch-grid {
       grid-template-columns: 1fr;
     }
     .wp-auth-forms {
       grid-template-columns: 1fr;
+    }
+    .wp-features {
+      padding: 60px 20px;
+    }
+    .wp-section-header {
+      margin-bottom: 2.5rem;
+    }
+    .wp-section-header h2 {
+      font-size: 2rem;
+    }
+    .wp-features-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .wp-architecture {
+      padding: 60px 20px;
+    }
+    .wp-user-access {
+      padding: 60px 20px;
+    }
+    .wp-access-grid {
+      grid-template-columns: 1fr;
+    }
+    .wp-courses, .wp-posts, .wp-navigation {
+      padding: 60px 20px;
+    }
+    .wp-courses-grid, .wp-posts-grid {
+      grid-template-columns: 1fr;
+    }
+    .wp-nav-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .feature-modal {
+      width: 95%;
+      max-height: 90vh;
+      margin: 20px;
+    }
+    .feature-modal-content {
+      padding: 1.5rem;
+    }
+  }
+
+  /* Mobile Styles */
+  @media (max-width: 600px) {
+    .wp-hero {
+      min-height: auto;
+      padding: 40px 0 60px;
+    }
+    .wp-hero-content {
+      padding: 0 15px;
+      gap: 30px;
+    }
+    .wp-hero-text h1 {
+      font-size: 1.75rem;
+      line-height: 1.2;
+    }
+    .wp-hero-text p {
+      font-size: 1rem;
+    }
+    .wp-hero-buttons {
+      flex-direction: column;
+      width: 100%;
+    }
+    .wp-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 14px 20px;
+    }
+    .wp-section-header h2 {
+      font-size: 1.5rem;
+    }
+    .wp-section-header p {
+      font-size: 1rem;
+    }
+    .wp-feature-card {
+      padding: 1.5rem;
+    }
+    .wp-feature-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 1.5rem;
+    }
+    .wp-feature-card h3 {
+      font-size: 1.15rem;
+    }
+    .wp-arch-card {
+      padding: 1.5rem;
+    }
+    .wp-nav-grid {
+      grid-template-columns: 1fr;
+    }
+    .wp-course-card, .wp-post-card {
+      min-width: 100%;
+    }
+    .wp-access-card {
+      padding: 2rem;
+    }
+    .wp-access-card h3 {
+      font-size: 1.25rem;
     }
   }
 </style>
