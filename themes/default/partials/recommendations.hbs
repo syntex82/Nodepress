@@ -155,9 +155,9 @@
         var type = item.type || contentType;
         var url = type === 'post' ? '/post/' + item.slug : (type === 'product' ? '/shop/product/' + item.slug : '/courses/' + item.slug);
         var emoji = type === 'post' ? '📝' : (type === 'product' ? '🛍️' : '📚');
-        var imgHtml = item.image ? '<img src="' + item.image + '" alt="' + item.title + '" onerror="this.parentElement.innerHTML=\'<div class=rec-card-img-placeholder>' + emoji + '</div>\'">' : '<div class="rec-card-img-placeholder">' + emoji + '</div>';
+        var imgHtml = item.image ? '<img src="' + item.image + '" alt="' + item.title + '">' : '<div class="rec-card-img-placeholder">' + emoji + '</div>';
         var priceHtml = item.metadata && item.metadata.price ? '<div class="rec-card-price">$' + parseFloat(item.metadata.price).toFixed(2) + '</div>' : '';
-        return '<a href="' + url + '" class="rec-card" onclick="trackRecClick(event, \'' + sourceType + '\', \'' + sourceId + '\', \'' + type + '\', \'' + item.id + '\', ' + idx + ')">' +
+        return '<a href="' + url + '" class="rec-card" data-source-type="' + sourceType + '" data-source-id="' + sourceId + '" data-clicked-type="' + type + '" data-clicked-id="' + item.id + '" data-position="' + idx + '">' +
           '<div class="rec-card-img">' + imgHtml + '</div>' +
           '<div class="rec-card-body">' +
             '<span class="rec-card-type ' + type + '">' + type + '</span>' +
@@ -168,14 +168,26 @@
       }).join('');
     })
     .catch(function() { loading.style.display = 'none'; });
+
+  // Event delegation for tracking clicks (CSP-compliant)
+  grid.addEventListener('click', function(e) {
+    var card = e.target.closest('.rec-card');
+    if (!card) return;
+    var data = card.dataset;
+    fetch('/api/recommendations/track-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        sourceType: data.sourceType,
+        sourceId: data.sourceId,
+        recommendationType: 'related',
+        clickedType: data.clickedType,
+        clickedId: data.clickedId,
+        position: parseInt(data.position, 10)
+      })
+    }).catch(function() {});
+  });
 })();
-window.trackRecClick = function(e, sourceType, sourceId, clickedType, clickedId, position) {
-  fetch('/api/recommendations/track-click', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ sourceType: sourceType, sourceId: sourceId, recommendationType: 'related', clickedType: clickedType, clickedId: clickedId, position: position })
-  }).catch(function() {});
-};
 </script>
 

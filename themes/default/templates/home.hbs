@@ -825,56 +825,56 @@
     <h2>Everything You Need, Built In</h2>
     <p>A complete content management ecosystem with powerful features. Click any card to learn more.</p>
   </div>
-  <div class="wp-features-grid">
-    <div class="wp-feature-card" onclick="openFeatureModal('lms')">
+  <div class="wp-features-grid" id="featuresGrid">
+    <div class="wp-feature-card" data-feature="lms">
       <div class="wp-feature-icon">📚</div>
       <h3>Learning Management System</h3>
       <p>Complete LMS with courses, lessons, quizzes, certificates, and student progress tracking.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('ecommerce')">
+    <div class="wp-feature-card" data-feature="ecommerce">
       <div class="wp-feature-icon">🛒</div>
       <h3>eCommerce Ready</h3>
       <p>Full shopping experience with cart, checkout, orders, inventory, and payment processing.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('analytics')">
+    <div class="wp-feature-card" data-feature="analytics">
       <div class="wp-feature-icon">📊</div>
       <h3>Advanced Analytics</h3>
       <p>GDPR-compliant analytics with real-time tracking, pageviews, sessions, and conversion metrics.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('themes')">
+    <div class="wp-feature-card" data-feature="themes">
       <div class="wp-feature-icon">🎨</div>
       <h3>Theme System</h3>
       <p>Handlebars-based themes with live customization, multiple layouts, and custom CSS support.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('plugins')">
+    <div class="wp-feature-card" data-feature="plugins">
       <div class="wp-feature-icon">🔌</div>
       <h3>Plugin Architecture</h3>
       <p>Extensible plugin system with lifecycle hooks, custom routes, and marketplace support.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('recommendations')">
+    <div class="wp-feature-card" data-feature="recommendations">
       <div class="wp-feature-icon">🤖</div>
       <h3>AI Recommendations</h3>
       <p>Smart content recommendations with collaborative filtering, trending, and personalization.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('security')">
+    <div class="wp-feature-card" data-feature="security">
       <div class="wp-feature-icon">🔐</div>
       <h3>Enterprise Security</h3>
       <p>JWT auth, RBAC, rate limiting, IP blocking, CSRF protection, and security headers.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('email')">
+    <div class="wp-feature-card" data-feature="email">
       <div class="wp-feature-icon">📧</div>
       <h3>Email & Notifications</h3>
       <p>Transactional emails, push notifications, and real-time messaging built-in.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
-    <div class="wp-feature-card" onclick="openFeatureModal('seo')">
+    <div class="wp-feature-card" data-feature="seo">
       <div class="wp-feature-icon">🔍</div>
       <h3>SEO Optimized</h3>
       <p>Meta tags, sitemaps, schema markup, and search engine optimization tools.</p>
@@ -1124,7 +1124,7 @@
 <!-- Feature Modal Overlay -->
 <div class="feature-modal-overlay" id="featureModal">
   <div class="feature-modal">
-    <button class="btn-back-home" onclick="closeFeatureModal()">
+    <button class="btn-back-home" id="closeModalBtn">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Back to Home
     </button>
@@ -1505,10 +1505,29 @@ function closeFeatureModal() {
   document.body.style.overflow = '';
 }
 
+// Event delegation for feature cards (CSP-compliant)
+var featuresGrid = document.getElementById('featuresGrid');
+if (featuresGrid) {
+  featuresGrid.addEventListener('click', function(e) {
+    var card = e.target.closest('.wp-feature-card');
+    if (card && card.dataset.feature) {
+      openFeatureModal(card.dataset.feature);
+    }
+  });
+}
+
+// Close modal button
+var closeModalBtn = document.getElementById('closeModalBtn');
+if (closeModalBtn) {
+  closeModalBtn.addEventListener('click', closeFeatureModal);
+}
+
+// Close modal on overlay click
 document.getElementById('featureModal').addEventListener('click', function(e) {
   if (e.target === this) closeFeatureModal();
 });
 
+// Close modal on Escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeFeatureModal();
 });

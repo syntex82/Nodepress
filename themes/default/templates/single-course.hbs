@@ -166,7 +166,7 @@
         {{#if isEnrolled}}
         <a href="/admin/lms/learn/{{course.id}}" class="btn-enroll btn-continue">Continue Learning</a>
         {{else}}
-        <button class="btn-enroll" id="enrollBtn" onclick="enrollCourse()">Enroll Now</button>
+        <button class="btn-enroll" id="enrollBtn">Enroll Now</button>
         {{/if}}
         <ul class="enroll-features">
           <li><span class="check">✓</span> Full course access</li>
@@ -192,7 +192,7 @@
       {{#if course.modules.length}}
         {{#each course.modules}}
         <div class="module-section">
-          <div class="module-header" onclick="toggleModule(this)">
+          <div class="module-header">
             <span class="module-icon">📁</span>
             <span class="module-title">{{title}}</span>
             <span class="module-count">{{lessons.length}} lessons</span>
@@ -227,46 +227,57 @@
 </section>
 
 <script>
-function toggleModule(header) {
-  var lessons = header.nextElementSibling;
-  var toggle = header.querySelector('.module-toggle');
-  if (lessons.classList.contains('open')) {
-    lessons.classList.remove('open');
-    toggle.textContent = '▶';
-  } else {
-    lessons.classList.add('open');
-    toggle.textContent = '▼';
-  }
-}
-async function enrollCourse() {
-  var btn = document.getElementById('enrollBtn');
-  btn.disabled = true;
-  btn.textContent = 'Enrolling...';
-  try {
-    var token = localStorage.getItem('token');
-    var headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-    var r = await fetch('/api/lms/courses/{{course.id}}/enroll', {
-      method: 'POST',
-      credentials: 'include',
-      headers: headers,
-      body: JSON.stringify({})
+(function() {
+  // Toggle module sections (event delegation)
+  document.querySelectorAll('.curriculum-list').forEach(function(list) {
+    list.addEventListener('click', function(e) {
+      var header = e.target.closest('.module-header');
+      if (!header) return;
+      var lessons = header.nextElementSibling;
+      var toggle = header.querySelector('.module-toggle');
+      if (lessons.classList.contains('open')) {
+        lessons.classList.remove('open');
+        toggle.textContent = '▶';
+      } else {
+        lessons.classList.add('open');
+        toggle.textContent = '▼';
+      }
     });
-    if (r.status === 401) {
-      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-      return;
-    }
-    var data = await r.json().catch(function() { return {}; });
-    if (!r.ok) {
-      throw new Error(data.message || 'Enrollment failed');
-    }
-    window.location.href = '/admin/lms/learn/{{course.id}}';
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Enroll Now';
-    alert(e.message || 'Enrollment failed. Please try again.');
+  });
+
+  // Enroll button
+  var enrollBtn = document.getElementById('enrollBtn');
+  if (enrollBtn) {
+    enrollBtn.addEventListener('click', async function() {
+      enrollBtn.disabled = true;
+      enrollBtn.textContent = 'Enrolling...';
+      try {
+        var token = localStorage.getItem('token');
+        var headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        var r = await fetch('/api/lms/courses/{{course.id}}/enroll', {
+          method: 'POST',
+          credentials: 'include',
+          headers: headers,
+          body: JSON.stringify({})
+        });
+        if (r.status === 401) {
+          window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+        var data = await r.json().catch(function() { return {}; });
+        if (!r.ok) {
+          throw new Error(data.message || 'Enrollment failed');
+        }
+        window.location.href = '/admin/lms/learn/{{course.id}}';
+      } catch(e) {
+        enrollBtn.disabled = false;
+        enrollBtn.textContent = 'Enroll Now';
+        alert(e.message || 'Enrollment failed. Please try again.');
+      }
+    });
   }
-}
+})();
 </script>
 
 <!-- Related Courses Recommendations -->
