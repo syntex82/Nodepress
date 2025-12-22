@@ -205,15 +205,15 @@
       var title = item.name || 'Item';
       var price = item.price || 0;
       var imgHtml = img
-        ? '<img src="' + img + '" alt="' + title + '" class="cart-item-image" onerror="this.style.background=\'rgba(255,255,255,0.1)\';this.src=\'\'">'
+        ? '<img src="' + img + '" alt="' + title + '" class="cart-item-image">'
         : '<div class="cart-item-image" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">' + (isCourse ? '📚' : '📦') + '</div>';
       var qtyHtml = isCourse ? '<span style="color:#94a3b8;">Qty: 1</span>' :
         '<div class="qty-controls">' +
-          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity - 1) + ')">−</button>' +
+          '<button class="qty-btn qty-decrease" data-item-id="' + item.id + '" data-qty="' + (item.quantity - 1) + '">−</button>' +
           '<span class="qty-value">' + item.quantity + '</span>' +
-          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity + 1) + ')">+</button>' +
+          '<button class="qty-btn qty-increase" data-item-id="' + item.id + '" data-qty="' + (item.quantity + 1) + '">+</button>' +
         '</div>';
-      return '<div class="cart-item">' +
+      return '<div class="cart-item" data-item-id="' + item.id + '">' +
         imgHtml +
         '<div class="cart-item-details">' +
           '<div class="cart-item-title">' + title + '</div>' +
@@ -221,7 +221,7 @@
           '<div class="cart-item-price">$' + parseFloat(price).toFixed(2) + (isCourse ? '' : ' × ' + item.quantity) + '</div>' +
         '</div>' +
         '<div class="cart-item-actions">' + qtyHtml +
-          '<button class="remove-btn" onclick="removeItem(\'' + item.id + '\')">🗑️ Remove</button>' +
+          '<button class="remove-btn" data-item-id="' + item.id + '">🗑️ Remove</button>' +
         '</div></div>';
     }).join('');
   }
@@ -234,7 +234,7 @@
     document.getElementById('total').textContent = '$' + parseFloat(subtotal).toFixed(2);
   }
 
-  window.updateQuantity = async function(id, qty) {
+  async function updateQuantity(id, qty) {
     if (qty < 1) { removeItem(id); return; }
     try {
       await fetch(API + '/item/' + id, {
@@ -245,19 +245,42 @@
       });
       loadCart();
     } catch (e) { console.error('Update error:', e); }
-  };
+  }
 
-  window.removeItem = async function(id) {
+  async function removeItem(id) {
     try {
       await fetch(API + '/item/' + id, { method: 'DELETE', credentials: 'include' });
       loadCart();
     } catch (e) { console.error('Remove error:', e); }
-  };
+  }
+
+  function setupEventListeners() {
+    var container = document.getElementById('cartItems');
+    if (!container) return;
+    container.addEventListener('click', function(e) {
+      var target = e.target;
+      if (target.classList.contains('remove-btn')) {
+        var itemId = target.getAttribute('data-item-id');
+        if (itemId) removeItem(itemId);
+        return;
+      }
+      if (target.classList.contains('qty-btn')) {
+        var itemId = target.getAttribute('data-item-id');
+        var qty = parseInt(target.getAttribute('data-qty'), 10);
+        if (itemId && !isNaN(qty)) updateQuantity(itemId, qty);
+      }
+    });
+  }
+
+  function init() {
+    setupEventListeners();
+    loadCart();
+  }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadCart);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    loadCart();
+    init();
   }
 })();
 </script>

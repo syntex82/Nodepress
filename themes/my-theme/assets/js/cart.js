@@ -1,4 +1,4 @@
-// Cart page functionality
+// Cart page functionality - CSP-compliant (no inline handlers)
 (function() {
   'use strict';
   var API = '/api/shop/cart';
@@ -12,7 +12,6 @@
     var itemsContainer = document.getElementById('cartItems');
     var emptyCart = document.getElementById('emptyCart');
     var cartContent = document.getElementById('cartContent');
-    var checkoutBtn = document.getElementById('checkoutBtn');
 
     if (!itemsContainer) return;
 
@@ -43,20 +42,19 @@
 
     container.innerHTML = items.map(function(item) {
       var isCourse = item.type === 'COURSE';
-      // Fix: Use featuredImage for courses, not thumbnail
       var img = item.product?.images?.[0] || item.course?.featuredImage || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop';
       var title = item.product?.name || item.course?.title || 'Item';
       var price = item.product?.salePrice || item.product?.price || item.course?.price || 0;
 
       var qtyHtml = isCourse ? '' :
         '<div class="qty-controls">' +
-          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity - 1) + ')">−</button>' +
+          '<button class="qty-btn qty-decrease" data-item-id="' + item.id + '" data-qty="' + (item.quantity - 1) + '">−</button>' +
           '<span class="qty-value">' + item.quantity + '</span>' +
-          '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', ' + (item.quantity + 1) + ')">+</button>' +
+          '<button class="qty-btn qty-increase" data-item-id="' + item.id + '" data-qty="' + (item.quantity + 1) + '">+</button>' +
         '</div>';
 
       return '<div class="cart-item" data-item-id="' + item.id + '">' +
-        '<img src="' + img + '" alt="' + title + '" class="cart-item-image" onerror="this.src=\'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop\'">' +
+        '<img src="' + img + '" alt="' + title + '" class="cart-item-image">' +
         '<div class="cart-item-details">' +
           '<div class="cart-item-title">' + title + '</div>' +
           '<span class="cart-item-type ' + (isCourse ? 'course' : 'product') + '">' + (isCourse ? '📚 Course' : '📦 Product') + '</span>' +
@@ -64,7 +62,7 @@
         '</div>' +
         '<div class="cart-item-actions">' +
           qtyHtml +
-          '<button class="remove-btn" onclick="removeItem(\'' + item.id + '\')">🗑️ Remove</button>' +
+          '<button class="remove-btn" data-item-id="' + item.id + '">🗑️ Remove</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -87,7 +85,7 @@
     if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
   }
 
-  window.updateQuantity = async function(id, qty) {
+  async function updateQuantity(id, qty) {
     if (qty < 1) {
       removeItem(id);
       return;
@@ -105,9 +103,9 @@
     } catch (e) {
       console.error('Update quantity error:', e);
     }
-  };
+  }
 
-  window.removeItem = async function(id) {
+  async function removeItem(id) {
     try {
       await fetch(API + '/item/' + id, {
         method: 'DELETE',
@@ -119,12 +117,42 @@
     } catch (e) {
       console.error('Remove item error:', e);
     }
-  };
+  }
+
+  // Event delegation for cart actions (CSP-compliant)
+  function setupEventListeners() {
+    var container = document.getElementById('cartItems');
+    if (!container) return;
+
+    container.addEventListener('click', function(e) {
+      var target = e.target;
+
+      // Handle remove button
+      if (target.classList.contains('remove-btn')) {
+        var itemId = target.getAttribute('data-item-id');
+        if (itemId) removeItem(itemId);
+        return;
+      }
+
+      // Handle quantity buttons
+      if (target.classList.contains('qty-btn')) {
+        var itemId = target.getAttribute('data-item-id');
+        var qty = parseInt(target.getAttribute('data-qty'), 10);
+        if (itemId && !isNaN(qty)) updateQuantity(itemId, qty);
+        return;
+      }
+    });
+  }
 
   // Initialize
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadCart);
-  } else {
+  function init() {
+    setupEventListeners();
     loadCart();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
