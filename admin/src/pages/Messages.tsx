@@ -75,7 +75,9 @@ export default function Messages() {
 
   useEffect(() => {
     if (token) {
-      const newSocket = io('http://localhost:3000/messages', { auth: { token }, transports: ['websocket', 'polling'] });
+      // Use current origin for WebSocket connection (works in both dev and production)
+      const wsUrl = `${window.location.protocol}//${window.location.host}/messages`;
+      const newSocket = io(wsUrl, { auth: { token }, transports: ['websocket', 'polling'], path: '/socket.io' });
 
       newSocket.on('connect', () => console.log('Connected to messages gateway'));
       newSocket.on('user:online', (data: { userId: string }) => setOnlineUsers((prev) => [...new Set([...prev, data.userId])]));

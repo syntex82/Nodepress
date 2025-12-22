@@ -105,7 +105,9 @@ export default function GroupChat() {
 
   useEffect(() => {
     if (group?.isMember && token) {
-      const newSocket = io('http://localhost:3000/groups', { auth: { token }, transports: ['websocket', 'polling'] });
+      // Use current origin for WebSocket connection (works in both dev and production)
+      const wsUrl = `${window.location.protocol}//${window.location.host}/groups`;
+      const newSocket = io(wsUrl, { auth: { token }, transports: ['websocket', 'polling'], path: '/socket.io' });
 
       newSocket.on('connect', () => {
         console.log('Connected to groups gateway');
