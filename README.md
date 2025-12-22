@@ -578,6 +578,333 @@ The update script will:
 
 ---
 
+### 🌐 Hostinger VPS - Complete Production Deployment
+
+<div align="center">
+
+**Deploy WordPress Node CMS on Hostinger VPS with a custom domain and SSL!**
+
+</div>
+
+This guide covers deploying to a Hostinger VPS with a custom domain (e.g., `wordpressnode.co.uk`).
+
+#### Prerequisites
+
+- A Hostinger VPS with Ubuntu 22.04/24.04
+- A domain name pointed to your VPS IP address
+- SSH access to your VPS
+
+#### Step 1: Initial Server Setup
+
+```bash
+# Connect to your VPS via SSH
+ssh root@your-vps-ip
+
+# Update system packages
+sudo apt update && sudo apt upgrade -y
+
+# Clone the repository
+git clone https://github.com/syntex82/WordPress-Node.git /var/www/WordPress-Node
+cd /var/www/WordPress-Node
+
+# Run the Ubuntu setup script
+chmod +x scripts/ubuntu-setup.sh
+sudo ./scripts/ubuntu-setup.sh
+```
+
+#### Step 2: Configure Nginx for Your Domain
+
+Create nginx configuration for your domain:
+
+```bash
+sudo nano /etc/nginx/sites-available/yourdomain.com
+```
+
+Add this configuration (replace `yourdomain.com` with your actual domain):
+
+```nginx
+# Rate limiting
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml;
+
+    # API routes with rate limiting
+    location /api {
+        limit_req zone=api_limit burst=20 nodelay;
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_read_timeout 600s;
+        send_timeout 600s;
+    }
+
+    # Login endpoint with stricter rate limiting
+    location /api/auth/login {
+        limit_req zone=login_limit burst=3 nodelay;
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # All other routes
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_read_timeout 600s;
+    }
+}
+```
+
+Enable the site and test configuration:
+
+```bash
+# Create symbolic link to enable site
+sudo ln -s /etc/nginx/sites-available/yourdomain.com /etc/nginx/sites-enabled/
+
+# Remove default site (optional)
+sudo rm /etc/nginx/sites-enabled/default
+
+# Test nginx configuration
+sudo nginx -t
+
+# Reload nginx
+sudo systemctl reload nginx
+```
+
+#### Step 3: Configure Firewall
+
+```bash
+# Enable UFW firewall
+sudo ufw allow ssh
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+
+# Verify firewall status
+sudo ufw status
+```
+
+#### Step 4: Setup PM2 Process Manager
+
+```bash
+cd /var/www/WordPress-Node
+
+# Build the application
+npm run build
+
+# Start with PM2
+pm2 start dist/main.js --name wordpress-node
+
+# Save PM2 process list
+pm2 save
+
+# Setup PM2 to start on boot
+pm2 startup
+# Run the command it outputs (starts with sudo env PATH=...)
+```
+
+#### Step 5: Install SSL Certificate (Let's Encrypt)
+
+```bash
+# Install certbot
+sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+
+# Obtain SSL certificate (replace with your domain)
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Reload nginx with new SSL config
+sudo systemctl reload nginx
+```
+
+Certbot will automatically:
+- Obtain a free Let's Encrypt SSL certificate
+- Configure nginx for HTTPS
+- Set up automatic certificate renewal
+
+#### Step 6: Configure Domain Settings in Admin Panel
+
+After SSL is installed, update your domain configuration:
+
+1. Go to: `https://yourdomain.com/admin`
+2. Navigate to: **Settings → Domain Configuration**
+3. Update the URLs:
+   - **Frontend URL:** `https://yourdomain.com`
+   - **Admin URL:** `https://yourdomain.com/admin`
+   - **Site Name:** Your site name
+   - **Support Email:** Your support email
+4. Click **Save**
+
+#### Step 7: Update Admin Password (Recommended)
+
+```bash
+cd /var/www/WordPress-Node
+
+# Connect to PostgreSQL and update password
+# First, generate a bcrypt hash for your new password
+node -e "const bcrypt = require('bcrypt'); bcrypt.hash('YourNewSecurePassword123!', 10).then(h => console.log(h));"
+
+# Update password in database (replace HASH with the output above)
+sudo -u postgres psql -d wordpress_node -c "UPDATE \"User\" SET password = '\$2b\$10\$YOUR_HASH_HERE' WHERE email = 'admin@starter.dev';"
+```
+
+#### Verification Commands
+
+```bash
+# Check nginx status
+sudo systemctl status nginx
+
+# Check PM2 processes
+pm2 status
+
+# Check application logs
+pm2 logs wordpress-node
+
+# Test nginx configuration
+sudo nginx -t
+
+# Check SSL certificate
+sudo certbot certificates
+
+# Test DNS resolution
+dig yourdomain.com
+nslookup yourdomain.com
+```
+
+#### Updating Your Installation
+
+Use the built-in update feature in the admin panel:
+
+1. Go to: `https://yourdomain.com/admin`
+2. Navigate to: **Settings → Updates**
+3. Click: **Pull Latest**
+
+Or update manually via SSH:
+
+```bash
+cd /var/www/WordPress-Node
+git pull origin main
+cd admin && npm install && npm run build && cd ..
+npm install && npm run build
+npx prisma migrate deploy
+pm2 restart wordpress-node
+```
+
+#### Troubleshooting
+
+<details>
+<summary><strong>🔧 Common Issues and Solutions</strong></summary>
+
+<br />
+
+**Site not loading / Connection timeout:**
+```bash
+# Check if nginx is running
+sudo systemctl status nginx
+
+# Check if app is running
+pm2 status
+
+# Check firewall
+sudo ufw status
+
+# Check if ports are listening
+sudo ss -tlnp | grep -E ':80|:443'
+```
+
+**502 Bad Gateway:**
+```bash
+# Check PM2 process
+pm2 status
+pm2 logs wordpress-node --lines 50
+
+# Restart the app
+pm2 restart wordpress-node
+```
+
+**504 Gateway Timeout:**
+```bash
+# Increase nginx timeouts in your config
+sudo nano /etc/nginx/sites-available/yourdomain.com
+# Add/update: proxy_read_timeout 600s;
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**SSL Certificate Issues:**
+```bash
+# Renew certificate manually
+sudo certbot renew --dry-run
+
+# Force renewal
+sudo certbot renew --force-renewal
+```
+
+**Database Connection Issues:**
+```bash
+# Check PostgreSQL status
+sudo systemctl status postgresql
+
+# Test database connection
+sudo -u postgres psql -d wordpress_node -c "SELECT 1;"
+```
+
+**Git Permission Issues:**
+```bash
+# Fix git ownership
+git config --global --add safe.directory /var/www/WordPress-Node
+```
+
+</details>
+
+<br />
+
+#### Access Points
+
+| Service | URL |
+|---------|-----|
+| **Frontend** | `https://yourdomain.com` |
+| **Admin Panel** | `https://yourdomain.com/admin` |
+| **API** | `https://yourdomain.com/api` |
+| **Health Check** | `https://yourdomain.com/health` |
+
+<br />
+
+---
+
 ### 🪟 Windows 11 & Windows Server - One-Command Install
 
 <div align="center">
