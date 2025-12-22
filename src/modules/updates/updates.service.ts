@@ -550,7 +550,24 @@ export class UpdatesService {
       logs.push('Installing admin dependencies...');
 
       const adminDir = path.join(process.cwd(), 'admin');
+
+      // Clean install to avoid module resolution issues
+      const nodeModulesPath = path.join(adminDir, 'node_modules');
+      const packageLockPath = path.join(adminDir, 'package-lock.json');
+      if (fs.existsSync(nodeModulesPath)) {
+        await execAsync('rm -rf node_modules', { cwd: adminDir, timeout: 60000 });
+        logs.push('✓ Cleaned old node_modules');
+      }
+      if (fs.existsSync(packageLockPath)) {
+        fs.unlinkSync(packageLockPath);
+        logs.push('✓ Removed package-lock.json');
+      }
+
+      // Install dependencies including dev dependencies
       await execAsync('npm install', { cwd: adminDir, timeout: 300000 });
+
+      // Ensure vite is installed (sometimes npm install doesn't properly install it)
+      await execAsync('npm install vite --save-dev', { cwd: adminDir, timeout: 60000 });
       logs.push('✓ Admin dependencies installed');
 
       // Step 5: Build admin panel
