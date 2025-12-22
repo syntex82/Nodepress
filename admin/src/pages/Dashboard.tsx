@@ -6,9 +6,22 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFileText, FiFile, FiUsers, FiImage, FiSettings, FiLayout, FiPlus, FiExternalLink, FiHelpCircle, FiTrendingUp, FiClock, FiZap, FiBookOpen, FiShoppingBag, FiMail, FiShield } from 'react-icons/fi';
-import { postsApi, pagesApi, usersApi } from '../services/api';
+import { postsApi, pagesApi, usersApi, systemConfigApi } from '../services/api';
 import toast from 'react-hot-toast';
 import Tooltip from '../components/Tooltip';
+
+// Get the frontend URL from domain config or use origin as fallback
+const getFrontendUrl = async (): Promise<string> => {
+  try {
+    const response = await systemConfigApi.getDomainConfig();
+    if (response.data?.frontendUrl) {
+      return response.data.frontendUrl;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch domain config');
+  }
+  return window.location.origin;
+};
 
 const DASHBOARD_TOOLTIPS = {
   posts: { title: 'Blog Posts', content: 'Total number of blog posts on your site. Click to manage posts, create new content, or edit existing articles.' },
@@ -23,9 +36,10 @@ const DASHBOARD_TOOLTIPS = {
 export default function Dashboard() {
   const [stats, setStats] = useState({ posts: 0, pages: 0, users: 0 });
   const [loading, setLoading] = useState(true);
+  const [frontendUrl, setFrontendUrl] = useState<string>(window.location.origin);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         const [postsRes, pagesRes, usersRes] = await Promise.all([
           postsApi.getAll({ limit: 1 }),
@@ -37,6 +51,10 @@ export default function Dashboard() {
           pages: pagesRes.data.meta?.total || 0,
           users: usersRes.data.meta?.total || 0,
         });
+
+        // Fetch frontend URL
+        const url = await getFrontendUrl();
+        setFrontendUrl(url);
       } catch (error: any) {
         console.error('Error fetching stats:', error);
         toast.error(error.response?.data?.message || 'Failed to load dashboard stats');
@@ -44,7 +62,7 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
   const statCards = [
@@ -134,7 +152,7 @@ export default function Dashboard() {
               <Tooltip key={action.name} content={action.desc} position="bottom">
                 {action.external ? (
                   <a
-                    href="http://localhost:3000"
+                    href={frontendUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex flex-col items-center gap-3 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}

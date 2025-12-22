@@ -8,12 +8,26 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX, FiCommand, FiHardDrive, FiZap, FiArrowUp } from 'react-icons/fi';
 import { useState, useEffect, useCallback } from 'react';
-import { messagesApi } from '../services/api';
+import { messagesApi, systemConfigApi } from '../services/api';
 import { canAccess, ROLE_DESCRIPTIONS, type UserRole, type RolePermissions } from '../config/permissions';
 import Tooltip from './Tooltip';
 import { NAV_TOOLTIPS } from '../config/tooltips';
 import CommandPalette from './CommandPalette';
 import NotificationCenter from './NotificationCenter';
+
+// Get the frontend URL - in production it's same origin (without /admin), in development uses domain config
+const getFrontendUrl = async (): Promise<string> => {
+  try {
+    const response = await systemConfigApi.getDomainConfig();
+    if (response.data?.frontendUrl) {
+      return response.data.frontendUrl;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch domain config, using origin');
+  }
+  // Fallback: use current origin without /admin path
+  return window.location.origin;
+};
 
 export default function Layout() {
   const location = useLocation();
@@ -22,6 +36,7 @@ export default function Layout() {
   const [showRoleInfo, setShowRoleInfo] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [frontendUrl, setFrontendUrl] = useState<string>(window.location.origin);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     main: true,
     content: false,
@@ -35,6 +50,11 @@ export default function Layout() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const userRole = (user?.role || 'VIEWER') as UserRole;
   const roleInfo = ROLE_DESCRIPTIONS[userRole];
+
+  // Fetch frontend URL on mount
+  useEffect(() => {
+    getFrontendUrl().then(url => setFrontendUrl(url));
+  }, []);
 
   // Global keyboard shortcut for Command Palette (Cmd+K / Ctrl+K)
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -138,7 +158,7 @@ export default function Layout() {
   };
 
   const handleViewWebsite = () => {
-    window.open('http://localhost:3000', '_blank');
+    window.open(frontendUrl, '_blank');
   };
 
   const handleCustomize = () => {
