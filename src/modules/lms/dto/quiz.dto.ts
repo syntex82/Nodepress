@@ -12,6 +12,8 @@ import {
   ValidateNested,
   Min,
   Max,
+  Allow,
+  IsDefined,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -107,6 +109,8 @@ export class SubmitQuizAnswerDto {
   @IsUUID()
   questionId: string;
 
+  @IsDefined()
+  @Allow()
   answer: any; // Can be string, string[], or boolean
 }
 
