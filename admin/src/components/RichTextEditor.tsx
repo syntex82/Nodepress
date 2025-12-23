@@ -28,6 +28,7 @@ import { SocialEmbed } from './tiptap/SocialEmbed';
 import { TableOfContents } from './tiptap/TableOfContents';
 import { Countdown } from './tiptap/Countdown';
 import { IconBlock } from './tiptap/IconBlock';
+import { Map } from './tiptap/Map';
 import {
   FiBold, FiItalic, FiList, FiCode, FiImage as FiImageIcon,
   FiLink, FiAlignLeft, FiAlignCenter, FiAlignRight, FiVideo,
@@ -41,7 +42,7 @@ import ContentBlockPicker from './ContentBlockPicker';
 import {
   AlertConfigModal, ButtonConfigModal, DividerConfigModal, CTAConfigModal,
   SocialConfigModal, CardConfigModal, TestimonialConfigModal, AccordionConfigModal,
-  ProgressConfigModal, CountdownConfigModal
+  ProgressConfigModal, CountdownConfigModal, MapConfigModal
 } from './BlockConfigModals';
 
 interface RichTextEditorProps {
@@ -50,7 +51,7 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
-type BlockConfigModal = 'alert' | 'button' | 'divider' | 'cta' | 'social' | 'card' | 'testimonial' | 'accordion' | 'progress' | 'countdown' | null;
+type BlockConfigModal = 'alert' | 'button' | 'divider' | 'cta' | 'social' | 'card' | 'testimonial' | 'accordion' | 'progress' | 'countdown' | 'map' | null;
 
 export default function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
@@ -94,6 +95,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
       TableOfContents,
       Countdown,
       IconBlock,
+      Map,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -231,6 +233,9 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         break;
       case 'icon':
         editor.commands.setIconBlock({ icon: 'star', text: 'Featured', size: 'md' });
+        break;
+      case 'map':
+        setActiveConfigModal('map');
         break;
       default:
         break;
@@ -579,6 +584,15 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         <CountdownConfigModal
           onInsert={(data) => {
             editor.commands.setCountdown(data as any);
+            setActiveConfigModal(null);
+          }}
+          onClose={() => setActiveConfigModal(null)}
+        />
+      )}
+      {activeConfigModal === 'map' && (
+        <MapConfigModal
+          onInsert={(data) => {
+            editor.commands.setMap(data as any);
             setActiveConfigModal(null);
           }}
           onClose={() => setActiveConfigModal(null)}

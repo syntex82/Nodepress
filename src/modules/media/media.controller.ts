@@ -15,6 +15,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Body,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MediaService } from './media.service';
@@ -37,6 +38,12 @@ export class MediaController {
   @Roles(UserRole.ADMIN, UserRole.EDITOR, UserRole.AUTHOR)
   @UseInterceptors(FileInterceptor('file'))
   upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: any) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+    if (!file.buffer) {
+      throw new BadRequestException('File buffer is empty - upload failed');
+    }
     return this.mediaService.upload(file, user.id);
   }
 

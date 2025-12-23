@@ -3,13 +3,14 @@
  * Handles file upload, storage, and media metadata management
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
   private uploadDir = path.join(process.cwd(), 'uploads');
 
   constructor(private prisma: PrismaService) {
@@ -22,19 +23,43 @@ export class MediaService {
   private async ensureUploadDir() {
     try {
       await fs.access(this.uploadDir);
+      this.logger.log(`📁 Upload directory ready: ${this.uploadDir}`);
     } catch {
       await fs.mkdir(this.uploadDir, { recursive: true });
+      this.logger.log(`📁 Created upload directory: ${this.uploadDir}`);
     }
+  }
+
+  /**
+   * Sanitize filename to prevent path traversal and special characters
+   */
+  private sanitizeFilename(filename: string): string {
+    // Remove path separators and special characters
+    return filename
+      .replace(/[/\\:*?"<>|]/g, '_')
+      .replace(/\s+/g, '_')
+      .substring(0, 200); // Limit length
   }
 
   /**
    * Upload file and create media record
    */
   async upload(file: Express.Multer.File, userId: string) {
-    const filename = `${Date.now()}-${file.originalname}`;
+    if (!file || !file.buffer) {
+      throw new BadRequestException('Invalid file upload - no file data received');
+    }
+
+    const sanitizedName = this.sanitizeFilename(file.originalname);
+    const filename = `${Date.now()}-${sanitizedName}`;
     const filepath = path.join(this.uploadDir, filename);
 
-    await fs.writeFile(filepath, file.buffer);
+    try {
+      await fs.writeFile(filepath, file.buffer);
+      this.logger.log(`📤 File uploaded: ${filename} (${file.size} bytes)`);
+    } catch (error) {
+      this.logger.error(`Failed to write file: ${error.message}`);
+      throw new BadRequestException('Failed to save file to disk');
+    }
 
     // Extract image dimensions if it's an image (simplified)
     let width: number | undefined;

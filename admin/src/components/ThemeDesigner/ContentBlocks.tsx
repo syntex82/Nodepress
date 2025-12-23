@@ -10,7 +10,7 @@ import {
   FiMove, FiPlus, FiArrowUp, FiArrowDown, FiCopy, FiEye, FiEyeOff,
   FiBook, FiList, FiTrendingUp, FiUser, FiFolder, FiShoppingCart,
   FiFilter, FiCreditCard, FiPercent, FiUpload, FiLock, FiMail, FiLogIn,
-  FiNavigation, FiAlignCenter, FiSidebar
+  FiNavigation, FiAlignCenter, FiSidebar, FiMapPin
 } from 'react-icons/fi';
 import { CustomThemeSettings } from '../../services/api';
 import MediaPickerModal from '../MediaPickerModal';
@@ -38,7 +38,7 @@ import {
 
 // ============ Block Type Definitions ============
 export type BlockType =
-  | 'audio' | 'video' | 'gallery' | 'button' | 'hero'
+  | 'audio' | 'video' | 'gallery' | 'button' | 'hero' | 'map'
   | 'card' | 'testimonial' | 'cta' | 'features' | 'divider'
   | 'pricing' | 'stats' | 'timeline' | 'accordion' | 'tabs'
   | 'imageText' | 'logoCloud' | 'newsletter' | 'socialProof' | 'countdown'
@@ -123,6 +123,19 @@ export const BLOCK_CONFIGS: Record<BlockType, { label: string; icon: React.Eleme
       backgroundImage: 'https://picsum.photos/1920/800',
       overlay: 0.5,
       alignment: 'center',
+    },
+  },
+  map: {
+    label: 'Map',
+    icon: FiMapPin,
+    defaultProps: {
+      address: 'New York, NY',
+      lat: 40.7128,
+      lng: -74.006,
+      zoom: 14,
+      height: 400,
+      mapType: 'roadmap',
+      provider: 'openstreetmap',
     },
   },
   card: {
@@ -1909,6 +1922,67 @@ export function HeroBlock({
   );
 }
 
+// Map Block
+export function MapBlock({
+  props,
+  settings
+}: {
+  props: Record<string, any>;
+  settings: CustomThemeSettings;
+}) {
+  const { address, lat, lng, zoom = 14, height = 400, mapType = 'roadmap', provider = 'openstreetmap' } = props;
+
+  // Generate the map embed URL based on provider
+  const getMapUrl = () => {
+    if (provider === 'google') {
+      if (address) {
+        return `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(address)}&zoom=${zoom}&maptype=${mapType}`;
+      }
+      return `https://www.google.com/maps/embed/v1/view?key=YOUR_API_KEY&center=${lat},${lng}&zoom=${zoom}&maptype=${mapType}`;
+    } else {
+      // OpenStreetMap (free, no API key required)
+      if (address) {
+        return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`;
+      }
+      return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.02},${lat - 0.02},${lng + 0.02},${lat + 0.02}&layer=mapnik&marker=${lat},${lng}`;
+    }
+  };
+
+  return (
+    <div
+      className="overflow-hidden"
+      style={{
+        borderRadius: settings.borders.radius,
+        border: `${settings.borders.width}px solid ${settings.colors.border}`,
+      }}
+    >
+      <iframe
+        src={getMapUrl()}
+        width="100%"
+        height={height}
+        style={{ border: 0 }}
+        allowFullScreen
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        title={address || `Map at ${lat}, ${lng}`}
+      />
+      {address && (
+        <div
+          className="px-4 py-2 text-sm flex items-center gap-2"
+          style={{
+            background: settings.colors.surface,
+            color: settings.colors.text,
+            fontFamily: settings.typography.bodyFont,
+          }}
+        >
+          <FiMapPin size={14} style={{ color: settings.colors.primary }} />
+          {address}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Card Block
 export function CardBlock({
   props,
@@ -3246,6 +3320,8 @@ export function BlockRenderer({
         return <ButtonBlock props={block.props} settings={settings} />;
       case 'hero':
         return <HeroBlock props={block.props} settings={settings} />;
+      case 'map':
+        return <MapBlock props={block.props} settings={settings} />;
       case 'card':
         return <CardBlock props={block.props} settings={settings} />;
       case 'testimonial':

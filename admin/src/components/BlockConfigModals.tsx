@@ -532,6 +532,174 @@ export function CountdownConfigModal({ onInsert, onClose }: CountdownModalProps)
   );
 }
 
+// Map Configuration Modal
+interface MapModalProps extends ModalProps {
+  onInsert: (data: {
+    address?: string;
+    lat?: number;
+    lng?: number;
+    zoom?: number;
+    height?: number;
+    mapType?: 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
+    provider?: 'google' | 'openstreetmap';
+  }) => void;
+}
+
+export function MapConfigModal({ onInsert, onClose }: MapModalProps) {
+  const [address, setAddress] = useState('');
+  const [lat, setLat] = useState(40.7128);
+  const [lng, setLng] = useState(-74.006);
+  const [zoom, setZoom] = useState(14);
+  const [height, setHeight] = useState(400);
+  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid' | 'terrain'>('roadmap');
+  const [provider, setProvider] = useState<'google' | 'openstreetmap'>('openstreetmap');
+  const [useAddress, setUseAddress] = useState(true);
+
+  const mapTypes: { id: 'roadmap' | 'satellite' | 'hybrid' | 'terrain'; label: string }[] = [
+    { id: 'roadmap', label: 'Road' },
+    { id: 'satellite', label: 'Satellite' },
+    { id: 'hybrid', label: 'Hybrid' },
+    { id: 'terrain', label: 'Terrain' },
+  ];
+
+  return (
+    <ConfigModalWrapper title="Add Map" onClose={onClose}>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Map Provider</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setProvider('openstreetmap')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm ${provider === 'openstreetmap' ? 'bg-violet-600 text-white' : 'bg-gray-100'}`}
+            >
+              OpenStreetMap (Free)
+            </button>
+            <button
+              onClick={() => setProvider('google')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm ${provider === 'google' ? 'bg-violet-600 text-white' : 'bg-gray-100'}`}
+            >
+              Google Maps
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Location Method</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setUseAddress(true)}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm ${useAddress ? 'bg-violet-600 text-white' : 'bg-gray-100'}`}
+            >
+              Address
+            </button>
+            <button
+              onClick={() => setUseAddress(false)}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm ${!useAddress ? 'bg-violet-600 text-white' : 'bg-gray-100'}`}
+            >
+              Coordinates
+            </button>
+          </div>
+        </div>
+
+        {useAddress ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="123 Main St, New York, NY 10001"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+              <input
+                type="number"
+                step="any"
+                value={lat}
+                onChange={(e) => setLat(parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+              <input
+                type="number"
+                step="any"
+                value={lng}
+                onChange={(e) => setLng(parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Zoom Level: {zoom}</label>
+            <input
+              type="range"
+              min="1"
+              max="20"
+              value={zoom}
+              onChange={(e) => setZoom(parseInt(e.target.value))}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Height (px)</label>
+            <input
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(parseInt(e.target.value) || 400)}
+              className="w-full px-3 py-2 border rounded-lg"
+              min="200"
+              max="800"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Map Type</label>
+          <div className="grid grid-cols-4 gap-2">
+            {mapTypes.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setMapType(t.id)}
+                className={`px-2 py-1.5 rounded-lg text-xs ${mapType === t.id ? 'bg-violet-600 text-white' : 'bg-gray-100'}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            const data = {
+              address: useAddress ? address : undefined,
+              lat: useAddress ? undefined : lat,
+              lng: useAddress ? undefined : lng,
+              zoom,
+              height,
+              mapType,
+              provider,
+            };
+            onInsert(data);
+          }}
+          disabled={useAddress && !address}
+          className="w-full py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+        >
+          Insert Map
+        </button>
+      </div>
+    </ConfigModalWrapper>
+  );
+}
+
 // Wrapper component for modal styling
 function ConfigModalWrapper({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (

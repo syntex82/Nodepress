@@ -7,7 +7,7 @@ import { useState } from 'react';
 import {
   FiX, FiAlertCircle, FiTarget, FiMinus, FiCreditCard, FiMessageCircle,
   FiChevronDown, FiColumns, FiBarChart2, FiClock, FiShare2, FiBookOpen,
-  FiZap, FiSquare, FiImage, FiVideo, FiMusic, FiYoutube
+  FiZap, FiSquare, FiImage, FiVideo, FiMusic, FiYoutube, FiMapPin
 } from 'react-icons/fi';
 
 export interface BlockDefinition {
@@ -24,6 +24,7 @@ export const CONTENT_BLOCKS: BlockDefinition[] = [
   { id: 'video', name: 'Video', description: 'Embed a video file', icon: FiVideo, category: 'media' },
   { id: 'audio', name: 'Audio', description: 'Add an audio player', icon: FiMusic, category: 'media' },
   { id: 'youtube', name: 'YouTube', description: 'Embed a YouTube video', icon: FiYoutube, category: 'media' },
+  { id: 'map', name: 'Map', description: 'Embed an interactive map', icon: FiMapPin, category: 'media' },
   
   // Layout blocks
   { id: 'divider', name: 'Divider', description: 'Add a section separator', icon: FiMinus, category: 'layout' },
