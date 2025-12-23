@@ -128,6 +128,20 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 
 <br />
 
+### 📱 Mobile Responsiveness
+
+| Feature | Description |
+|---------|-------------|
+| **Device Detection** | Automatic detection of mobile, tablet, and desktop devices (server-side + client-side) |
+| **Responsive Breakpoints** | CSS breakpoints for 1024px, 768px, 480px (Galaxy A55), and 375px |
+| **Mobile Navigation** | Hamburger menu with slide-out drawer and touch-friendly overlay |
+| **Touch Optimizations** | Minimum 44px tap targets, disabled hover effects on touch devices |
+| **iOS Input Handling** | 16px font inputs to prevent auto-zoom on iOS Safari |
+| **Adaptive UI** | CSS classes (`device-mobile`, `device-tablet`, `touch-device`) for conditional styling |
+| **Mobile Learning Player** | Collapsible sidebar with floating toggle button for course learning |
+
+<br />
+
 ### 🔌 Plugin Architecture
 
 | Feature | Description |
