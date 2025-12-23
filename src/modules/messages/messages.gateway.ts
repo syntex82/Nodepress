@@ -51,9 +51,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.socketUsers.set(client.id, user);
       this.userSockets.set(user.id, client.id);
 
-      // Broadcast online status
+      // Send current online users list to the newly connected client
+      const onlineUserIds = Array.from(this.userSockets.keys());
+      client.emit('users:online:list', { users: onlineUserIds });
+
+      // Broadcast this user's online status to all other clients
       this.server.emit('user:online', { userId: user.id });
-      console.log(`User ${user.name} connected to messages gateway`);
+      console.log(`User ${user.name} connected to messages gateway (${onlineUserIds.length} users online)`);
     } catch (error) {
       console.error('WebSocket authentication failed:', error.message);
       client.disconnect();

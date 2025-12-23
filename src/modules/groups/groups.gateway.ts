@@ -69,7 +69,14 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.socketUsers.set(client.id, user);
       this.userSockets.set(user.id, client.id);
 
-      console.log(`User ${user.name} connected to groups gateway`);
+      // Send current online users list to the newly connected client
+      const onlineUserIds = Array.from(this.userSockets.keys());
+      client.emit('users:online:list', { users: onlineUserIds });
+
+      // Broadcast this user's online status to all other clients
+      this.server.emit('user:online', { userId: user.id });
+
+      console.log(`User ${user.name} connected to groups gateway (${onlineUserIds.length} users online)`);
     } catch (error) {
       console.error('WebSocket authentication failed:', error.message);
       client.disconnect();
@@ -97,6 +104,9 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.userSockets.delete(user.id);
       this.socketUsers.delete(client.id);
+
+      // Broadcast offline status to all clients
+      this.server.emit('user:offline', { userId: user.id });
 
       console.log(`User ${user.name} disconnected from groups gateway`);
     }

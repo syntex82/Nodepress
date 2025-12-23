@@ -207,4 +207,34 @@ export class MessagesService {
 
     return { success: true, messageId };
   }
+
+  /**
+   * Delete a conversation and all its messages
+   * Only a participant can delete the conversation
+   */
+  async deleteConversation(conversationId: string, userId: string) {
+    // Verify conversation exists and user is a participant
+    const conversation = await this.prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        OR: [{ participant1Id: userId }, { participant2Id: userId }],
+      },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    // Delete all messages in the conversation first
+    await this.prisma.directMessage.deleteMany({
+      where: { conversationId },
+    });
+
+    // Delete the conversation
+    await this.prisma.conversation.delete({
+      where: { id: conversationId },
+    });
+
+    return { success: true, conversationId };
+  }
 }

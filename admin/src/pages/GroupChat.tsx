@@ -5,9 +5,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiSend, FiArrowLeft, FiUsers, FiLogOut, FiSearch, FiCheck, FiShield, FiStar, FiHash, FiMessageSquare, FiTrash2, FiPaperclip, FiVideo, FiX } from 'react-icons/fi';
+import { FiSend, FiArrowLeft, FiUsers, FiLogOut, FiSearch, FiCheck, FiShield, FiStar, FiHash, FiMessageSquare, FiTrash2, FiPaperclip, FiVideo, FiX, FiSmile } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { groupsApi, messagesApi } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 
@@ -105,10 +106,12 @@ export default function GroupChat() {
   const [pendingMedia, setPendingMedia] = useState<MediaAttachment[]>([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [lightboxMedia, setLightboxMedia] = useState<MediaAttachment | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -154,11 +157,23 @@ export default function GroupChat() {
         scrollToBottom();
       });
 
+      // Listen for initial online users list (sent on connection)
+      newSocket.on('users:online:list', (data: { users: string[] }) => {
+        console.log('Received online users list:', data.users);
+        setOnlineUsers(data.users);
+      });
+
       newSocket.on('group:user:online', (data: { userId: string }) => {
+        setOnlineUsers((prev) => [...new Set([...prev, data.userId])]);
+      });
+      newSocket.on('user:online', (data: { userId: string }) => {
         setOnlineUsers((prev) => [...new Set([...prev, data.userId])]);
       });
 
       newSocket.on('group:user:offline', (data: { userId: string }) => {
+        setOnlineUsers((prev) => prev.filter((uid) => uid !== data.userId));
+      });
+      newSocket.on('user:offline', (data: { userId: string }) => {
         setOnlineUsers((prev) => prev.filter((uid) => uid !== data.userId));
       });
 
@@ -219,6 +234,26 @@ export default function GroupChat() {
       // User might not be a member yet
     }
   };
+
+  // Handle emoji selection
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+    inputRef.current?.focus();
+  };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showEmojiPicker]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -582,7 +617,7 @@ export default function GroupChat() {
               ))}
             </div>
           )}
-          <div className="flex items-center gap-3 bg-slate-700/50 rounded-2xl px-4 py-2 border border-slate-600/50">
+          <div className="flex items-center gap-3 bg-slate-700/50 rounded-2xl px-4 py-2 border border-slate-600/50 relative">
             {/* File Upload Button */}
             <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple onChange={handleFileSelect} className="hidden" />
             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingMedia} className="p-2 text-slate-400 hover:text-indigo-400 transition-colors" title="Attach media">
@@ -592,6 +627,16 @@ export default function GroupChat() {
                 <FiPaperclip size={20} />
               )}
             </button>
+            {/* Emoji Picker Button */}
+            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-slate-400 hover:text-yellow-400 transition-colors" title="Add emoji">
+              <FiSmile size={20} />
+            </button>
+            {/* Emoji Picker Popup */}
+            {showEmojiPicker && (
+              <div ref={emojiPickerRef} className="absolute bottom-14 left-0 z-50">
+                <EmojiPicker theme={Theme.DARK} onEmojiClick={handleEmojiSelect} width={320} height={400} />
+              </div>
+            )}
             <input ref={inputRef} type="text" value={newMessage} onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
               placeholder="Type your message..." className="flex-1 bg-transparent py-2 text-white placeholder-slate-500 focus:outline-none text-[15px]" disabled={sending} />
             <button type="submit" disabled={(!newMessage.trim() && pendingMedia.length === 0) || sending} className={`p-3 rounded-xl transition-all ${(newMessage.trim() || pendingMedia.length > 0) && !sending ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/20 hover:shadow-lg' : 'bg-slate-600 text-slate-400'}`}>

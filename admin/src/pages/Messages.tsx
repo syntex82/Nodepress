@@ -4,9 +4,10 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { FiSend, FiSearch, FiMessageSquare, FiCheck, FiCheckCircle, FiPlus, FiX, FiTrash2, FiVideo, FiPaperclip, FiPhone } from 'react-icons/fi';
+import { FiSend, FiSearch, FiMessageSquare, FiCheck, FiCheckCircle, FiPlus, FiX, FiTrash2, FiVideo, FiPaperclip, FiPhone, FiSmile } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { messagesApi, profileApi } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import VideoCall from '../components/VideoCall';
@@ -82,10 +83,14 @@ export default function Messages() {
   const [lightboxMedia, setLightboxMedia] = useState<MediaAttachment | null>(null);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [incomingCall, setIncomingCall] = useState<{ callerId: string; callerName: string; callerAvatar: string | null; conversationId: string } | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<Conversation | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConversations();
@@ -119,6 +124,12 @@ export default function Messages() {
         setSocketConnected(false);
       });
 
+      // Listen for initial online users list (sent on connection)
+      newSocket.on('users:online:list', (data: { users: string[] }) => {
+        console.log('Received online users list:', data.users);
+        setOnlineUsers(data.users);
+      });
+      // Listen for individual online/offline status updates
       newSocket.on('user:online', (data: { userId: string }) => setOnlineUsers((prev) => [...new Set([...prev, data.userId])]));
       newSocket.on('user:offline', (data: { userId: string }) => setOnlineUsers((prev) => prev.filter((id) => id !== data.userId)));
 
@@ -200,6 +211,47 @@ export default function Messages() {
       toast.error('Failed to load messages');
     } finally {
       setLoadingMessages(false);
+    }
+  };
+
+  // Handle emoji selection
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+    inputRef.current?.focus();
+  };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showEmojiPicker]);
+
+  // Handle delete conversation
+  const handleDeleteConversation = async () => {
+    if (!deleteConfirmation) return;
+
+    try {
+      setDeleting(true);
+      await messagesApi.deleteConversation(deleteConfirmation.id);
+      toast.success('Conversation deleted');
+      setConversations((prev) => prev.filter((c) => c.id !== deleteConfirmation.id));
+      if (activeConversation?.id === deleteConfirmation.id) {
+        setActiveConversation(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      toast.error('Failed to delete conversation');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmation(null);
     }
   };
 
@@ -414,7 +466,7 @@ export default function Messages() {
           ) : (
             conversations.map((conv) => (
               <div key={conv.id} onClick={() => setActiveConversation(conv)}
-                className={`flex items-center gap-3 p-4 cursor-pointer border-b border-slate-700/50 transition-colors ${activeConversation?.id === conv.id ? 'bg-indigo-500/20 border-l-4 border-l-indigo-500' : 'hover:bg-slate-700/50'}`}>
+                className={`group flex items-center gap-3 p-4 cursor-pointer border-b border-slate-700/50 transition-colors ${activeConversation?.id === conv.id ? 'bg-indigo-500/20 border-l-4 border-l-indigo-500' : 'hover:bg-slate-700/50'}`}>
                 <div className="relative flex-shrink-0">
                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(conv.otherUser.name)} flex items-center justify-center text-white font-semibold shadow-sm`}>
                     {conv.otherUser.avatar ? <img src={conv.otherUser.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : conv.otherUser.name.charAt(0).toUpperCase()}
@@ -435,6 +487,14 @@ export default function Messages() {
                     )}
                   </div>
                 </div>
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteConfirmation(conv); }}
+                  className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                  title="Delete conversation"
+                >
+                  <FiTrash2 size={16} />
+                </button>
               </div>
             ))
           )}
@@ -591,7 +651,7 @@ export default function Messages() {
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-3 bg-slate-700/50 rounded-2xl px-4 py-2 border border-slate-600/50">
+              <div className="flex items-center gap-3 bg-slate-700/50 rounded-2xl px-4 py-2 border border-slate-600/50 relative">
                 {/* File Upload Button */}
                 <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple onChange={handleFileSelect} className="hidden" />
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingMedia} className="p-2 text-slate-400 hover:text-indigo-400 transition-colors" title="Attach media">
@@ -601,6 +661,16 @@ export default function Messages() {
                     <FiPaperclip size={20} />
                   )}
                 </button>
+                {/* Emoji Picker Button */}
+                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-slate-400 hover:text-yellow-400 transition-colors" title="Add emoji">
+                  <FiSmile size={20} />
+                </button>
+                {/* Emoji Picker Popup */}
+                {showEmojiPicker && (
+                  <div ref={emojiPickerRef} className="absolute bottom-14 left-0 z-50">
+                    <EmojiPicker theme={Theme.DARK} onEmojiClick={handleEmojiSelect} width={320} height={400} />
+                  </div>
+                )}
                 <input ref={inputRef} type="text" value={newMessage} onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
                   placeholder="Type your message..." className="flex-1 bg-transparent py-2 text-white placeholder-slate-500 focus:outline-none text-[15px]" disabled={sending} />
                 <button type="submit" disabled={(!newMessage.trim() && pendingMedia.length === 0) || sending} className={`p-3 rounded-xl transition-all ${(newMessage.trim() || pendingMedia.length > 0) && !sending ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/20 hover:shadow-lg' : 'bg-slate-600 text-slate-400'}`}>
@@ -724,6 +794,44 @@ export default function Messages() {
           isIncoming={true}
           onClose={() => { setShowVideoCall(false); setIncomingCall(null); }}
         />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700/50 p-6 max-w-sm w-full">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+              <FiTrash2 className="text-red-400" size={28} />
+            </div>
+            <h2 className="text-xl font-bold text-white text-center mb-2">Delete Conversation?</h2>
+            <p className="text-slate-400 text-center mb-6">
+              Are you sure you want to delete your conversation with <span className="text-white font-semibold">{deleteConfirmation.otherUser.name}</span>?
+              This will permanently delete all messages and cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmation(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConversation}
+                disabled={deleting}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FiTrash2 size={18} /> Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
