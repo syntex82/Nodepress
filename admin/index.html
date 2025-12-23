@@ -2,16 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/api/pwa/icons/icon-192.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WordPress Node - Admin</title>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1e293b" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="WP Node Admin" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/pwa/icons/icon-192.svg" />
+    <link rel="manifest" href="/api/pwa/manifest.json" />
+    <link rel="apple-touch-icon" href="/api/pwa/icons/icon-192.svg" />
   </head>
   <body>
     <div id="root"></div>
@@ -20,7 +21,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          navigator.serviceWorker.register('/api/pwa/sw.js').then(function(reg) {
             console.log('PWA: Service Worker registered', reg.scope);
           }).catch(function(err) {
             console.log('PWA: Service Worker registration failed', err);
