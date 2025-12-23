@@ -1,9 +1,11 @@
 /**
  * Quizzes Controller for LMS Module
  * Handles admin quiz management
+ * Course creators can edit their own courses, admins/editors can edit any course
  */
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CourseOwnershipGuard } from '../guards/course-ownership.guard';
 import { QuizzesService } from '../services/quizzes.service';
 import {
   CreateQuizDto,
@@ -13,7 +15,7 @@ import {
 } from '../dto/quiz.dto';
 
 @Controller('api/lms/admin/courses/:courseId/quizzes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CourseOwnershipGuard)
 export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
 

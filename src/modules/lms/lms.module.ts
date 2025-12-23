@@ -25,6 +25,9 @@ import { EnrollmentsController } from './controllers/enrollments.controller';
 import { LearningController } from './controllers/learning.controller';
 import { CertificatesController } from './controllers/certificates.controller';
 
+// Guards
+import { CourseOwnershipGuard } from './guards/course-ownership.guard';
+
 @Module({
   imports: [PrismaModule, ConfigModule],
   controllers: [
@@ -47,6 +50,7 @@ import { CertificatesController } from './controllers/certificates.controller';
     CertificatesService,
     CertificateGeneratorService,
     CoursePlaceholderService,
+    CourseOwnershipGuard,
   ],
   exports: [
     CoursesService,

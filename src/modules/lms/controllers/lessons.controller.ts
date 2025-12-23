@@ -1,6 +1,7 @@
 /**
  * Lessons Controller for LMS Module
  * Handles admin lesson management with video upload support
+ * Course creators can edit their own courses, admins/editors can edit any course
  */
 import {
   Controller,
@@ -17,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CourseOwnershipGuard } from '../guards/course-ownership.guard';
 import { LessonsService } from '../services/lessons.service';
 import {
   CreateLessonDto,
@@ -26,7 +28,7 @@ import {
 } from '../dto/lesson.dto';
 
 @Controller('api/lms/admin/courses/:courseId/lessons')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CourseOwnershipGuard)
 export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 

@@ -66,14 +66,16 @@ export class CoursesController {
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto, @Request() req) {
-    const isAdmin = req.user.role === 'ADMIN';
-    return this.coursesService.update(id, dto, req.user.id, isAdmin);
+    // Admins and Editors can edit any course
+    const hasFullAccess = req.user.role === 'ADMIN' || req.user.role === 'EDITOR';
+    return this.coursesService.update(id, dto, req.user.id, hasFullAccess);
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string, @Request() req) {
-    const isAdmin = req.user.role === 'ADMIN';
-    return this.coursesService.delete(id, req.user.id, isAdmin);
+    // Admins and Editors can delete any course
+    const hasFullAccess = req.user.role === 'ADMIN' || req.user.role === 'EDITOR';
+    return this.coursesService.delete(id, req.user.id, hasFullAccess);
   }
 
   @Post('placeholder/regenerate')

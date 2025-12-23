@@ -1,6 +1,7 @@
 /**
  * Course Modules Controller for LMS Curriculum
  * API endpoints for managing course sections/modules
+ * Course creators can edit their own courses, admins/editors can edit any course
  */
 import {
   Controller,
@@ -13,6 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CourseOwnershipGuard } from '../guards/course-ownership.guard';
 import { ModulesService } from '../services/modules.service';
 import {
   CreateModuleDto,
@@ -22,7 +24,7 @@ import {
 } from '../dto/module.dto';
 
 @Controller('api/lms/admin/courses/:courseId/modules')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CourseOwnershipGuard)
 export class ModulesController {
   constructor(private readonly modulesService: ModulesService) {}
 
