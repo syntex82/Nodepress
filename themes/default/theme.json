@@ -1,14 +1,26 @@
 {
   "name": "Default Theme",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "WordPress Node",
-  "description": "A clean, modern default theme for WordPress Node CMS",
+  "description": "A clean, modern default theme for WordPress Node CMS with PWA support, real-time messaging, and video calling",
   "license": "MIT",
   "templates": [
     "home",
     "single-post",
     "single-page",
-    "archive"
+    "archive",
+    "shop",
+    "single-product",
+    "cart",
+    "checkout",
+    "courses",
+    "single-course",
+    "login",
+    "register",
+    "my-account",
+    "hire-developer",
+    "developer-marketplace",
+    "developer-profile"
   ],
   "settings": {
     "colors": {
@@ -34,7 +46,14 @@
     "responsive",
     "dark-mode-ready",
     "customizable-colors",
-    "customizable-typography"
+    "customizable-typography",
+    "pwa-ready",
+    "service-worker",
+    "offline-support",
+    "installable-app",
+    "real-time-messaging",
+    "media-sharing",
+    "video-calling"
   ]
 }
 

@@ -198,6 +198,53 @@ WordPress Node CMS provides a comprehensive set of features for building modern 
 
 <br />
 
+### 📱 Progressive Web App (PWA)
+
+| Feature | Description |
+|---------|-------------|
+| **Install as App** | Install the site as a native-like app on mobile and desktop devices |
+| **Offline Support** | Service worker caching ensures basic functionality when offline |
+| **Web App Manifest** | Configurable app name, icons, theme colors, and display mode |
+| **Offline Page** | Custom offline fallback page when network is unavailable |
+| **Auto-Registration** | Service worker automatically registered on all theme pages |
+| **Cross-Platform** | Works on Android (Chrome), iOS (Safari), Windows, macOS, and Linux |
+
+> 💡 **Note:** PWA features require HTTPS in production. On localhost, HTTP is allowed for development.
+
+<br />
+
+### 💬 Real-Time Messaging & Media Sharing
+
+| Feature | Description |
+|---------|-------------|
+| **Direct Messaging** | Real-time private messaging between users via WebSocket |
+| **Group Chat** | Create and join group conversations with multiple users |
+| **Media Sharing** | Send images and videos in direct messages and group chats |
+| **Media Preview** | Preview images/videos with thumbnail and file size before sending |
+| **Lightbox Viewer** | Full-screen media viewer with zoom support |
+| **Online Status** | See which users are currently online |
+| **Connection Indicator** | Visual WebSocket connection status in the UI |
+| **Delivery Confirmation** | Messages confirmed as saved before showing success |
+
+<br />
+
+### 📹 Video Calling (WebRTC)
+
+| Feature | Description |
+|---------|-------------|
+| **Peer-to-Peer Video** | WebRTC-based video calling for direct communication |
+| **WebSocket Signaling** | Real-time signaling via Socket.IO for call setup |
+| **Call Controls** | Mute audio, toggle camera, end call with intuitive buttons |
+| **Incoming Call UI** | Notification with accept/decline options for incoming calls |
+| **Call Timer** | Duration displayed during active video calls |
+| **Fullscreen Mode** | Toggle fullscreen for immersive video experience |
+| **NAT Traversal** | STUN servers (Google) for connections through firewalls |
+| **Online User Requirement** | Video calls only available when the other user is online |
+
+> 💡 **Where to Find:** Admin Panel → Messages → Select a conversation → Click the 📞 phone icon (green when user is online)
+
+<br />
+
 ### 📧 Email & Marketing System
 
 | Feature | Description |
@@ -2530,6 +2577,202 @@ docker-compose exec app npx prisma migrate deploy
 5. Set up custom domain and SSL
 
 </details>
+
+<br />
+
+---
+
+## 🔧 Troubleshooting Guide
+
+This section covers common issues and their solutions.
+
+<br />
+
+### 📱 PWA Not Installing / "Add to Home Screen" Not Appearing
+
+**Symptoms:** No install prompt, manifest not loading, service worker not registering
+
+| Check | Solution |
+|-------|----------|
+| **HTTPS Required** | PWA features require HTTPS in production. Localhost works with HTTP for development. |
+| **Manifest Not Loading** | Visit `https://yoursite.com/manifest.json` - should return JSON. If 404, update server. |
+| **Service Worker Failed** | Check browser console for errors. Visit `https://yoursite.com/sw.js` to verify. |
+| **Icons Missing** | Default SVG icons are generated. For custom icons, add PNGs to `public/pwa/icons/`. |
+| **Already Installed** | If previously installed, you won't see the prompt again. Uninstall and retry. |
+
+**Debug Steps:**
+```bash
+# Chrome DevTools → Application → Manifest → Check for errors
+# Chrome DevTools → Application → Service Workers → Check registration status
+
+# Test manifest endpoint
+curl https://yoursite.com/manifest.json
+
+# Test service worker endpoint
+curl https://yoursite.com/sw.js
+```
+
+<br />
+
+### 💬 Messages Not Sending / Not Receiving
+
+**Symptoms:** Messages appear to send but don't arrive, WebSocket disconnected
+
+| Check | Solution |
+|-------|----------|
+| **WebSocket Status** | Look for the green/red connection indicator in the Messages page header |
+| **Server Running** | Ensure the backend is running: `pm2 status` or `npm run dev` |
+| **Nginx Config** | WebSocket requires special Nginx config (see installation section) |
+| **Firewall** | Ensure WebSocket port is not blocked by firewall |
+
+**Nginx WebSocket Configuration (Required):**
+```nginx
+location /socket.io/ {
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 86400s;
+    proxy_send_timeout 86400s;
+}
+```
+
+**Debug Steps:**
+```bash
+# Check if WebSocket endpoint is accessible
+curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" https://yoursite.com/socket.io/
+
+# Check server logs for WebSocket errors
+pm2 logs wordpress-node --lines 50
+```
+
+<br />
+
+### 📹 Video Call Button Disabled / Not Working
+
+**Symptoms:** Phone icon is gray/disabled, calls not connecting
+
+| Issue | Solution |
+|-------|----------|
+| **Button is Gray** | Other user must be online (have Messages page open) |
+| **WebSocket Disconnected** | Check connection indicator; refresh the page |
+| **Call Not Connecting** | Both users need modern browsers with WebRTC support |
+| **Audio/Video Not Working** | Grant camera/microphone permissions when prompted |
+| **NAT/Firewall Issues** | Some corporate networks block WebRTC; use a different network |
+
+**Requirements for Video Calling:**
+- ✅ Both users must be logged in and have Messages page open
+- ✅ WebSocket must be connected (green indicator)
+- ✅ Other user must be online (shown in online users list)
+- ✅ HTTPS required (except localhost)
+- ✅ Camera/microphone permissions granted
+
+<br />
+
+### 🔌 WebSocket Connection Issues
+
+**Symptoms:** "Disconnected" status, messages not real-time, features not working
+
+**Check Your Nginx Configuration:**
+
+Ensure your Nginx config includes WebSocket support with proper headers and timeouts:
+
+```nginx
+# Required for WebSocket connections
+proxy_http_version 1.1;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+proxy_read_timeout 86400s;  # 24 hours for long-lived connections
+```
+
+**Common Causes:**
+| Cause | Fix |
+|-------|-----|
+| Missing Nginx upgrade headers | Add WebSocket config block (see above) |
+| Timeout too short | Increase `proxy_read_timeout` to at least 86400s |
+| Cloudflare/CDN | Enable WebSocket support in CDN settings |
+| HTTP instead of HTTPS | Use HTTPS in production for secure WebSocket (wss://) |
+
+**Test WebSocket Connection:**
+```javascript
+// Open browser console and run:
+const ws = new WebSocket('wss://yoursite.com/socket.io/?EIO=4&transport=websocket');
+ws.onopen = () => console.log('WebSocket connected!');
+ws.onerror = (e) => console.error('WebSocket error:', e);
+```
+
+<br />
+
+### 🖼️ Media Upload Not Working
+
+**Symptoms:** Images/videos not uploading in messages, upload fails silently
+
+| Check | Solution |
+|-------|----------|
+| **Upload Directory** | Ensure `uploads/messages/` directory exists and is writable |
+| **File Size Limit** | Default max is 10MB. Check `MAX_FILE_SIZE` in `.env` |
+| **Nginx Upload Limit** | Add `client_max_body_size 100M;` to Nginx config |
+| **Disk Space** | Ensure server has sufficient disk space |
+
+**Create Upload Directory:**
+```bash
+mkdir -p uploads/messages
+chmod 755 uploads/messages
+```
+
+**Nginx File Size Config:**
+```nginx
+http {
+    client_max_body_size 100M;  # Allow up to 100MB uploads
+}
+```
+
+<br />
+
+### 🗄️ Database Connection Issues
+
+**Symptoms:** 500 errors, "Cannot connect to database", Prisma errors
+
+```bash
+# Check PostgreSQL is running
+sudo systemctl status postgresql
+
+# Test database connection
+sudo -u postgres psql -d wordpress_node -c "SELECT 1;"
+
+# Reset Prisma client
+npx prisma generate
+
+# Push schema changes
+npx prisma db push
+```
+
+<br />
+
+### 🔄 After Pulling Updates
+
+After running `git pull origin main`, always:
+
+```bash
+# 1. Install any new dependencies
+npm install
+cd admin && npm install && cd ..
+
+# 2. Apply database schema changes
+npx prisma db push
+
+# 3. Rebuild admin panel (if frontend changes)
+cd admin && npm run build && cd ..
+
+# 4. Rebuild backend
+npm run build
+
+# 5. Restart the server
+pm2 restart wordpress-node
+# or for development:
+npm run dev
+```
 
 <br />
 
