@@ -8,6 +8,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import * as jwt from 'jsonwebtoken';
@@ -221,6 +222,19 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
+
+  // Ensure required upload directories exist
+  const uploadDirs = [
+    join(process.cwd(), 'uploads'),
+    join(process.cwd(), 'uploads', 'messages'),
+    join(process.cwd(), 'uploads', 'media'),
+  ];
+  for (const dir of uploadDirs) {
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+      logger.log(`📁 Created directory: ${dir}`);
+    }
+  }
 
   // Serve static files with caching headers
   const staticOptions = isProduction ? { maxAge: '1y', etag: true, lastModified: true } : {};
