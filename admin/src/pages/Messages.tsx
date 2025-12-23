@@ -130,8 +130,14 @@ export default function Messages() {
         setOnlineUsers(data.users);
       });
       // Listen for individual online/offline status updates
-      newSocket.on('user:online', (data: { userId: string }) => setOnlineUsers((prev) => [...new Set([...prev, data.userId])]));
-      newSocket.on('user:offline', (data: { userId: string }) => setOnlineUsers((prev) => prev.filter((id) => id !== data.userId)));
+      newSocket.on('user:online', (data: { userId: string }) => {
+        console.log('User came online:', data.userId);
+        setOnlineUsers((prev) => [...new Set([...prev, data.userId])]);
+      });
+      newSocket.on('user:offline', (data: { userId: string }) => {
+        console.log('User went offline:', data.userId);
+        setOnlineUsers((prev) => prev.filter((id) => id !== data.userId));
+      });
 
       newSocket.on('dm:message:new', (message: Message) => {
         setMessages((prev) => {
@@ -240,15 +246,18 @@ export default function Messages() {
 
     try {
       setDeleting(true);
-      await messagesApi.deleteConversation(deleteConfirmation.id);
+      console.log('Deleting conversation:', deleteConfirmation.id);
+      const response = await messagesApi.deleteConversation(deleteConfirmation.id);
+      console.log('Delete response:', response);
       toast.success('Conversation deleted');
       setConversations((prev) => prev.filter((c) => c.id !== deleteConfirmation.id));
       if (activeConversation?.id === deleteConfirmation.id) {
         setActiveConversation(null);
         setMessages([]);
       }
-    } catch (error) {
-      toast.error('Failed to delete conversation');
+    } catch (error: any) {
+      console.error('Delete conversation error:', error.response?.data || error.message || error);
+      toast.error(error.response?.data?.message || 'Failed to delete conversation');
     } finally {
       setDeleting(false);
       setDeleteConfirmation(null);
