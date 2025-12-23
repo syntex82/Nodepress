@@ -77,11 +77,18 @@ export const pagesApi = {
 // Media API
 export const mediaApi = {
   getAll: (params?: any) => api.get('/media', { params }),
-  upload: (file: File) => {
+  upload: (file: File, onProgress?: (progress: number) => void) => {
     const formData = new FormData();
     formData.append('file', file);
     return api.post('/media/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 10 * 60 * 1000, // 10 minutes timeout for large files
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(progress);
+        }
+      },
     });
   },
   delete: (id: string) => api.delete(`/media/${id}`),

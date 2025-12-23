@@ -16,7 +16,8 @@ import { MediaController } from './media.controller';
     MulterModule.register({
       storage: memoryStorage(),
       limits: {
-        fileSize: parseInt(process.env.MAX_FILE_SIZE || '104857600', 10), // 100MB default
+        // Default 500MB for video uploads - can be overridden with MAX_FILE_SIZE env var
+        fileSize: parseInt(process.env.MAX_FILE_SIZE || '524288000', 10),
       },
     }),
   ],
