@@ -28,7 +28,7 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Track online users per group
   private onlineUsers: Map<string, Set<string>> = new Map(); // groupId -> Set of userIds
-  private userSockets: Map<string, string> = new Map(); // userId -> socketId
+  private userSockets: Map<string, Set<string>> = new Map(); // userId -> Set of socketIds (supports multiple devices)
   private socketUsers: Map<string, any> = new Map(); // socketId -> user object
 
   constructor(
@@ -65,9 +65,12 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         throw new UnauthorizedException('User not found');
       }
 
-      // Store user-socket mapping
+      // Store user-socket mapping (supports multiple devices)
       this.socketUsers.set(client.id, user);
-      this.userSockets.set(user.id, client.id);
+      if (!this.userSockets.has(user.id)) {
+        this.userSockets.set(user.id, new Set());
+      }
+      this.userSockets.get(user.id)!.add(client.id);
 
       // Send current online users list to the newly connected client
       const onlineUserIds = Array.from(this.userSockets.keys());
@@ -76,7 +79,7 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Broadcast this user's online status to all other clients
       this.server.emit('user:online', { userId: user.id });
 
-      console.log(`User ${user.name} connected to groups gateway (${onlineUserIds.length} users online)`);
+      console.log(`User ${user.name} connected to groups gateway (${onlineUserIds.length} users online, ${this.userSockets.get(user.id)!.size} devices)`);
     } catch (error) {
       console.error('WebSocket authentication failed:', error.message);
       client.disconnect();
@@ -90,25 +93,36 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = this.socketUsers.get(client.id);
 
     if (user) {
-      // Remove user from all groups they were in
-      this.onlineUsers.forEach((users, groupId) => {
-        if (users.has(user.id)) {
-          users.delete(user.id);
-          // Notify group that user went offline
-          this.server.to(`group:${groupId}`).emit('group:user:offline', {
-            userId: user.id,
-            userName: user.name,
-          });
-        }
-      });
-
-      this.userSockets.delete(user.id);
       this.socketUsers.delete(client.id);
 
-      // Broadcast offline status to all clients
-      this.server.emit('user:offline', { userId: user.id });
+      // Remove socket from user's set
+      const userSocketSet = this.userSockets.get(user.id);
+      if (userSocketSet) {
+        userSocketSet.delete(client.id);
 
-      console.log(`User ${user.name} disconnected from groups gateway`);
+        // Only broadcast offline if user has no more connected sockets
+        if (userSocketSet.size === 0) {
+          // Remove user from all groups they were in
+          this.onlineUsers.forEach((users, groupId) => {
+            if (users.has(user.id)) {
+              users.delete(user.id);
+              // Notify group that user went offline
+              this.server.to(`group:${groupId}`).emit('group:user:offline', {
+                userId: user.id,
+                userName: user.name,
+              });
+            }
+          });
+
+          this.userSockets.delete(user.id);
+
+          // Broadcast offline status to all clients
+          this.server.emit('user:offline', { userId: user.id });
+          console.log(`User ${user.name} disconnected from groups gateway (now offline)`);
+        } else {
+          console.log(`User ${user.name} disconnected one device from groups (${userSocketSet.size} devices still connected)`);
+        }
+      }
     }
   }
 

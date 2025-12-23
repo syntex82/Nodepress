@@ -158,6 +158,17 @@ export class MessagesController {
   }
 
   /**
+   * Delete a conversation and all its messages
+   */
+  @Delete('conversations/:conversationId')
+  async deleteConversation(
+    @Request() req,
+    @Param('conversationId') conversationId: string,
+  ) {
+    return this.messagesService.deleteConversation(conversationId, req.user.id);
+  }
+
+  /**
    * Delete a message (HTTP fallback, prefer WebSocket)
    */
   @Delete('conversations/:conversationId/messages/:messageId')
@@ -167,16 +178,5 @@ export class MessagesController {
     @Param('messageId') messageId: string,
   ) {
     return this.messagesService.deleteMessage(conversationId, messageId, req.user.id);
-  }
-
-  /**
-   * Delete a conversation and all its messages
-   */
-  @Delete('conversations/:conversationId')
-  async deleteConversation(
-    @Request() req,
-    @Param('conversationId') conversationId: string,
-  ) {
-    return this.messagesService.deleteConversation(conversationId, req.user.id);
   }
 }

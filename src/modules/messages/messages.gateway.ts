@@ -24,8 +24,8 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   @WebSocketServer()
   server: Server;
 
-  // Track online users and their sockets
-  private userSockets: Map<string, string> = new Map(); // userId -> socketId
+  // Track online users and their sockets (supports multiple devices per user)
+  private userSockets: Map<string, Set<string>> = new Map(); // userId -> Set of socketIds
   private socketUsers: Map<string, any> = new Map(); // socketId -> user object
 
   constructor(
@@ -49,7 +49,12 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       if (!user) throw new UnauthorizedException('User not found');
 
       this.socketUsers.set(client.id, user);
-      this.userSockets.set(user.id, client.id);
+
+      // Add socket to user's set of sockets (supports multiple devices)
+      if (!this.userSockets.has(user.id)) {
+        this.userSockets.set(user.id, new Set());
+      }
+      this.userSockets.get(user.id)!.add(client.id);
 
       // Send current online users list to the newly connected client
       const onlineUserIds = Array.from(this.userSockets.keys());
@@ -57,7 +62,7 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
 
       // Broadcast this user's online status to all other clients
       this.server.emit('user:online', { userId: user.id });
-      console.log(`User ${user.name} connected to messages gateway (${onlineUserIds.length} users online)`);
+      console.log(`User ${user.name} connected to messages gateway (${onlineUserIds.length} users online, ${this.userSockets.get(user.id)!.size} devices)`);
     } catch (error) {
       console.error('WebSocket authentication failed:', error.message);
       client.disconnect();
@@ -67,10 +72,22 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   async handleDisconnect(client: Socket) {
     const user = this.socketUsers.get(client.id);
     if (user) {
-      this.userSockets.delete(user.id);
       this.socketUsers.delete(client.id);
-      this.server.emit('user:offline', { userId: user.id });
-      console.log(`User ${user.name} disconnected from messages gateway`);
+
+      // Remove socket from user's set
+      const userSocketSet = this.userSockets.get(user.id);
+      if (userSocketSet) {
+        userSocketSet.delete(client.id);
+
+        // Only broadcast offline if user has no more connected sockets
+        if (userSocketSet.size === 0) {
+          this.userSockets.delete(user.id);
+          this.server.emit('user:offline', { userId: user.id });
+          console.log(`User ${user.name} disconnected from messages gateway (now offline)`);
+        } else {
+          console.log(`User ${user.name} disconnected one device (${userSocketSet.size} devices still connected)`);
+        }
+      }
     }
   }
 
@@ -109,11 +126,8 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
         // Send to sender
         client.emit('dm:message:new', message);
 
-        // Send to recipient if online
-        const recipientSocketId = this.userSockets.get(recipientId);
-        if (recipientSocketId) {
-          this.server.to(recipientSocketId).emit('dm:message:new', message);
-        }
+        // Send to recipient if online (all their devices)
+        this.emitToUser(recipientId, 'dm:message:new', message);
       }
 
       return { success: true, message };
@@ -140,16 +154,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       conversation.participant1Id === user.id
         ? conversation.participant2Id
         : conversation.participant1Id;
-    const recipientSocketId = this.userSockets.get(recipientId);
 
-    if (recipientSocketId) {
-      this.server.to(recipientSocketId).emit('dm:typing', {
-        conversationId: data.conversationId,
-        userId: user.id,
-        userName: user.name,
-        isTyping: true,
-      });
-    }
+    this.emitToUser(recipientId, 'dm:typing', {
+      conversationId: data.conversationId,
+      userId: user.id,
+      userName: user.name,
+      isTyping: true,
+    });
   }
 
   @SubscribeMessage('dm:typing:stop')
@@ -169,16 +180,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       conversation.participant1Id === user.id
         ? conversation.participant2Id
         : conversation.participant1Id;
-    const recipientSocketId = this.userSockets.get(recipientId);
 
-    if (recipientSocketId) {
-      this.server.to(recipientSocketId).emit('dm:typing', {
-        conversationId: data.conversationId,
-        userId: user.id,
-        userName: user.name,
-        isTyping: false,
-      });
-    }
+    this.emitToUser(recipientId, 'dm:typing', {
+      conversationId: data.conversationId,
+      userId: user.id,
+      userName: user.name,
+      isTyping: false,
+    });
   }
 
   @SubscribeMessage('dm:read')
@@ -200,12 +208,7 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
         conversation.participant1Id === user.id
           ? conversation.participant2Id
           : conversation.participant1Id;
-      const recipientSocketId = this.userSockets.get(recipientId);
-      if (recipientSocketId) {
-        this.server
-          .to(recipientSocketId)
-          .emit('dm:read', { conversationId: data.conversationId, readBy: user.id });
-      }
+      this.emitToUser(recipientId, 'dm:read', { conversationId: data.conversationId, readBy: user.id });
     }
   }
 
@@ -243,13 +246,10 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
         conversation.participant1Id === user.id
           ? conversation.participant2Id
           : conversation.participant1Id;
-      const recipientSocketId = this.userSockets.get(recipientId);
-      if (recipientSocketId) {
-        this.server.to(recipientSocketId).emit('dm:message:deleted', {
-          messageId: data.messageId,
-          conversationId: data.conversationId,
-        });
-      }
+      this.emitToUser(recipientId, 'dm:message:deleted', {
+        messageId: data.messageId,
+        conversationId: data.conversationId,
+      });
     }
 
     return { success: true };
@@ -265,14 +265,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const targetSocketId = this.userSockets.get(data.targetUserId);
-    if (!targetSocketId) {
+    if (!this.isUserOnline(data.targetUserId)) {
       client.emit('call:error', { message: 'User is offline' });
       return { error: 'User is offline' };
     }
 
-    // Send call request to target user
-    this.server.to(targetSocketId).emit('call:incoming', {
+    // Send call request to target user (all their devices)
+    this.emitToUser(data.targetUserId, 'call:incoming', {
       callerId: user.id,
       callerName: user.name,
       callerAvatar: user.avatar,
@@ -290,14 +289,11 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const callerSocketId = this.userSockets.get(data.callerId);
-    if (callerSocketId) {
-      this.server.to(callerSocketId).emit('call:accepted', {
-        acceptedBy: user.id,
-        acceptedByName: user.name,
-        conversationId: data.conversationId,
-      });
-    }
+    this.emitToUser(data.callerId, 'call:accepted', {
+      acceptedBy: user.id,
+      acceptedByName: user.name,
+      conversationId: data.conversationId,
+    });
 
     return { success: true };
   }
@@ -310,13 +306,10 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const callerSocketId = this.userSockets.get(data.callerId);
-    if (callerSocketId) {
-      this.server.to(callerSocketId).emit('call:rejected', {
-        rejectedBy: user.id,
-        reason: data.reason || 'Call declined',
-      });
-    }
+    this.emitToUser(data.callerId, 'call:rejected', {
+      rejectedBy: user.id,
+      reason: data.reason || 'Call declined',
+    });
 
     return { success: true };
   }
@@ -329,12 +322,9 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const targetSocketId = this.userSockets.get(data.targetUserId);
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit('call:ended', {
-        endedBy: user.id,
-      });
-    }
+    this.emitToUser(data.targetUserId, 'call:ended', {
+      endedBy: user.id,
+    });
 
     return { success: true };
   }
@@ -347,13 +337,10 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const targetSocketId = this.userSockets.get(data.targetUserId);
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit('call:offer', {
-        callerId: user.id,
-        offer: data.offer,
-      });
-    }
+    this.emitToUser(data.targetUserId, 'call:offer', {
+      callerId: user.id,
+      offer: data.offer,
+    });
 
     return { success: true };
   }
@@ -366,13 +353,10 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const targetSocketId = this.userSockets.get(data.targetUserId);
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit('call:answer', {
-        answererId: user.id,
-        answer: data.answer,
-      });
-    }
+    this.emitToUser(data.targetUserId, 'call:answer', {
+      answererId: user.id,
+      answer: data.answer,
+    });
 
     return { success: true };
   }
@@ -385,13 +369,10 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = this.socketUsers.get(client.id);
     if (!user) return { error: 'Unauthorized' };
 
-    const targetSocketId = this.userSockets.get(data.targetUserId);
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit('call:ice-candidate', {
-        fromUserId: user.id,
-        candidate: data.candidate,
-      });
-    }
+    this.emitToUser(data.targetUserId, 'call:ice-candidate', {
+      fromUserId: user.id,
+      candidate: data.candidate,
+    });
 
     return { success: true };
   }
@@ -403,5 +384,15 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   isUserOnline(userId: string): boolean {
     return this.userSockets.has(userId);
+  }
+
+  // Helper to emit to all sockets of a user (supports multiple devices)
+  private emitToUser(userId: string, event: string, data: any) {
+    const socketIds = this.userSockets.get(userId);
+    if (socketIds) {
+      socketIds.forEach((socketId) => {
+        this.server.to(socketId).emit(event, data);
+      });
+    }
   }
 }
