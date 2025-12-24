@@ -33,6 +33,10 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/messages')) return;
   if (event.request.url.includes('/groups')) return;
 
+  // Skip external URLs (Stripe, fonts, etc.)
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {

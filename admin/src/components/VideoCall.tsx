@@ -83,8 +83,10 @@ export default function VideoCall({
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
-        // Force video to play on mobile (iOS fix)
-        localVideoRef.current.play().catch(e => console.log('Local video autoplay prevented:', e));
+        // Force video to play on mobile (iOS fix) - only if paused
+        if (localVideoRef.current.paused) {
+          localVideoRef.current.play().catch(e => console.log('Local video autoplay prevented:', e));
+        }
       }
       return stream;
     } catch (error) {
@@ -109,10 +111,15 @@ export default function VideoCall({
     pc.ontrack = (event) => {
       console.log('📹 Received remote track:', event.track.kind, event.streams[0]);
       if (remoteVideoRef.current && event.streams[0]) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+        // Only set srcObject if it's different to avoid interrupting playback
+        if (remoteVideoRef.current.srcObject !== event.streams[0]) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
         setHasRemoteVideo(true);
-        // Force remote video to play on mobile (iOS fix)
-        remoteVideoRef.current.play().catch(e => console.log('Remote video autoplay prevented:', e));
+        // Force remote video to play on mobile (iOS fix) - only if paused
+        if (remoteVideoRef.current.paused) {
+          remoteVideoRef.current.play().catch(e => console.log('Remote video autoplay prevented:', e));
+        }
       }
     };
 
@@ -251,7 +258,9 @@ export default function VideoCall({
       // Update local video element
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = localStreamRef.current;
-        localVideoRef.current.play().catch(e => console.log('Video play prevented:', e));
+        if (localVideoRef.current.paused) {
+          localVideoRef.current.play().catch(e => console.log('Video play prevented:', e));
+        }
       }
 
       // Replace track in peer connection
