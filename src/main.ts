@@ -11,8 +11,11 @@ import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
-import RedisStore from 'connect-redis';
+import * as connectRedis from 'connect-redis';
 import Redis from 'ioredis';
+
+// connect-redis exports differently in different versions
+const RedisStore = (connectRedis as any).default || connectRedis;
 import * as jwt from 'jsonwebtoken';
 import * as compression from 'compression';
 import helmet from 'helmet';
