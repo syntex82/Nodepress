@@ -118,8 +118,16 @@ async function bootstrap() {
               styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
               fontSrc: ["'self'", 'https://fonts.gstatic.com'],
               imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
-              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-              connectSrc: ["'self'", 'https://api.stripe.com'],
+              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://js.stripe.com'],
+              connectSrc: [
+                "'self'",
+                'https://api.stripe.com',
+                'https://fonts.googleapis.com',
+                'https://fonts.gstatic.com',
+                'https://js.stripe.com',
+                'wss:',
+                'ws:',
+              ],
               frameSrc: [
                 "'self'",
                 'https://js.stripe.com',

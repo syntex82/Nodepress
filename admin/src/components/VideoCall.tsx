@@ -271,14 +271,30 @@ export default function VideoCall({
     const handleAnswer = async (data: { answererId: string; answer: RTCSessionDescriptionInit }) => {
       if (data.answererId !== remoteUser.id) return;
       if (peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+        // Only set remote description if we're in the right state
+        const signalingState = peerConnectionRef.current.signalingState;
+        console.log('📞 Received answer, current state:', signalingState);
+
+        if (signalingState === 'have-local-offer') {
+          await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+          console.log('✅ Remote description set successfully');
+        } else {
+          console.warn('⚠️ Ignoring answer - wrong signaling state:', signalingState);
+        }
       }
     };
 
     const handleIceCandidate = async (data: { fromUserId: string; candidate: RTCIceCandidateInit }) => {
       if (data.fromUserId !== remoteUser.id) return;
-      if (peerConnectionRef.current) {
-        await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+      if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
+        try {
+          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+          console.log('🧊 ICE candidate added successfully');
+        } catch (error) {
+          console.error('❌ Error adding ICE candidate:', error);
+        }
+      } else {
+        console.warn('⚠️ Cannot add ICE candidate - no remote description yet');
       }
     };
 
