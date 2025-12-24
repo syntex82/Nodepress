@@ -218,31 +218,32 @@ export default function MarketplaceDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+      <div className="flex items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent truncate">
             Marketplace Dashboard
           </h1>
-          <p className="text-slate-400 mt-1">Monitor your developer marketplace performance</p>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base truncate">Monitor your developer marketplace performance</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Tooltip title="Settings" content="Configure marketplace settings like platform fees" position="bottom">
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className={`p-3 rounded-xl border transition-all ${
+              className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl border transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center ${
                 showSettings
                   ? 'bg-blue-600 border-blue-500 text-white'
                   : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50 text-slate-400 hover:text-blue-400'
               }`}
+              aria-label="Settings"
             >
-              <FiSettings size={22} />
+              <FiSettings size={20} className="sm:w-[22px] sm:h-[22px]" />
             </button>
           </Tooltip>
           <Tooltip title="Help" content="View marketplace statistics, manage developers, and monitor projects" position="left" variant="help">
-            <button className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400">
-              <FiHelpCircle size={22} />
+            <button className="p-2.5 sm:p-3 bg-slate-800/50 rounded-lg sm:rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Help">
+              <FiHelpCircle size={20} className="sm:w-[22px] sm:h-[22px]" />
             </button>
           </Tooltip>
         </div>
@@ -365,26 +366,26 @@ export default function MarketplaceDashboard() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Tooltip key={stat.name} title={stat.tooltip.title} content={stat.tooltip.content} position="top" variant="info">
               <Link
                 to={stat.link}
-                className={`group bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6 hover:border-slate-600/50 transition-all hover:-translate-y-1 shadow-xl ${stat.bgGlow}`}
+                className={`group bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-5 sm:p-6 hover:border-slate-600/50 transition-all hover:-translate-y-1 shadow-xl ${stat.bgGlow} touch-manipulation active:scale-95`}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-400">{stat.name}</p>
-                    <p className="text-3xl font-bold text-white mt-2">{stat.value}</p>
-                    <p className={`text-sm mt-2 flex items-center gap-1 ${stat.subtextColor}`}>
-                      <FiTrendingUp size={14} />
-                      <span>{stat.subtext}</span>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-slate-400 truncate">{stat.name}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1.5 sm:mt-2 tabular-nums truncate">{stat.value}</p>
+                    <p className={`text-xs sm:text-sm mt-1.5 sm:mt-2 flex items-center gap-1 ${stat.subtextColor} truncate`}>
+                      <FiTrendingUp size={12} className="sm:w-[14px] sm:h-[14px] flex-shrink-0" />
+                      <span className="truncate">{stat.subtext}</span>
                     </p>
                   </div>
-                  <div className={`bg-gradient-to-br ${stat.color} text-white p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform`}>
-                    <Icon size={28} />
+                  <div className={`flex-shrink-0 bg-gradient-to-br ${stat.color} text-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg group-hover:scale-110 transition-transform`}>
+                    <Icon size={24} className="sm:w-[28px] sm:h-[28px]" />
                   </div>
                 </div>
               </Link>
@@ -394,27 +395,27 @@ export default function MarketplaceDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-indigo-500/20 rounded-lg">
-            <FiGrid className="text-indigo-400" size={20} />
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-1.5 sm:p-2 bg-indigo-500/20 rounded-lg flex-shrink-0">
+            <FiGrid className="text-indigo-400" size={18} />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">Quick Actions</h2>
-            <p className="text-sm text-slate-400">Manage your marketplace</p>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base sm:text-lg font-bold text-white truncate">Quick Actions</h2>
+            <p className="text-xs sm:text-sm text-slate-400 truncate">Manage your marketplace</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Tooltip key={action.name} content={action.desc} position="bottom">
                 <Link
                   to={action.link}
-                  className={`relative flex flex-col items-center gap-3 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}
+                  className={`relative flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl ${action.color} transition-all hover:scale-105 active:scale-95 touch-manipulation min-h-[80px] sm:min-h-[96px]`}
                 >
                   {action.badge && (
-                    <span className={`absolute -top-2 -right-2 ${action.badge.color} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+                    <span className={`absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 ${action.badge.color} text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full min-w-[20px] text-center`}>
                       {action.badge.count}
                     </span>
                   )}

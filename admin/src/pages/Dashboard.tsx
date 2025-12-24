@@ -88,22 +88,22 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Dashboard</h1>
-          <p className="text-slate-400 mt-1">Welcome back! Here's what's happening with your site.</p>
+      <div className="flex items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent truncate">Dashboard</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">Welcome back! Here's what's happening with your site.</p>
         </div>
         <Tooltip title={DASHBOARD_TOOLTIPS.helpCenter.title} content={DASHBOARD_TOOLTIPS.helpCenter.content} position="left" variant="help">
-          <button className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400">
-            <FiHelpCircle size={22} />
+          <button className="flex-shrink-0 p-2.5 sm:p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-400 hover:text-blue-400 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation">
+            <FiHelpCircle size={20} className="sm:w-[22px] sm:h-[22px]" />
           </button>
         </Tooltip>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           const tooltip = DASHBOARD_TOOLTIPS[stat.tooltipKey];
@@ -111,21 +111,21 @@ export default function Dashboard() {
             <Tooltip key={stat.name} title={tooltip.title} content={tooltip.content} position="top" variant="info">
               <Link
                 to={stat.link}
-                className={`group bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6 hover:border-slate-600/50 transition-all hover:-translate-y-1 shadow-xl ${stat.bgGlow}`}
+                className={`group bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-5 sm:p-6 hover:border-slate-600/50 transition-all hover:-translate-y-1 shadow-xl ${stat.bgGlow} touch-manipulation active:scale-95`}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-400">{stat.name}</p>
-                    <p className="text-4xl font-bold text-white mt-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-slate-400 truncate">{stat.name}</p>
+                    <p className="text-3xl sm:text-4xl font-bold text-white mt-1.5 sm:mt-2 tabular-nums">
                       {loading ? <span className="animate-pulse text-slate-500">...</span> : stat.value}
                     </p>
-                    <p className="text-sm text-slate-500 mt-2 flex items-center gap-1">
-                      <FiTrendingUp size={14} className="text-emerald-400" />
-                      <span>Click to manage</span>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1.5 sm:mt-2 flex items-center gap-1">
+                      <FiTrendingUp size={12} className="text-emerald-400 sm:w-[14px] sm:h-[14px] flex-shrink-0" />
+                      <span className="truncate">Click to manage</span>
                     </p>
                   </div>
-                  <div className={`bg-gradient-to-br ${stat.color} text-white p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform`}>
-                    <Icon size={28} />
+                  <div className={`flex-shrink-0 bg-gradient-to-br ${stat.color} text-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg group-hover:scale-110 transition-transform`}>
+                    <Icon size={24} className="sm:w-[28px] sm:h-[28px]" />
                   </div>
                 </div>
               </Link>
@@ -135,17 +135,17 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-indigo-500/20 rounded-lg">
-            <FiZap className="text-indigo-400" size={20} />
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-1.5 sm:p-2 bg-indigo-500/20 rounded-lg flex-shrink-0">
+            <FiZap className="text-indigo-400" size={18} />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">Quick Actions</h2>
-            <p className="text-sm text-slate-400">Create content and manage your site</p>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base sm:text-lg font-bold text-white truncate">Quick Actions</h2>
+            <p className="text-xs sm:text-sm text-slate-400 truncate">Create content and manage your site</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
@@ -155,18 +155,18 @@ export default function Dashboard() {
                     href={frontendUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex flex-col items-center gap-3 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}
+                    className={`flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl ${action.color} transition-all hover:scale-105 active:scale-95 touch-manipulation min-h-[80px] sm:min-h-[96px]`}
                   >
-                    <Icon size={24} />
-                    <span className="text-sm font-medium">{action.name}</span>
+                    <Icon size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium text-center leading-tight">{action.name}</span>
                   </a>
                 ) : (
                   <Link
                     to={action.link}
-                    className={`flex flex-col items-center gap-3 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}
+                    className={`flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl ${action.color} transition-all hover:scale-105 active:scale-95 touch-manipulation min-h-[80px] sm:min-h-[96px]`}
                   >
-                    <Icon size={24} />
-                    <span className="text-sm font-medium">{action.name}</span>
+                    <Icon size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium text-center leading-tight">{action.name}</span>
                   </Link>
                 )}
               </Tooltip>
@@ -176,31 +176,31 @@ export default function Dashboard() {
       </div>
 
       {/* Features & Getting Started */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Built-in Features */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-500/20 rounded-lg">
-              <FiPlus className="text-purple-400" size={20} />
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
+              <FiPlus className="text-purple-400" size={18} />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Built-in Features</h2>
-              <p className="text-sm text-slate-400">Explore powerful capabilities</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-white truncate">Built-in Features</h2>
+              <p className="text-xs sm:text-sm text-slate-400 truncate">Explore powerful capabilities</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <Tooltip key={feature.name} content={feature.desc} position="top">
                   <Link
                     to={feature.link}
-                    className={`flex items-center gap-3 p-4 rounded-xl ${feature.bg} hover:bg-slate-700/50 transition-colors group border border-slate-700/30`}
+                    className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl ${feature.bg} hover:bg-slate-700/50 transition-colors group border border-slate-700/30 touch-manipulation active:scale-95 min-h-[64px]`}
                   >
-                    <Icon size={22} className={feature.color} />
-                    <div>
-                      <p className="font-medium text-white">{feature.name}</p>
-                      <p className="text-xs text-slate-400">{feature.desc}</p>
+                    <Icon size={20} className={`${feature.color} flex-shrink-0 sm:w-[22px] sm:h-[22px]`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white text-sm sm:text-base truncate">{feature.name}</p>
+                      <p className="text-xs text-slate-400 truncate">{feature.desc}</p>
                     </div>
                   </Link>
                 </Tooltip>
@@ -210,28 +210,28 @@ export default function Dashboard() {
         </div>
 
         {/* Getting Started */}
-        <div className="bg-gradient-to-br from-indigo-600/80 to-purple-700/80 backdrop-blur rounded-2xl shadow-lg shadow-purple-500/10 p-6 text-white border border-indigo-500/30">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <FiBookOpen className="text-white" size={20} />
+        <div className="bg-gradient-to-br from-indigo-600/80 to-purple-700/80 backdrop-blur rounded-xl sm:rounded-2xl shadow-lg shadow-purple-500/10 p-4 sm:p-6 text-white border border-indigo-500/30">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg flex-shrink-0">
+              <FiBookOpen className="text-white" size={18} />
             </div>
-            <div>
-              <h2 className="text-lg font-bold">Getting Started</h2>
-              <p className="text-sm text-white/70">Tips to help you get going</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-lg font-bold truncate">Getting Started</h2>
+              <p className="text-xs sm:text-sm text-white/70 truncate">Tips to help you get going</p>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {[
               { step: 1, text: 'Create your first page or post', done: stats.posts > 0 || stats.pages > 0 },
               { step: 2, text: 'Upload images to Media Library', done: false },
               { step: 3, text: 'Customize your theme colors', done: false },
               { step: 4, text: 'Configure site settings', done: false },
             ].map((item) => (
-              <div key={item.step} className={`flex items-center gap-3 p-3 rounded-lg ${item.done ? 'bg-white/20' : 'bg-white/10'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${item.done ? 'bg-emerald-400 text-emerald-900' : 'bg-white/30'}`}>
+              <div key={item.step} className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg ${item.done ? 'bg-white/20' : 'bg-white/10'} touch-manipulation`}>
+                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${item.done ? 'bg-emerald-400 text-emerald-900' : 'bg-white/30'}`}>
                   {item.done ? '✓' : item.step}
                 </div>
-                <span className={item.done ? 'line-through opacity-70' : ''}>{item.text}</span>
+                <span className={`text-xs sm:text-sm ${item.done ? 'line-through opacity-70' : ''}`}>{item.text}</span>
               </div>
             ))}
           </div>
@@ -239,15 +239,13 @@ export default function Dashboard() {
       </div>
 
       {/* Pro Tip */}
-      <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 flex items-center justify-between border border-slate-700/50">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-500/20 rounded-lg">
-            <FiClock className="text-amber-400" size={18} />
-          </div>
-          <div>
-            <p className="font-medium text-white">Pro Tip</p>
-            <p className="text-sm text-slate-400">Hover over any button or menu item to see helpful tooltips explaining what it does!</p>
-          </div>
+      <div className="bg-slate-800/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 flex items-start sm:items-center gap-3 border border-slate-700/50">
+        <div className="p-1.5 sm:p-2 bg-amber-500/20 rounded-lg flex-shrink-0">
+          <FiClock className="text-amber-400" size={16} className="sm:w-[18px] sm:h-[18px]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-white text-sm sm:text-base">Pro Tip</p>
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">Hover over any button or menu item to see helpful tooltips explaining what it does!</p>
         </div>
       </div>
     </div>
