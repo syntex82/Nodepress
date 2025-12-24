@@ -6,7 +6,7 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -375,3 +375,21 @@ code {
 .animate-slideRight { animation-name: slideRight; }
 .animate-zoomIn { animation-name: zoomIn; }
 .animate-bounce { animation-name: bounce; }
+
+/* Emoji Support for Messages */
+* {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Ensure emojis render properly in all text elements */
+p, span, div, input, textarea {
+  font-variant-emoji: emoji;
+}
+
+/* Specific emoji rendering for message content */
+.whitespace-pre-wrap {
+  font-variant-emoji: emoji;
+  text-rendering: optimizeLegibility;
+}
