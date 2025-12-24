@@ -66,15 +66,32 @@ fi
 # Install admin dependencies
 echo -e "${BLUE}[4/6]${NC} Installing admin dependencies..."
 cd admin
+
+# Stop any processes that might be locking files
+echo "Stopping any running processes..."
+pm2 stop all 2>/dev/null || true
+pkill -f "vite" 2>/dev/null || true
+sleep 1
+
+# Clear Vite cache to avoid permission issues
+echo "Clearing Vite cache..."
+rm -rf node_modules/.vite 2>/dev/null || true
+rm -rf .vite 2>/dev/null || true
+
 if npm install; then
     echo -e "${GREEN}✓ Admin dependencies installed${NC}"
 else
     echo -e "${RED}✗ Failed to install admin dependencies${NC}"
+    echo -e "${YELLOW}Tip: If you see permission errors, run: sudo bash scripts/fix-vite-cache.sh${NC}"
     exit 1
 fi
 
 # Build admin panel
 echo -e "${BLUE}[5/6]${NC} Building admin panel..."
+
+# Clear build cache
+rm -rf dist 2>/dev/null || true
+
 if npm run build; then
     if [ -f "dist/index.html" ]; then
         echo -e "${GREEN}✓ Admin panel built${NC}"
