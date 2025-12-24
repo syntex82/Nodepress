@@ -11,6 +11,8 @@ import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
+import RedisStore from 'connect-redis';
+import Redis from 'ioredis';
 import * as jwt from 'jsonwebtoken';
 import * as compression from 'compression';
 import helmet from 'helmet';
@@ -185,8 +187,7 @@ async function bootstrap() {
   // Cookie parser for session management
   app.use(cookieParser());
 
-  // Session middleware - uses in-memory store by default
-  // For production with multiple instances, configure Redis session store
+  // Session middleware - uses Redis for production-ready session storage
   const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
     resave: false,
@@ -200,13 +201,39 @@ async function bootstrap() {
     },
   };
 
-  // Note: For Redis session store, install connect-redis and configure:
-  // if (process.env.REDIS_HOST) {
-  //   const RedisStore = require('connect-redis').default;
-  //   const Redis = require('ioredis');
-  //   const redisClient = new Redis({ host: process.env.REDIS_HOST, port: process.env.REDIS_PORT });
-  //   sessionConfig.store = new RedisStore({ client: redisClient, prefix: 'session:' });
-  // }
+  // Configure Redis session store if Redis is available
+  if (process.env.REDIS_HOST) {
+    try {
+      const redisClient = new Redis({
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        password: process.env.REDIS_PASSWORD || undefined,
+        db: parseInt(process.env.REDIS_DB || '0', 10),
+        keyPrefix: process.env.REDIS_PREFIX || 'wpnode:',
+        maxRetriesPerRequest: null,
+        lazyConnect: true,
+        enableReadyCheck: true,
+      });
+
+      // Test Redis connection
+      await redisClient.connect();
+      logger.log('🔴 Redis session store connected successfully');
+
+      sessionConfig.store = new RedisStore({
+        client: redisClient,
+        prefix: 'session:',
+        ttl: 60 * 60 * 24 * 7, // 7 days in seconds
+      });
+    } catch (error) {
+      logger.warn('⚠️  Redis connection failed, falling back to MemoryStore');
+      logger.warn('   For production use, please configure Redis properly');
+      logger.warn(`   Error: ${error.message}`);
+    }
+  } else {
+    logger.warn('⚠️  REDIS_HOST not configured, using MemoryStore for sessions');
+    logger.warn('   This is not recommended for production or multi-instance deployments');
+    logger.warn('   Please configure Redis in your .env file');
+  }
 
   app.use(session(sessionConfig));
 

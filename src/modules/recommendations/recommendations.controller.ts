@@ -118,8 +118,11 @@ export class RecommendationsController {
   @Post('track')
   async trackInteraction(@Body() dto: TrackInteractionDto, @Req() req: Request) {
     const userId = (req as any).user?.id || dto.userId;
-    const sessionId = dto.sessionId || req.sessionID;
-    
+    // Ensure sessionId is a string or null, not an object
+    const sessionId = typeof dto.sessionId === 'string'
+      ? dto.sessionId
+      : (typeof req.sessionID === 'string' ? req.sessionID : null);
+
     return this.trackingService.trackInteraction({
       ...dto,
       userId,
@@ -134,7 +137,10 @@ export class RecommendationsController {
   @Post('track-click')
   async trackClick(@Body() dto: TrackRecommendationClickDto, @Req() req: Request) {
     const userId = (req as any).user?.id || dto.userId;
-    const sessionId = dto.sessionId || req.sessionID;
+    // Ensure sessionId is a string or null, not an object
+    const sessionId = typeof dto.sessionId === 'string'
+      ? dto.sessionId
+      : (typeof req.sessionID === 'string' ? req.sessionID : null);
 
     return this.trackingService.trackRecommendationClick({
       ...dto,

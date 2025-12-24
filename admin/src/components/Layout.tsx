@@ -36,6 +36,7 @@ export default function Layout() {
   const [showRoleInfo, setShowRoleInfo] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [frontendUrl, setFrontendUrl] = useState<string>(window.location.origin);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     main: true,
@@ -50,6 +51,11 @@ export default function Layout() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const userRole = (user?.role || 'VIEWER') as UserRole;
   const roleInfo = ROLE_DESCRIPTIONS[userRole];
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // Fetch frontend URL on mount
   useEffect(() => {
@@ -167,8 +173,340 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-slate-900">
-      {/* Beautiful Dark Theme Sidebar */}
-      <aside className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col border-r border-slate-800/50 transition-all duration-300 relative`}>
+      {/* Mobile Header - Only visible on small screens */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-b border-slate-800/50 px-4 py-3 flex items-center justify-between safe-area-inset">
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <FiMenu size={22} />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <span className="text-white font-bold text-sm">W</span>
+          </div>
+          <span className="text-sm font-semibold text-white">Admin</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <NotificationCenter />
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="p-2 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="User menu"
+          >
+            <FiUser size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 touch-manipulation"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer */}
+      <aside className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col border-r border-slate-800/50 transform transition-transform duration-300 ease-out safe-area-inset ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Mobile Sidebar Header */}
+        <div className="relative p-4 border-b border-slate-800/50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <span className="text-white font-bold text-lg">W</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">WordPress Node</h1>
+              <p className="text-xs text-slate-500">Admin Panel</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Close menu"
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+
+        {/* Mobile Search Button */}
+        <div className="p-4 border-b border-slate-800/50">
+          <button
+            onClick={() => { setCommandPaletteOpen(true); setMobileMenuOpen(false); }}
+            className="flex items-center gap-2 w-full px-3 py-3 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all touch-manipulation min-h-[48px]"
+          >
+            <FiSearch size={18} />
+            <span className="flex-1 text-left text-sm">Search...</span>
+          </button>
+        </div>
+
+        {/* Mobile Navigation - Scrollable */}
+        <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+          {/* Role Badge */}
+          <div className="px-4 mb-4">
+            <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium ${roleInfo.color}`}>
+              <FiLock size={12} />
+              <span>{roleInfo.title}</span>
+            </div>
+          </div>
+
+          {/* Main Navigation */}
+          <div className="px-3 space-y-1">
+            {filteredMainNav.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all touch-manipulation min-h-[48px] ${
+                    active
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white active:bg-slate-700/50'
+                  }`}
+                >
+                  <Icon size={20} className={active ? 'text-white' : 'text-slate-500'} />
+                  <span className="flex-1">{item.name}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">{item.badge}</span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Mobile Collapsible Sections */}
+          <div className="mt-4 px-3 space-y-2">
+            {/* Content Section */}
+            {filteredContentNav.length > 0 && (
+              <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                <button
+                  onClick={() => toggleSection('content')}
+                  className="flex items-center justify-between w-full px-3 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors touch-manipulation min-h-[48px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <FiFileText size={14} className="text-blue-400" />
+                    <span>Content</span>
+                  </div>
+                  {expandedSections.content ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                </button>
+                {expandedSections.content && (
+                  <div className="pb-2">
+                    {filteredContentNav.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                            active
+                              ? 'bg-blue-500/20 text-blue-300 border-l-2 border-blue-500'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <Icon size={18} className={active ? 'text-blue-400' : 'text-slate-500'} />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* System Section */}
+            {filteredSystemNav.length > 0 && (
+              <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                <button
+                  onClick={() => toggleSection('system')}
+                  className="flex items-center justify-between w-full px-3 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors touch-manipulation min-h-[48px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <FiSettings size={14} className="text-slate-400" />
+                    <span>System</span>
+                  </div>
+                  {expandedSections.system ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                </button>
+                {expandedSections.system && (
+                  <div className="pb-2">
+                    {filteredSystemNav.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                            active
+                              ? 'bg-slate-500/20 text-slate-200 border-l-2 border-slate-400'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <Icon size={18} className={active ? 'text-slate-300' : 'text-slate-500'} />
+                          {item.name}
+                          {item.badge !== undefined && item.badge > 0 && (
+                            <span className="ml-auto px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">{item.badge}</span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Shop Section */}
+            {canViewShop && (
+              <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                <button
+                  onClick={() => toggleSection('shop')}
+                  className="flex items-center justify-between w-full px-3 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors touch-manipulation min-h-[48px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <FiShoppingCart size={14} className="text-orange-400" />
+                    <span>Shop</span>
+                  </div>
+                  {expandedSections.shop ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                </button>
+                {expandedSections.shop && (
+                  <div className="pb-2">
+                    {shopNavigation.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                            active
+                              ? 'bg-orange-500/20 text-orange-300 border-l-2 border-orange-500'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <Icon size={18} className={active ? 'text-orange-400' : 'text-slate-500'} />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* LMS Section */}
+            {canViewLms && (
+              <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                <button
+                  onClick={() => toggleSection('lms')}
+                  className="flex items-center justify-between w-full px-3 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors touch-manipulation min-h-[48px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <FiBook size={14} className="text-green-400" />
+                    <span>LMS</span>
+                  </div>
+                  {expandedSections.lms ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                </button>
+                {expandedSections.lms && (
+                  <div className="pb-2">
+                    {lmsNavigation.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                            active
+                              ? 'bg-green-500/20 text-green-300 border-l-2 border-green-500'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <Icon size={18} className={active ? 'text-green-400' : 'text-slate-500'} />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Marketplace Section */}
+            {canViewMarketplace && (
+              <div className="rounded-xl bg-slate-800/30 border border-slate-700/30 overflow-hidden">
+                <button
+                  onClick={() => toggleSection('devMarketplace')}
+                  className="flex items-center justify-between w-full px-3 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-slate-800/50 transition-colors touch-manipulation min-h-[48px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <FiUsers size={14} className="text-teal-400" />
+                    <span>Marketplace</span>
+                  </div>
+                  {expandedSections.devMarketplace ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                </button>
+                {expandedSections.devMarketplace && (
+                  <div className="pb-2">
+                    {devMarketplaceNavigation.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                            active
+                              ? 'bg-teal-500/20 text-teal-300 border-l-2 border-teal-500'
+                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                          }`}
+                        >
+                          <Icon size={18} className={active ? 'text-teal-400' : 'text-slate-500'} />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mt-4 px-3 pb-4 border-t border-slate-800/50 pt-4">
+            <button
+              onClick={handleViewWebsite}
+              className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all touch-manipulation min-h-[48px]"
+            >
+              <FiExternalLink size={18} className="text-slate-500" />
+              View Website
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile User Section */}
+        <div className="border-t border-slate-800/50 p-4 pb-safe">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/30">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg">
+              <FiUser size={18} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+              <p className="text-xs text-slate-500">{user?.role}</p>
+            </div>
+            <button
+              onClick={() => { logout(); setMobileMenuOpen(false); }}
+              className="p-2.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Logout"
+            >
+              <FiLogOut size={18} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <aside className={`hidden lg:flex ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex-col border-r border-slate-800/50 transition-all duration-300 relative`}>
         {/* Decorative gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-600/5 pointer-events-none" />
 
@@ -678,16 +1016,16 @@ export default function Layout() {
       </aside>
 
       {/* Main Content Area with Dark Theme */}
-      <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Top Bar with Notifications */}
-        <div className="sticky top-0 z-40 px-8 py-3 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800/50 flex items-center justify-end gap-4">
+      <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 lg:pt-0 pt-[60px]">
+        {/* Top Bar with Notifications - Hidden on mobile (using mobile header instead) */}
+        <div className="hidden lg:flex sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-3 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800/50 items-center justify-end gap-4">
           <NotificationCenter />
           <div className="w-px h-6 bg-slate-700/50" />
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <span>{user?.name}</span>
           </div>
         </div>
-        <div className="p-8 min-h-full">
+        <div className="p-4 sm:p-6 lg:p-8 min-h-full pb-safe">
           <Outlet />
         </div>
       </main>

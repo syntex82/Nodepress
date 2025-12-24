@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile Safe Area Support for Notched Devices */
+/* ==================== MOBILE-FIRST RESPONSIVE DESIGN ==================== */
+
+/* Mobile Safe Area Support for Notched Devices (iPhone X+, etc.) */
 @supports (padding: max(0px)) {
   .safe-area-inset {
     padding-top: max(env(safe-area-inset-top), 0px);
@@ -14,14 +16,162 @@
   .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
   }
+
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
 }
 
-/* Prevent text selection during video calls */
+/* Touch Optimization Classes */
 .touch-manipulation {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Disable text selection for interactive elements */
+.no-select {
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Minimum touch target size (WCAG 2.1 Level AAA) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Larger touch target for better mobile UX */
+.touch-target-lg {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+/* Prevent iOS zoom on input focus (font-size >= 16px) */
+input, select, textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 640px) {
+  input, select, textarea {
+    font-size: inherit;
+  }
+}
+
+/* Smooth scrolling for iOS momentum */
+.scroll-smooth-ios {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* ==================== RESPONSIVE TYPOGRAPHY ==================== */
+
+/* Extra small screens (< 375px) - iPhone SE, older devices */
+@media (max-width: 374px) {
+  html {
+    font-size: 14px;
+  }
+
+  .text-responsive-title {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  .text-responsive-heading {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+}
+
+/* Small mobile (375px - 430px) - iPhone 12/13/14 range */
+@media (min-width: 375px) and (max-width: 430px) {
+  .text-responsive-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .text-responsive-heading {
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+}
+
+/* Large mobile / Small tablet (431px - 768px) */
+@media (min-width: 431px) and (max-width: 768px) {
+  .text-responsive-title {
+    font-size: 1.75rem;
+    line-height: 1.25;
+  }
+
+  .text-responsive-heading {
+    font-size: 1.25rem;
+    line-height: 1.35;
+  }
+}
+
+/* ==================== MOBILE UI UTILITIES ==================== */
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-only display utilities */
+@media (max-width: 1023px) {
+  .mobile-only {
+    display: block !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+
+  .desktop-only {
+    display: block !important;
+  }
+}
+
+/* Extra small breakpoint (xs) for very small phones */
+@media (min-width: 320px) {
+  .xs\:inline {
+    display: inline;
+  }
+  .xs\:block {
+    display: block;
+  }
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+/* ==================== IMPROVED TOUCH FEEDBACK ==================== */
+
+/* Active state feedback for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .active\:scale-95:active {
+    transform: scale(0.95);
+  }
+
+  .active\:scale-98:active {
+    transform: scale(0.98);
+  }
+
+  /* Better button feedback on mobile */
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.9;
+  }
 }
 
 body {

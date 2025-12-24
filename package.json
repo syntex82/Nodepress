@@ -55,6 +55,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "compression": "^1.8.1",
+    "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
     "crypto-js": "^4.2.0",
     "express-rate-limit": "^8.2.1",

@@ -249,30 +249,30 @@ export default function MarketplaceDashboard() {
         </div>
       </div>
 
-      {/* Settings Panel */}
+      {/* Settings Panel - Fully Responsive */}
       {showSettings && (
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-blue-500/30 p-6 shadow-xl shadow-blue-500/10">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <FiSettings className="text-blue-400" size={20} />
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-blue-500/30 p-4 sm:p-6 shadow-xl shadow-blue-500/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
+                <FiSettings className="text-blue-400" size={18} />
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Marketplace Settings</h2>
-                <p className="text-sm text-slate-400">Configure fees and payout rules</p>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-white truncate">Marketplace Settings</h2>
+                <p className="text-xs sm:text-sm text-slate-400 truncate">Configure fees and payout rules</p>
               </div>
             </div>
             <button
               onClick={saveConfig}
               disabled={savingConfig}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 touch-manipulation min-h-[44px] text-sm sm:text-base active:scale-95 w-full sm:w-auto"
             >
               <FiSave size={16} />
               {savingConfig ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Platform Fee */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-300">
@@ -285,7 +285,7 @@ export default function MarketplaceDashboard() {
                 step="0.5"
                 value={config.platformFeePercent}
                 onChange={(e) => setConfig({ ...config, platformFeePercent: parseFloat(e.target.value) || 0 })}
-                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 sm:px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg sm:rounded-xl text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation"
               />
               <p className="text-xs text-slate-500">Fee charged on each project (0-50%)</p>
             </div>
@@ -301,7 +301,7 @@ export default function MarketplaceDashboard() {
                 step="1"
                 value={config.minPayoutAmount}
                 onChange={(e) => setConfig({ ...config, minPayoutAmount: parseFloat(e.target.value) || 1 })}
-                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 sm:px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg sm:rounded-xl text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation"
               />
               <p className="text-xs text-slate-500">Minimum amount for withdrawals</p>
             </div>
@@ -318,7 +318,7 @@ export default function MarketplaceDashboard() {
                 step="1"
                 value={config.maxEscrowDays}
                 onChange={(e) => setConfig({ ...config, maxEscrowDays: parseInt(e.target.value) || 90 })}
-                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 sm:px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg sm:rounded-xl text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation"
               />
               <p className="text-xs text-slate-500">Maximum days funds held in escrow</p>
             </div>
@@ -335,27 +335,28 @@ export default function MarketplaceDashboard() {
                 step="1"
                 value={config.autoReleaseDays}
                 onChange={(e) => setConfig({ ...config, autoReleaseDays: parseInt(e.target.value) || 14 })}
-                className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 sm:px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg sm:rounded-xl text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation"
               />
               <p className="text-xs text-slate-500">Days before auto-release after completion</p>
             </div>
           </div>
 
           {/* Marketplace Toggle */}
-          <div className="mt-6 pt-6 border-t border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-white">Marketplace Status</p>
-                <p className="text-sm text-slate-400">Enable or disable the developer marketplace</p>
+          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-slate-700/50">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-white text-sm sm:text-base">Marketplace Status</p>
+                <p className="text-xs sm:text-sm text-slate-400">Enable or disable the developer marketplace</p>
               </div>
               <button
                 onClick={() => setConfig({ ...config, enabled: !config.enabled })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-7 w-12 sm:h-6 sm:w-11 items-center rounded-full transition-colors touch-manipulation flex-shrink-0 ${
                   config.enabled ? 'bg-emerald-500' : 'bg-slate-600'
                 }`}
+                aria-label={config.enabled ? 'Disable marketplace' : 'Enable marketplace'}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-5 w-5 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform ${
                     config.enabled ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -429,39 +430,40 @@ export default function MarketplaceDashboard() {
       </div>
 
       {/* Top Rated Developers & Categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Top Rated Developers */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-amber-500/20 rounded-lg">
-              <FiStar className="text-amber-400" size={20} />
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-amber-500/20 rounded-lg flex-shrink-0">
+              <FiStar className="text-amber-400" size={18} />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Top Rated Developers</h2>
-              <p className="text-sm text-slate-400">Highest rated on the marketplace</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-white truncate">Top Rated Developers</h2>
+              <p className="text-xs sm:text-sm text-slate-400 truncate">Highest rated on the marketplace</p>
             </div>
           </div>
-          <div className="grid grid-cols-5 gap-4">
+          {/* Responsive grid: 2 on mobile, 3 on sm, 5 on md+ */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             {stats?.developers.topRated && stats.developers.topRated.length > 0 ? (
               stats.developers.topRated.slice(0, 5).map((dev: any) => (
-                <div key={dev.id} className="text-center group">
-                  <div className="relative mx-auto w-14 h-14 mb-2">
+                <div key={dev.id} className="text-center group touch-manipulation">
+                  <div className="relative mx-auto w-12 h-12 sm:w-14 sm:h-14 mb-2">
                     <img
                       src={dev.user?.avatar || '/images/default-avatar.png'}
                       alt={dev.displayName}
-                      className="w-14 h-14 rounded-full border-2 border-slate-600 group-hover:border-amber-400 transition-colors object-cover"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-slate-600 group-hover:border-amber-400 transition-colors object-cover"
                     />
-                    <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                      <FiStar size={10} />
+                    <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[10px] sm:text-xs font-bold px-1 sm:px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                      <FiStar size={8} className="sm:w-[10px] sm:h-[10px]" />
                       {Number(dev.rating).toFixed(1)}
                     </div>
                   </div>
-                  <p className="font-medium text-white text-sm truncate">{dev.displayName}</p>
-                  <p className="text-xs text-slate-500">{dev.reviewCount} reviews</p>
+                  <p className="font-medium text-white text-xs sm:text-sm truncate px-1">{dev.displayName}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500">{dev.reviewCount} reviews</p>
                 </div>
               ))
             ) : (
-              <div className="col-span-5 text-center py-8 text-slate-500">
+              <div className="col-span-2 sm:col-span-3 md:col-span-5 text-center py-6 sm:py-8 text-slate-500 text-sm">
                 No rated developers yet
               </div>
             )}
@@ -469,26 +471,26 @@ export default function MarketplaceDashboard() {
         </div>
 
         {/* Developers by Category */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-500/20 rounded-lg">
-              <FiGrid className="text-purple-400" size={20} />
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
+              <FiGrid className="text-purple-400" size={18} />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">By Category</h2>
-              <p className="text-sm text-slate-400">Developer distribution</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-white truncate">By Category</h2>
+              <p className="text-xs sm:text-sm text-slate-400 truncate">Developer distribution</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
             {stats?.developers.byCategory && stats.developers.byCategory.length > 0 ? (
               stats.developers.byCategory.map((cat: any) => (
-                <div key={cat.category} className="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors border border-slate-600/30">
-                  <p className="text-2xl font-bold text-white">{cat._count}</p>
-                  <p className="text-xs text-slate-400 mt-1 capitalize">{cat.category.toLowerCase().replace('_', ' ')}</p>
+                <div key={cat.category} className="bg-slate-700/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center hover:bg-slate-700/50 transition-colors border border-slate-600/30 touch-manipulation">
+                  <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{cat._count}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-400 mt-1 capitalize truncate">{cat.category.toLowerCase().replace('_', ' ')}</p>
                 </div>
               ))
             ) : (
-              <div className="col-span-3 text-center py-8 text-slate-500">
+              <div className="col-span-2 sm:col-span-3 text-center py-6 sm:py-8 text-slate-500 text-sm">
                 No categories yet
               </div>
             )}
@@ -496,20 +498,20 @@ export default function MarketplaceDashboard() {
         </div>
       </div>
 
-      {/* Pro Tip */}
-      <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 flex items-center justify-between border border-slate-700/50">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-500/20 rounded-lg">
-            <FiCheckCircle className="text-emerald-400" size={18} />
+      {/* Pro Tip - Responsive layout */}
+      <div className="bg-slate-800/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border border-slate-700/50">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg flex-shrink-0">
+            <FiCheckCircle className="text-emerald-400" size={16} />
           </div>
-          <div>
-            <p className="font-medium text-white">Marketplace Active</p>
-            <p className="text-sm text-slate-400">Your developer marketplace is live and accepting applications.</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-white text-sm sm:text-base">Marketplace Active</p>
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">Your developer marketplace is live and accepting applications.</p>
           </div>
         </div>
         <Link
           to="/marketplace/developers"
-          className="px-4 py-2 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600/30 transition-colors text-sm font-medium"
+          className="px-4 py-2.5 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600/30 transition-colors text-sm font-medium text-center sm:text-left touch-manipulation min-h-[44px] flex items-center justify-center sm:w-auto w-full active:scale-95"
         >
           View Developers
         </Link>

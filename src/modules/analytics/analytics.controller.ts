@@ -75,10 +75,13 @@ export class AnalyticsController {
     const ip = this.anonymizeIp(req.ip || req.socket.remoteAddress || '');
     const { device, browser, os } = this.parseUserAgent(userAgent);
 
+    // Ensure sessionId is a string or null, not an object
+    const sessionId = typeof body.sessionId === 'string' ? body.sessionId : null;
+
     return this.prisma.pageView.create({
       data: {
         path: body.path,
-        sessionId: body.sessionId,
+        sessionId,
         ipAddress: ip,
         userAgent,
         referer,
@@ -103,9 +106,18 @@ export class AnalyticsController {
     },
   ) {
     const ip = this.anonymizeIp(req.ip || req.socket.remoteAddress || '');
+
+    // Ensure sessionId is a string or null, not an object
+    const sessionId = typeof body.sessionId === 'string' ? body.sessionId : null;
+
     return this.prisma.analyticsEvent.create({
       data: {
-        ...body,
+        category: body.category,
+        action: body.action,
+        label: body.label,
+        value: body.value,
+        path: body.path,
+        sessionId,
         ipAddress: ip,
       },
     });
