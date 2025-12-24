@@ -1,35 +1,49 @@
-# Fix Update Error - Vite Cache Permission Issues
+# Fix Update Errors
 
-## Problem
-The update failed with permission errors when trying to remove Vite cache files:
+## Common Update Errors
+
+### Error 1: Vite Cache Permission Issues
 ```
 rm: cannot remove 'node_modules/.vite/deps/...': Permission denied
 ```
 
-## Solution
+### Error 2: stderr maxBuffer length exceeded
+```
+Error: stderr maxBuffer length exceeded
+```
+This happens when npm install produces too much output.
 
-### Option 1: Use the Fix Script (Recommended)
+## Solution for Both Errors
 
-SSH into your server and run:
+### Option 1: Pull Latest Fix and Run Update (Recommended)
+
+The latest update includes fixes for both errors. SSH into your server and run:
+
+```bash
+cd /var/www/WordPress-Node
+
+# Pull the latest fixes
+git pull origin main
+
+# Run the update (now with fixes for both errors)
+sudo bash scripts/update.sh
+```
+
+The updated script now:
+- Suppresses verbose npm output (fixes maxBuffer error)
+- Stops PM2 processes before updating
+- Clears Vite cache automatically
+- Shows only relevant output
+
+### Option 2: Use the Fix Script First (If update still fails)
 
 ```bash
 cd /var/www/WordPress-Node
 sudo bash scripts/fix-vite-cache.sh
-```
-
-This script will:
-- Stop all PM2 processes
-- Kill any running Vite/Node processes
-- Clear the Vite cache
-- Remove and reinstall admin dependencies
-
-After running this, you can run the update again:
-
-```bash
 sudo bash scripts/update.sh
 ```
 
-### Option 2: Manual Fix
+### Option 3: Manual Fix
 
 If you prefer to fix it manually:
 
@@ -70,13 +84,13 @@ pm2 start ecosystem.config.js
 pm2 save
 ```
 
-### Option 3: Quick Fix (If you just want to get it running)
+### Option 4: Quick Fix (If you just want to get it running)
 
 ```bash
 cd /var/www/WordPress-Node/admin
 sudo rm -rf node_modules/.vite
 sudo rm -rf .vite
-npm install
+npm install --quiet --no-progress
 npm run build
 cd ..
 npm run build
@@ -85,12 +99,14 @@ pm2 restart all
 
 ## Prevention
 
-The updated `scripts/update.sh` now automatically:
-- Stops PM2 processes before updating
-- Clears Vite cache before installing dependencies
-- Provides better error messages
+The updated `scripts/update.sh` (commit 7aab6c1) now automatically:
+- ✅ Suppresses verbose npm output (fixes maxBuffer error)
+- ✅ Stops PM2 processes before updating
+- ✅ Clears Vite cache before installing dependencies
+- ✅ Shows only last 10-20 lines of output
+- ✅ Provides better error messages
 
-This should prevent this issue from happening in future updates.
+This should prevent both errors from happening in future updates.
 
 ## What Changed
 
