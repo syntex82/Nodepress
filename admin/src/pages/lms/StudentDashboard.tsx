@@ -65,61 +65,61 @@ export default function StudentDashboard() {
     );
   }
 
-  if (!data) return <div className="p-6 text-slate-400">No data available</div>;
+  if (!data) return <div className="p-4 md:p-6 text-slate-400">No data available</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-6">My Learning Dashboard</h1>
+    <div className="p-4 md:p-6">
+      <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-4 md:mb-6">My Learning Dashboard</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-          <div className="text-3xl font-bold text-blue-400">{data.stats.totalCourses}</div>
-          <div className="text-slate-400">Enrolled Courses</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
+          <div className="text-2xl md:text-3xl font-bold text-blue-400">{data.stats.totalCourses}</div>
+          <div className="text-slate-400 text-sm md:text-base">Enrolled Courses</div>
         </div>
-        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-          <div className="text-3xl font-bold text-green-400">{data.stats.completedCourses}</div>
-          <div className="text-slate-400">Completed</div>
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
+          <div className="text-2xl md:text-3xl font-bold text-green-400">{data.stats.completedCourses}</div>
+          <div className="text-slate-400 text-sm md:text-base">Completed</div>
         </div>
-        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-          <div className="text-3xl font-bold text-yellow-400">{data.stats.totalCertificates}</div>
-          <div className="text-slate-400">Certificates</div>
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
+          <div className="text-2xl md:text-3xl font-bold text-yellow-400">{data.stats.totalCertificates}</div>
+          <div className="text-slate-400 text-sm md:text-base">Certificates</div>
         </div>
       </div>
 
       {/* My Courses */}
-      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 mb-8">
-        <div className="p-4 border-b border-slate-700/50 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-white">My Courses</h2>
-          <Link to="/lms/catalog" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">Browse More</Link>
+      <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 mb-6 md:mb-8">
+        <div className="p-3 md:p-4 border-b border-slate-700/50 flex justify-between items-center">
+          <h2 className="text-base md:text-lg font-bold text-white">My Courses</h2>
+          <Link to="/lms/catalog" className="text-blue-400 hover:text-blue-300 text-xs md:text-sm transition-colors">Browse More</Link>
         </div>
         {data.enrollments.length === 0 ? (
-          <div className="p-8 text-center text-slate-400">
+          <div className="p-6 md:p-8 text-center text-slate-400 text-sm md:text-base">
             You haven't enrolled in any courses yet.
             <Link to="/lms/catalog" className="text-blue-400 hover:text-blue-300 ml-2 transition-colors">Browse courses</Link>
           </div>
         ) : (
           <div className="divide-y divide-slate-700/50">
             {data.enrollments.map((enrollment: any) => (
-              <div key={enrollment.id} className="p-4 flex items-center gap-4 hover:bg-slate-700/30 transition-colors">
+              <div key={enrollment.id} className="p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4 hover:bg-slate-700/30 transition-colors">
                 {enrollment.course.featuredImage ? (
-                  <img src={enrollment.course.featuredImage} alt="" className="w-20 h-14 object-cover rounded-lg" />
+                  <img src={enrollment.course.featuredImage} alt="" className="w-full sm:w-20 h-32 sm:h-14 object-cover rounded-lg" />
                 ) : (
-                  <div className="w-20 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white">📚</div>
+                  <div className="w-full sm:w-20 h-32 sm:h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-2xl sm:text-base">📚</div>
                 )}
-                <div className="flex-1">
-                  <h3 className="font-medium text-white">{enrollment.course.title}</h3>
-                  <div className="flex items-center gap-4 mt-1">
+                <div className="flex-1 w-full sm:w-auto">
+                  <h3 className="font-medium text-white text-sm md:text-base">{enrollment.course.title}</h3>
+                  <div className="flex items-center gap-2 md:gap-4 mt-1">
                     <div className="flex-1 max-w-xs">
                       <div className="w-full bg-slate-700 rounded-full h-2">
                         <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${enrollment.progress?.percent || 0}%` }} />
                       </div>
                     </div>
-                    <span className="text-sm text-slate-400">{enrollment.progress?.percent || 0}% complete</span>
+                    <span className="text-xs md:text-sm text-slate-400 whitespace-nowrap">{enrollment.progress?.percent || 0}%</span>
                   </div>
                 </div>
                 <Link to={`/lms/learn/${enrollment.courseId}`}
-                  className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-600 text-sm transition-colors shadow-lg shadow-blue-500/20">
+                  className="w-full sm:w-auto text-center bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-600 text-xs md:text-sm transition-colors shadow-lg shadow-blue-500/20">
                   {enrollment.status === 'COMPLETED' ? 'Review' : 'Continue'}
                 </Link>
               </div>
@@ -131,25 +131,25 @@ export default function StudentDashboard() {
       {/* Certificates */}
       {data.certificates.length > 0 && (
         <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50">
-          <div className="p-4 border-b border-slate-700/50">
-            <h2 className="text-lg font-bold text-white">My Certificates</h2>
+          <div className="p-3 md:p-4 border-b border-slate-700/50">
+            <h2 className="text-base md:text-lg font-bold text-white">My Certificates</h2>
           </div>
           <div className="divide-y divide-slate-700/50">
             {data.certificates.map((cert: any) => (
-              <div key={cert.id} className="p-4 flex items-center justify-between hover:bg-slate-700/30 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">🏆</span>
-                  <div>
-                    <h3 className="font-medium text-white">{cert.course?.title}</h3>
-                    <p className="text-sm text-slate-400">Issued {new Date(cert.issuedAt).toLocaleDateString()}</p>
+              <div key={cert.id} className="p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-700/30 transition-colors">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <span className="text-2xl md:text-3xl">🏆</span>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-white text-sm md:text-base truncate">{cert.course?.title}</h3>
+                    <p className="text-xs md:text-sm text-slate-400">Issued {new Date(cert.issuedAt).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 ml-auto sm:ml-0">
                   <Link to={`/lms/certificate/${cert.id}`}
-                    className="text-blue-400 hover:text-blue-300 text-sm transition-colors">View</Link>
+                    className="text-blue-400 hover:text-blue-300 text-xs md:text-sm transition-colors">View</Link>
                   {cert.pdfUrl && (
                     <a href={cert.pdfUrl} target="_blank" rel="noopener noreferrer"
-                      className="text-green-400 hover:text-green-300 text-sm transition-colors">Download</a>
+                      className="text-green-400 hover:text-green-300 text-xs md:text-sm transition-colors">Download</a>
                   )}
                 </div>
               </div>

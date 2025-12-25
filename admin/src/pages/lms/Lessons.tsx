@@ -231,16 +231,16 @@ export default function Lessons() {
     return icons[type] || '📄';
   };
 
-  if (loading) return <div className="p-6 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-700 border-t-blue-500"></div></div>;
+  if (loading) return <div className="p-4 md:p-6 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-700 border-t-blue-500"></div></div>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <Link to="/lms/courses" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">← Back to Courses</Link>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">{course?.title} - Lessons</h1>
+          <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent line-clamp-2">{course?.title} - Lessons</h1>
         </div>
-        <button onClick={() => openModal()} className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all">
+        <button onClick={() => openModal()} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all">
           Add Lesson
         </button>
       </div>
@@ -251,32 +251,32 @@ export default function Lessons() {
         ) : (
           <ul className="divide-y divide-slate-700/50">
             {lessons.map((lesson) => (
-              <li key={lesson.id} className="p-4 flex items-center justify-between hover:bg-slate-700/30 transition-colors group">
-                <div className="flex items-center gap-4">
-                  <span className="text-slate-500 w-8 cursor-move"><FiMove className="opacity-0 group-hover:opacity-100" /></span>
-                  <span className="text-2xl">{getLessonTypeIcon(lesson.type)}</span>
-                  <div>
-                    <div className="font-medium flex items-center gap-2 text-white">
-                      {lesson.title}
+              <li key={lesson.id} className="p-3 md:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-700/30 transition-colors group">
+                <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                  <span className="text-slate-500 w-6 md:w-8 cursor-move hidden sm:block"><FiMove className="opacity-0 group-hover:opacity-100" /></span>
+                  <span className="text-xl md:text-2xl">{getLessonTypeIcon(lesson.type)}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium flex flex-wrap items-center gap-2 text-white">
+                      <span className="truncate">{lesson.title}</span>
                       {lesson.isPreview && (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded whitespace-nowrap">
                           <FiEye className="inline mr-1" />Preview
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-slate-400 flex items-center gap-2">
+                    <div className="text-sm text-slate-400 flex flex-wrap items-center gap-2">
                       <span>{lesson.type}</span>
                       {lesson.estimatedMinutes && <span>• {lesson.estimatedMinutes} min</span>}
                       {lesson.type === 'VIDEO' && (
                         <span className={`flex items-center gap-1 ${(lesson as any).videoAsset ? 'text-green-400' : 'text-orange-400'}`}>
                           <FiVideo />
-                          {(lesson as any).videoAsset ? 'Video attached' : 'No video'}
+                          <span className="hidden sm:inline">{(lesson as any).videoAsset ? 'Video attached' : 'No video'}</span>
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 ml-auto sm:ml-0">
                   {lesson.type === 'VIDEO' && (
                     <button
                       onClick={() => openVideoModal(lesson)}
@@ -332,14 +332,14 @@ export default function Lessons() {
       </div>
 
       {showModal && editingLesson && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-4 md:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white">{editingLesson.id ? 'Edit Lesson' : 'Add Lesson'}</h2>
+              <h2 className="text-lg md:text-xl font-bold text-white">{editingLesson.id ? 'Edit Lesson' : 'Add Lesson'}</h2>
               {isDirty && (
                 <span className="flex items-center gap-1 text-amber-400 text-sm">
                   <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                  Unsaved changes
+                  <span className="hidden sm:inline">Unsaved changes</span>
                 </span>
               )}
             </div>
@@ -354,7 +354,7 @@ export default function Lessons() {
                   placeholder="Enter lesson title..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1 text-slate-300">Type</label>
                   <select
@@ -465,7 +465,7 @@ export default function Lessons() {
                         placeholder="Describe what students need to do for this assignment..."
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-600/50">
                         <label className="flex items-center gap-2 text-sm text-slate-300">
                           <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500" />
@@ -482,7 +482,7 @@ export default function Lessons() {
                   </div>
                 </div>
               )}
-              <div className="flex gap-6 pt-2">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer text-slate-300">
                   <input
                     type="checkbox"
@@ -490,7 +490,7 @@ export default function Lessons() {
                     onChange={(e) => updateEditingLesson({ isPreview: e.target.checked })}
                     className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-500 focus:ring-blue-500/50"
                   />
-                  <span className="text-sm">Free Preview (visible to non-enrolled users)</span>
+                  <span className="text-sm">Free Preview</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer text-slate-300">
                   <input
@@ -503,10 +503,10 @@ export default function Lessons() {
                 </label>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-700/50">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6 pt-4 border-t border-slate-700/50">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors"
                 disabled={saving}
               >
                 Cancel
@@ -514,7 +514,7 @@ export default function Lessons() {
               <button
                 onClick={handleSave}
                 disabled={saving || !editingLesson.title?.trim()}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <FiSave />
                 {saving ? 'Saving...' : 'Save Lesson'}
@@ -526,8 +526,8 @@ export default function Lessons() {
 
       {/* Video Upload/Attach Modal */}
       {showVideoModal && videoLesson && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-6 w-full max-w-lg shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
               <FiVideo className="text-purple-400" /> Manage Video - {videoLesson.title}
             </h2>

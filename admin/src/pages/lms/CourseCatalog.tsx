@@ -49,14 +49,14 @@ export default function CourseCatalog() {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">Course Catalog</h1>
-          <p className="text-xl opacity-90">Expand your skills with our expert-led courses</p>
+          <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Course Catalog</h1>
+          <p className="text-base md:text-xl opacity-90">Expand your skills with our expert-led courses</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
         {/* Error display */}
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
@@ -66,21 +66,21 @@ export default function CourseCatalog() {
         )}
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
           <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             <option value="">All Categories</option>
             {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
           </select>
           <select value={filters.level} onChange={(e) => setFilters({ ...filters, level: e.target.value })}
-            className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             <option value="">All Levels</option>
             <option value="BEGINNER">Beginner</option>
             <option value="INTERMEDIATE">Intermediate</option>
             <option value="ADVANCED">Advanced</option>
           </select>
           <select value={filters.priceType} onChange={(e) => setFilters({ ...filters, priceType: e.target.value })}
-            className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             <option value="">All Prices</option>
             <option value="FREE">Free</option>
             <option value="PAID">Paid</option>
@@ -129,12 +129,12 @@ export default function CourseCatalog() {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-6 md:mt-8">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  className="px-4 py-2 border border-slate-700/50 rounded-xl text-slate-300 disabled:opacity-50 hover:bg-slate-800/50 transition-colors">Previous</button>
-                <span className="px-4 py-2 text-slate-400">Page {page} of {totalPages}</span>
+                  className="w-full sm:w-auto px-4 py-2.5 border border-slate-700/50 rounded-xl text-slate-300 disabled:opacity-50 hover:bg-slate-800/50 transition-colors">Previous</button>
+                <span className="px-4 py-2 text-slate-400 text-sm md:text-base">Page {page} of {totalPages}</span>
                 <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  className="px-4 py-2 border border-slate-700/50 rounded-xl text-slate-300 disabled:opacity-50 hover:bg-slate-800/50 transition-colors">Next</button>
+                  className="w-full sm:w-auto px-4 py-2.5 border border-slate-700/50 rounded-xl text-slate-300 disabled:opacity-50 hover:bg-slate-800/50 transition-colors">Next</button>
               </div>
             )}
           </>

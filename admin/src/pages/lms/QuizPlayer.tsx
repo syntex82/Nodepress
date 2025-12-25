@@ -78,18 +78,18 @@ export default function QuizPlayer() {
   if (result) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="bg-slate-800 rounded-2xl border border-slate-700/50 shadow-2xl p-8 max-w-lg w-full text-center">
-          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${result.passed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-            {result.passed ? <FiAward className="text-4xl" /> : <FiX className="text-4xl" />}
+        <div className="bg-slate-800 rounded-xl md:rounded-2xl border border-slate-700/50 shadow-2xl p-4 md:p-8 max-w-lg w-full text-center">
+          <div className={`w-16 h-16 md:w-20 md:h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${result.passed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+            {result.passed ? <FiAward className="text-3xl md:text-4xl" /> : <FiX className="text-3xl md:text-4xl" />}
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">{result.passed ? 'Congratulations!' : 'Keep Trying!'}</h1>
-          <p className="text-slate-400 mb-6">{result.passed ? 'You passed the quiz!' : 'You did not pass this time.'}</p>
-          <div className="text-5xl font-bold text-white mb-2">{result.scorePercent.toFixed(0)}%</div>
-          <p className="text-slate-500 mb-6">{result.scorePoints} / {result.maxPoints} points (Passing: {result.passingScore}%)</p>
-          <div className="flex gap-4 justify-center">
-            <Link to={`/lms/learn/${courseId}`} className="px-6 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors">Back to Course</Link>
+          <h1 className="text-xl md:text-2xl font-bold text-white mb-2">{result.passed ? 'Congratulations!' : 'Keep Trying!'}</h1>
+          <p className="text-slate-400 mb-4 md:mb-6 text-sm md:text-base">{result.passed ? 'You passed the quiz!' : 'You did not pass this time.'}</p>
+          <div className="text-4xl md:text-5xl font-bold text-white mb-2">{result.scorePercent.toFixed(0)}%</div>
+          <p className="text-slate-500 mb-4 md:mb-6 text-sm md:text-base">{result.scorePoints} / {result.maxPoints} points (Passing: {result.passingScore}%)</p>
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+            <Link to={`/lms/learn/${courseId}`} className="px-4 md:px-6 py-2.5 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors text-sm md:text-base">Back to Course</Link>
             {!result.passed && quiz.attemptsRemaining !== 0 && (
-              <button onClick={() => { setResult(null); setStarted(false); setAnswers({}); loadQuiz(); }} className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-colors shadow-lg shadow-blue-500/20">Try Again</button>
+              <button onClick={() => { setResult(null); setStarted(false); setAnswers({}); loadQuiz(); }} className="px-4 md:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-colors shadow-lg shadow-blue-500/20 text-sm md:text-base">Try Again</button>
             )}
           </div>
         </div>
@@ -100,19 +100,19 @@ export default function QuizPlayer() {
   if (!started) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="bg-slate-800 rounded-2xl border border-slate-700/50 shadow-2xl p-8 max-w-lg w-full">
-          <h1 className="text-2xl font-bold text-white mb-2">{quiz.title}</h1>
-          {quiz.description && <p className="text-slate-400 mb-6">{quiz.description}</p>}
-          <div className="space-y-3 mb-6 text-sm text-slate-300">
+        <div className="bg-slate-800 rounded-xl md:rounded-2xl border border-slate-700/50 shadow-2xl p-4 md:p-8 max-w-lg w-full">
+          <h1 className="text-xl md:text-2xl font-bold text-white mb-2">{quiz.title}</h1>
+          {quiz.description && <p className="text-slate-400 mb-4 md:mb-6 text-sm md:text-base">{quiz.description}</p>}
+          <div className="space-y-2 md:space-y-3 mb-4 md:mb-6 text-xs md:text-sm text-slate-300">
             <div className="flex justify-between"><span>Questions:</span><span className="font-medium text-white">{quiz.questions?.length || 0}</span></div>
             {quiz.timeLimitSeconds && <div className="flex justify-between"><span>Time Limit:</span><span className="font-medium text-white">{Math.floor(quiz.timeLimitSeconds / 60)} min</span></div>}
             {quiz.passingScorePercent && <div className="flex justify-between"><span>Passing Score:</span><span className="font-medium text-white">{quiz.passingScorePercent}%</span></div>}
             {quiz.attemptsAllowed && <div className="flex justify-between"><span>Attempts:</span><span className="font-medium text-white">{quiz.attemptsUsed || 0} / {quiz.attemptsAllowed}</span></div>}
           </div>
           {quiz.attemptsRemaining === 0 ? (
-            <p className="text-red-400 text-center">You have used all attempts for this quiz.</p>
+            <p className="text-red-400 text-center text-sm md:text-base">You have used all attempts for this quiz.</p>
           ) : (
-            <button onClick={startQuiz} className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-600 transition-colors shadow-lg shadow-blue-500/20">Start Quiz</button>
+            <button onClick={startQuiz} className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-2.5 md:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-600 transition-colors shadow-lg shadow-blue-500/20 text-sm md:text-base">Start Quiz</button>
           )}
         </div>
       </div>
@@ -123,28 +123,28 @@ export default function QuizPlayer() {
   return (
     <div className="min-h-screen bg-slate-900">
       <header className="bg-slate-800 border-b border-slate-700/50 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-bold truncate text-white">{quiz.title}</h1>
-          {timeRemaining !== null && <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${timeRemaining < 60 ? 'bg-red-500/20 text-red-400' : 'bg-slate-700 text-slate-300'}`}><FiClock /> {formatTime(timeRemaining)}</div>}
+        <div className="max-w-4xl mx-auto px-4 py-2 md:py-3 flex items-center justify-between gap-2">
+          <h1 className="font-bold truncate text-white text-sm md:text-base">{quiz.title}</h1>
+          {timeRemaining !== null && <div className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm ${timeRemaining < 60 ? 'bg-red-500/20 text-red-400' : 'bg-slate-700 text-slate-300'}`}><FiClock /> {formatTime(timeRemaining)}</div>}
         </div>
         <div className="h-1 bg-slate-700"><div className="h-1 bg-blue-500 transition-all" style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} /></div>
       </header>
-      <main className="max-w-3xl mx-auto p-6">
-        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-slate-400">Question {currentIndex + 1} of {questions.length}</span>
-            <span className="text-sm text-slate-400">{currentQuestion.points} pt{currentQuestion.points !== 1 ? 's' : ''}</span>
+      <main className="max-w-3xl mx-auto p-4 md:p-6">
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6 mb-4 md:mb-6">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <span className="text-xs md:text-sm text-slate-400">Question {currentIndex + 1} of {questions.length}</span>
+            <span className="text-xs md:text-sm text-slate-400">{currentQuestion.points} pt{currentQuestion.points !== 1 ? 's' : ''}</span>
           </div>
-          <h2 className="text-xl font-medium text-white mb-6">{currentQuestion.prompt}</h2>
+          <h2 className="text-base md:text-xl font-medium text-white mb-4 md:mb-6">{currentQuestion.prompt}</h2>
           {renderQuestionInput(currentQuestion, answers, setAnswer)}
         </div>
-        <div className="flex items-center justify-between">
-          <button onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0} className="flex items-center gap-2 px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 disabled:opacity-50 transition-colors"><FiArrowLeft /> Previous</button>
-          <div className="flex gap-1">{questions.map((_, i) => <button key={i} onClick={() => setCurrentIndex(i)} className={`w-8 h-8 rounded-full text-sm transition-colors ${i === currentIndex ? 'bg-blue-500 text-white' : answers[questions[i].id] !== undefined ? 'bg-green-500/20 text-green-400' : 'bg-slate-700 text-slate-400'}`}>{i + 1}</button>)}</div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <button onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0} className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 disabled:opacity-50 transition-colors text-sm"><FiArrowLeft /> Previous</button>
+          <div className="flex gap-1 justify-center flex-wrap">{questions.map((_, i) => <button key={i} onClick={() => setCurrentIndex(i)} className={`w-7 h-7 md:w-8 md:h-8 rounded-full text-xs md:text-sm transition-colors ${i === currentIndex ? 'bg-blue-500 text-white' : answers[questions[i].id] !== undefined ? 'bg-green-500/20 text-green-400' : 'bg-slate-700 text-slate-400'}`}>{i + 1}</button>)}</div>
           {currentIndex < questions.length - 1 ? (
-            <button onClick={() => setCurrentIndex(i => i + 1)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-colors shadow-lg shadow-blue-500/20">Next <FiArrowRight /></button>
+            <button onClick={() => setCurrentIndex(i => i + 1)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-colors shadow-lg shadow-blue-500/20 text-sm">Next <FiArrowRight /></button>
           ) : (
-            <button onClick={handleSubmit} disabled={submitting} className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:from-green-700 hover:to-green-600 disabled:opacity-50 transition-colors shadow-lg shadow-green-500/20">{submitting ? 'Submitting...' : 'Submit Quiz'}</button>
+            <button onClick={handleSubmit} disabled={submitting} className="flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:from-green-700 hover:to-green-600 disabled:opacity-50 transition-colors shadow-lg shadow-green-500/20 text-sm">{submitting ? 'Submitting...' : 'Submit Quiz'}</button>
           )}
         </div>
       </main>

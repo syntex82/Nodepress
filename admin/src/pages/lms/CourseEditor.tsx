@@ -228,7 +228,7 @@ export default function CourseEditor() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* Unsaved Changes Modal */}
       {showUnsavedModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
@@ -272,8 +272,8 @@ export default function CourseEditor() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={() => navigate('/lms/courses')}
             className="p-2 hover:bg-slate-700/50 rounded-xl transition-colors text-slate-400 hover:text-white"
@@ -281,44 +281,44 @@ export default function CourseEditor() {
             <FiArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
               {isNew ? 'Create Course' : 'Edit Course'}
             </h1>
             {!isNew && course.title && (
-              <p className="text-sm text-slate-400 mt-1">{course.title}</p>
+              <p className="text-sm text-slate-400 mt-1 line-clamp-1">{course.title}</p>
             )}
           </div>
         </div>
 
         {/* Quick Actions for existing course */}
         {!isNew && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-10 sm:ml-0">
             <button
               onClick={() => handleNavigation(`/lms/courses/${id}/lessons`)}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors"
+              className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors text-sm"
             >
               <FiList size={16} />
-              Lessons ({course._count?.lessons || 0})
+              <span className="hidden sm:inline">Lessons</span> ({course._count?.lessons || 0})
             </button>
             <button
               onClick={() => handleNavigation(`/lms/courses/${id}/quizzes`)}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors"
+              className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors text-sm"
             >
               <FiHelpCircle size={16} />
-              Quizzes ({course._count?.quizzes || 0})
+              <span className="hidden sm:inline">Quizzes</span> ({course._count?.quizzes || 0})
             </button>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-700/50 mb-6">
-        <nav className="flex gap-6">
+      <div className="border-b border-slate-700/50 mb-6 overflow-x-auto">
+        <nav className="flex gap-4 md:gap-6 min-w-max">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-400'
                   : 'border-transparent text-slate-400 hover:text-slate-300'
@@ -333,10 +333,10 @@ export default function CourseEditor() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info Tab */}
         {activeTab === 'basic' && (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}
-            <div className="col-span-2 space-y-6">
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6 space-y-4">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Course Title *</label>
                   <input
@@ -376,7 +376,7 @@ export default function CourseEditor() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Status */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
                 <select
                   value={course.status || 'DRAFT'}
@@ -390,7 +390,7 @@ export default function CourseEditor() {
               </div>
 
               {/* Category */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-2">Category</label>
                 <select
                   value={course.category || ''}
@@ -426,7 +426,7 @@ export default function CourseEditor() {
               </div>
 
               {/* Level */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-2">Level</label>
                 <select
                   value={course.level || 'BEGINNER'}
@@ -445,10 +445,10 @@ export default function CourseEditor() {
 
         {/* Content & Media Tab */}
         {activeTab === 'content' && (
-          <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
               {/* Featured Image */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-1">Featured Image</label>
                 <p className="text-xs text-slate-500 mb-3">
                   📐 Recommended size: <span className="text-blue-400 font-medium">1280 × 720 px</span> (16:9 aspect ratio)
@@ -491,7 +491,7 @@ export default function CourseEditor() {
               </div>
 
               {/* What You'll Learn */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-2">What You'll Learn</label>
                 <p className="text-xs text-slate-500 mb-3">Enter each learning objective on a new line</p>
                 <textarea
@@ -503,7 +503,7 @@ export default function CourseEditor() {
               </div>
 
               {/* Requirements */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-2">Requirements</label>
                 <p className="text-xs text-slate-500 mb-3">Enter each prerequisite on a new line</p>
                 <textarea
@@ -516,7 +516,7 @@ export default function CourseEditor() {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <label className="block text-sm font-medium text-slate-300 mb-2">Estimated Duration</label>
                 <div className="flex items-center gap-2">
                   <input
@@ -532,7 +532,7 @@ export default function CourseEditor() {
 
               {/* Curriculum Quick Access */}
               {!isNew && (
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+                <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                   <h3 className="font-medium text-white mb-4">Course Curriculum</h3>
                   <div className="space-y-3">
                     <button
@@ -565,13 +565,13 @@ export default function CourseEditor() {
         {/* Pricing Tab */}
         {activeTab === 'pricing' && (
           <div className="max-w-2xl space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
               <h3 className="font-medium text-white mb-4">Pricing Settings</h3>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">Price Type</label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <button
                       type="button"
                       onClick={() => setCourse({ ...course, priceType: 'FREE' })}
@@ -624,7 +624,7 @@ export default function CourseEditor() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="max-w-2xl space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
               <h3 className="font-medium text-white mb-4">Completion Settings</h3>
 
               <div className="space-y-4">
@@ -661,7 +661,7 @@ export default function CourseEditor() {
 
             {/* Instructor Info (read-only for now) */}
             {course.instructor && (
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <h3 className="font-medium text-white mb-4">Instructor</h3>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-medium">
@@ -678,18 +678,18 @@ export default function CourseEditor() {
         )}
 
         {/* Submit Buttons */}
-        <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-6 border-t border-slate-700/50">
           <button
             type="button"
             onClick={() => navigate('/lms/courses')}
-            className="px-6 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors"
+            className="w-full sm:w-auto px-6 py-2.5 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2 rounded-xl hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 transition-colors shadow-lg shadow-blue-500/20"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 transition-colors shadow-lg shadow-blue-500/20"
           >
             <FiSave size={18} />
             {saving ? 'Saving...' : (isNew ? 'Create Course' : 'Save Changes')}

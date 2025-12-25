@@ -76,16 +76,16 @@ export default function QuizQuestions() {
     setShowModal(true);
   };
 
-  if (loading) return <div className="p-6 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-700 border-t-blue-500"></div></div>;
+  if (loading) return <div className="p-4 md:p-6 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-700 border-t-blue-500"></div></div>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <Link to={`/lms/courses/${courseId}/quizzes`} className="text-blue-400 hover:text-blue-300 text-sm transition-colors">← Back to Quizzes</Link>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">{quiz?.title} - Questions</h1>
+          <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent line-clamp-2">{quiz?.title} - Questions</h1>
         </div>
-        <button onClick={() => openModal()} className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all">
+        <button onClick={() => openModal()} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all">
           Add Question
         </button>
       </div>
@@ -96,28 +96,28 @@ export default function QuizQuestions() {
         ) : (
           <ul className="divide-y divide-slate-700/50">
             {quiz.questions.map((q, index) => (
-              <li key={q.id} className="p-4 hover:bg-slate-700/30 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+              <li key={q.id} className="p-3 md:p-4 hover:bg-slate-700/30 transition-colors">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="text-slate-500">Q{index + 1}</span>
                       <span className="text-xs bg-slate-700/50 text-slate-300 px-2 py-0.5 rounded">{q.type}</span>
                       <span className="text-xs text-slate-500">{q.points} pts</span>
                     </div>
-                    <div className="font-medium text-white">{q.prompt}</div>
+                    <div className="font-medium text-white break-words">{q.prompt}</div>
                     {q.optionsJson && (
                       <ul className="mt-2 text-sm text-slate-400 ml-4">
                         {(q.optionsJson as string[]).map((opt, i) => (
-                          <li key={i} className={opt === q.correctAnswerJson ? 'text-green-400 font-medium' : ''}>
+                          <li key={i} className={`break-words ${opt === q.correctAnswerJson ? 'text-green-400 font-medium' : ''}`}>
                             {String.fromCharCode(65 + i)}. {opt} {opt === q.correctAnswerJson && '✓'}
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => openModal(q)} className="text-blue-400 hover:text-blue-300 px-3 py-1 transition-colors">Edit</button>
-                    <button onClick={() => handleDelete(q.id)} className="text-red-400 hover:text-red-300 px-3 py-1 transition-colors">Delete</button>
+                  <div className="flex gap-2 ml-auto sm:ml-0">
+                    <button onClick={() => openModal(q)} className="text-blue-400 hover:text-blue-300 px-2 md:px-3 py-1 transition-colors text-sm">Edit</button>
+                    <button onClick={() => handleDelete(q.id)} className="text-red-400 hover:text-red-300 px-2 md:px-3 py-1 transition-colors text-sm">Delete</button>
                   </div>
                 </div>
               </li>
@@ -127,11 +127,11 @@ export default function QuizQuestions() {
       </div>
 
       {showModal && editingQuestion && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h2 className="text-xl font-bold mb-4 text-white">{editingQuestion.id ? 'Edit Question' : 'Add Question'}</h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700/50 p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h2 className="text-lg md:text-xl font-bold mb-4 text-white">{editingQuestion.id ? 'Edit Question' : 'Add Question'}</h2>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1 text-slate-300">Type</label>
                   <select value={editingQuestion.type} onChange={(e) => setEditingQuestion({ ...editingQuestion, type: e.target.value as any })}
@@ -176,9 +176,9 @@ export default function QuizQuestions() {
                   className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 h-16 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all">Save</button>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6">
+              <button onClick={() => setShowModal(false)} className="w-full sm:w-auto px-4 py-2.5 border border-slate-600/50 rounded-xl text-slate-300 hover:bg-slate-700/50 transition-colors">Cancel</button>
+              <button onClick={handleSave} className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all">Save</button>
             </div>
           </div>
         </div>

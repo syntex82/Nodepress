@@ -105,31 +105,31 @@ export default function CourseLanding() {
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                {course.level && <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{course.level.replace('_', ' ')}</span>}
-                {course.category && <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{course.category}</span>}
+              <div className="flex flex-wrap items-center gap-2 mb-3 md:mb-4">
+                {course.level && <span className="bg-white/20 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">{course.level.replace('_', ' ')}</span>}
+                {course.category && <span className="bg-white/20 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">{course.category}</span>}
               </div>
-              <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
-              <p className="text-xl opacity-90 mb-6">{course.shortDescription}</p>
-              <div className="flex items-center gap-6 text-sm">
+              <h1 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">{course.title}</h1>
+              <p className="text-base md:text-xl opacity-90 mb-4 md:mb-6">{course.shortDescription}</p>
+              <div className="flex flex-wrap items-center gap-3 md:gap-6 text-xs md:text-sm">
                 <span>👤 {course.instructor?.name}</span>
                 <span>📚 {course._count?.lessons || 0} lessons</span>
                 {course.estimatedHours && <span>⏱️ {course.estimatedHours} hours</span>}
                 <span>👥 {course._count?.enrollments || 0} students</span>
               </div>
             </div>
-            <div className="bg-slate-800 rounded-2xl p-6 text-white shadow-2xl border border-slate-700/50">
+            <div className="bg-slate-800 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-2xl border border-slate-700/50">
               <img
                 src={course.featuredImage || '/api/lms/courses/placeholder-image'}
                 alt=""
-                className="w-full h-40 object-cover rounded-xl mb-4"
+                className="w-full h-32 md:h-40 object-cover rounded-lg md:rounded-xl mb-4"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/api/lms/courses/placeholder-image'; }}
               />
-              <div className="text-3xl font-bold mb-4">
+              <div className="text-2xl md:text-3xl font-bold mb-4">
                 {course.priceType === 'FREE' ? 'Free' : `$${course.priceAmount?.toFixed(2)}`}
               </div>
               {isEnrolled ? (
@@ -149,15 +149,15 @@ export default function CourseLanding() {
                 </button>
               )}
 
-              <div className="mt-4 space-y-2 text-sm text-slate-300">
+              <div className="mt-4 space-y-2 text-xs md:text-sm text-slate-300">
                 {course.certificateEnabled && (
-                  <p className="flex items-center gap-2"><FiAward className="text-yellow-400" /> Certificate on completion</p>
+                  <p className="flex items-center gap-2"><FiAward className="text-yellow-400 flex-shrink-0" /> Certificate on completion</p>
                 )}
-                <p className="flex items-center gap-2"><FiBookOpen /> {course._count?.lessons || 0} lessons</p>
+                <p className="flex items-center gap-2"><FiBookOpen className="flex-shrink-0" /> {course._count?.lessons || 0} lessons</p>
                 {course.estimatedHours && (
-                  <p className="flex items-center gap-2"><FiClock /> {course.estimatedHours} hours of content</p>
+                  <p className="flex items-center gap-2"><FiClock className="flex-shrink-0" /> {course.estimatedHours} hours of content</p>
                 )}
-                <p className="flex items-center gap-2"><FiUsers /> {course._count?.enrollments || 0} students enrolled</p>
+                <p className="flex items-center gap-2"><FiUsers className="flex-shrink-0" /> {course._count?.enrollments || 0} students enrolled</p>
               </div>
             </div>
           </div>
@@ -165,17 +165,17 @@ export default function CourseLanding() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+          <div className="md:col-span-2 space-y-6 md:space-y-8">
             {/* What you'll learn */}
             {course.whatYouLearn && course.whatYouLearn.length > 0 && (
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">What you'll learn</h2>
-                <ul className="grid md:grid-cols-2 gap-3">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
+                <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">What you'll learn</h2>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                   {(course.whatYouLearn as string[]).map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-slate-300">
-                      <span className="text-green-400">✓</span>
+                    <li key={i} className="flex items-start gap-2 text-sm md:text-base text-slate-300">
+                      <span className="text-green-400 flex-shrink-0">✓</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -184,23 +184,23 @@ export default function CourseLanding() {
             )}
 
             {/* Description */}
-            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Description</h2>
-              <div className="prose prose-invert max-w-none text-slate-300">{course.description}</div>
+            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">Description</h2>
+              <div className="prose prose-invert max-w-none text-slate-300 text-sm md:text-base">{course.description}</div>
             </div>
 
             {/* Curriculum */}
-            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Curriculum</h2>
+            <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">Curriculum</h2>
               <ul className="divide-y divide-slate-700/50">
                 {course.lessons?.map((lesson, i) => (
-                  <li key={lesson.id} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-slate-500">{i + 1}</span>
-                      <span className="text-slate-300">{lesson.title}</span>
-                      {lesson.isPreview && <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-lg">Preview</span>}
+                  <li key={lesson.id} className="py-2 md:py-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                      <span className="text-slate-500 flex-shrink-0">{i + 1}</span>
+                      <span className="text-slate-300 text-sm md:text-base truncate">{lesson.title}</span>
+                      {lesson.isPreview && <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-lg whitespace-nowrap">Preview</span>}
                     </div>
-                    <span className="text-sm text-slate-500">{lesson.estimatedMinutes} min</span>
+                    <span className="text-xs md:text-sm text-slate-500 whitespace-nowrap">{lesson.estimatedMinutes} min</span>
                   </li>
                 ))}
               </ul>
@@ -208,11 +208,11 @@ export default function CourseLanding() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {course.requirements && course.requirements.length > 0 && (
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-4 md:p-6">
                 <h3 className="font-bold text-white mb-3">Requirements</h3>
-                <ul className="space-y-2 text-sm text-slate-400">
+                <ul className="space-y-2 text-xs md:text-sm text-slate-400">
                   {(course.requirements as string[]).map((req, i) => (
                     <li key={i}>• {req}</li>
                   ))}

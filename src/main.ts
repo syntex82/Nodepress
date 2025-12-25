@@ -153,6 +153,15 @@ async function bootstrap() {
     }),
   );
 
+  // Permissions Policy for camera and microphone access (required for video calls)
+  app.use((req, res, next) => {
+    res.setHeader(
+      'Permissions-Policy',
+      'camera=(self), microphone=(self), geolocation=(self), fullscreen=(self)',
+    );
+    next();
+  });
+
   // Secure iframe embedding for Theme Customizer
   const jwtSecret = process.env.JWT_SECRET || 'default-secret';
   app.use((req, res, next) => {
@@ -338,6 +347,13 @@ async function bootstrap() {
       { src: '/api/pwa/icons/icon-192.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
       { src: '/api/pwa/icons/icon-512.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
     ],
+    // Permissions for camera and microphone (for video calls)
+    permissions_policy: {
+      camera: ['self'],
+      microphone: ['self'],
+      geolocation: ['self'],
+      fullscreen: ['self'],
+    },
   });
 
   // Helper function to generate service worker code

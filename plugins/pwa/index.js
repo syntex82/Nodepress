@@ -30,6 +30,13 @@ function generateManifest(req) {
       { src: baseUrl + '/pwa/icons/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
     ],
     categories: ['productivity'], prefer_related_applications: false,
+    // Permissions for camera and microphone (for video calls)
+    permissions_policy: {
+      camera: ['self'],
+      microphone: ['self'],
+      geolocation: ['self'],
+      fullscreen: ['self'],
+    },
   };
 }
 
