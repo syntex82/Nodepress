@@ -1,7 +1,5 @@
 /**
  * VideoCall Component - WebRTC Video Calling
- * Handles peer-to-peer video calls between users
- * Simplified for cross-device compatibility
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -23,13 +21,11 @@ interface VideoCallProps {
   onClose: () => void;
 }
 
-// ICE servers for WebRTC - using multiple STUN servers for reliability
 const iceServers: RTCConfiguration = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
   ],
-  iceCandidatePoolSize: 10,
 };
 
 export default function VideoCall({
@@ -41,6 +37,7 @@ export default function VideoCall({
   onClose,
 }: VideoCallProps) {
   void _currentUser;
+
   const [callStatus, setCallStatus] = useState<'ringing' | 'connecting' | 'connected' | 'ended'>('ringing');
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
@@ -53,8 +50,8 @@ export default function VideoCall({
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
-  const remoteStreamRef = useRef<MediaStream | null>(null);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pendingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
   const formatDuration = (seconds: number) => {
@@ -63,32 +60,9 @@ export default function VideoCall({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Get local media - simplified constraints for compatibility
-  const getLocalStream = useCallback(async (facingMode: 'user' | 'environment' = 'user') => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        }
-      });
-      localStreamRef.current = stream;
-
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-      return stream;
-    } catch (error) {
-      console.error('Failed to get media:', error);
-      alert('Could not access camera/microphone. Please check permissions.');
-      return null;
-    }
-  }, []);
-
-  // End call - defined early for use in other functions
+  // End call
   const endCall = useCallback(() => {
+    console.log('📞 Ending call');
     if (callTimerRef.current) clearInterval(callTimerRef.current);
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(t => t.stop());
@@ -103,9 +77,8 @@ export default function VideoCall({
     setTimeout(onClose, 1000);
   }, [socket, remoteUser.id, onClose]);
 
-  // Setup peer connection with all handlers
-  const setupPeerConnection = useCallback((stream: MediaStream) => {
-    // Close existing connection if any
+  // Create peer connection
+  const createPeerConnection = useCallback(() => {
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
     }
@@ -113,14 +86,10 @@ export default function VideoCall({
     const pc = new RTCPeerConnection(iceServers);
     peerConnectionRef.current = pc;
 
-    // Add local tracks to connection
-    stream.getTracks().forEach(track => {
-      pc.addTrack(track, stream);
-    });
-
-    // Handle ICE candidates
+    // Send ICE candidates to remote peer
     pc.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log('🧊 Sending ICE candidate');
         socket?.emit('call:ice-candidate', {
           targetUserId: remoteUser.id,
           candidate: event.candidate.toJSON(),
@@ -128,34 +97,24 @@ export default function VideoCall({
       }
     };
 
-    // Handle remote stream - THIS IS KEY FOR SEEING REMOTE VIDEO
+    // Handle incoming tracks - display remote video
     pc.ontrack = (event) => {
-      console.log('📹 Got remote track:', event.track.kind);
-
-      // Create or get remote stream
-      if (!remoteStreamRef.current) {
-        remoteStreamRef.current = new MediaStream();
-      }
-
-      // Add track to remote stream
-      remoteStreamRef.current.addTrack(event.track);
-
-      // Attach to video element
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      console.log('📹 Received remote track:', event.track.kind);
+      if (remoteVideoRef.current && event.streams[0]) {
+        remoteVideoRef.current.srcObject = event.streams[0];
         setHasRemoteStream(true);
       }
     };
 
-    // Handle connection state
+    // Connection state changes
     pc.onconnectionstatechange = () => {
-      console.log('Connection state:', pc.connectionState);
+      console.log('🔗 Connection state:', pc.connectionState);
       if (pc.connectionState === 'connected') {
         setCallStatus('connected');
         if (!callTimerRef.current) {
           callTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
         }
-      } else if (pc.connectionState === 'failed') {
+      } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
         endCall();
       }
     };
@@ -163,41 +122,102 @@ export default function VideoCall({
     return pc;
   }, [socket, remoteUser.id, endCall]);
 
-  // Start outgoing call - caller creates offer
-  const startCall = useCallback(async () => {
-    setCallStatus('connecting');
-
-    const stream = await getLocalStream();
-    if (!stream) return;
-
-    const pc = setupPeerConnection(stream);
-
+  // Get local media stream
+  const getLocalStream = useCallback(async (facingMode: 'user' | 'environment' = 'user') => {
     try {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      // Stop existing stream first
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(t => t.stop());
+      }
 
-      socket?.emit('call:offer', {
-        targetUserId: remoteUser.id,
-        offer: pc.localDescription,
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       });
-    } catch (error) {
-      console.error('Error creating offer:', error);
-    }
-  }, [getLocalStream, setupPeerConnection, socket, remoteUser.id]);
 
-  // Accept incoming call - receiver creates answer
-  const acceptCall = useCallback(async () => {
+      localStreamRef.current = stream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+
+      return stream;
+    } catch (error) {
+      console.error('❌ Failed to get media:', error);
+      alert('Could not access camera/microphone');
+      return null;
+    }
+  }, []);
+
+  // CALLER: Start outgoing call
+  const startCall = useCallback(async () => {
+    console.log('📞 Starting call (caller)');
     setCallStatus('connecting');
 
     const stream = await getLocalStream();
     if (!stream) return;
 
-    // Tell caller we accepted
-    socket?.emit('call:accept', {
-      callerId: remoteUser.id,
-      conversationId,
+    const pc = createPeerConnection();
+
+    // Add our tracks to the connection
+    stream.getTracks().forEach(track => {
+      console.log('➕ Adding local track:', track.kind);
+      pc.addTrack(track, stream);
     });
-  }, [getLocalStream, socket, remoteUser.id, conversationId]);
+
+    // Create and send offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    console.log('📤 Sending offer');
+    socket?.emit('call:offer', {
+      targetUserId: remoteUser.id,
+      offer: offer,
+    });
+  }, [getLocalStream, createPeerConnection, socket, remoteUser.id]);
+
+  // RECEIVER: Accept incoming call
+  const acceptCall = useCallback(async () => {
+    console.log('📞 Accepting call (receiver)');
+    setCallStatus('connecting');
+
+    const stream = await getLocalStream();
+    if (!stream) return;
+
+    const pc = createPeerConnection();
+
+    // Add our tracks to the connection
+    stream.getTracks().forEach(track => {
+      console.log('➕ Adding local track:', track.kind);
+      pc.addTrack(track, stream);
+    });
+
+    // Process pending offer if we have one
+    if (pendingOfferRef.current) {
+      console.log('📥 Processing pending offer');
+      await pc.setRemoteDescription(new RTCSessionDescription(pendingOfferRef.current));
+
+      // Add any pending ICE candidates
+      for (const candidate of pendingCandidatesRef.current) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+      pendingCandidatesRef.current = [];
+
+      // Create and send answer
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      console.log('📤 Sending answer');
+      socket?.emit('call:answer', {
+        targetUserId: remoteUser.id,
+        answer: answer,
+      });
+
+      pendingOfferRef.current = null;
+    }
+
+    // Also tell caller we accepted (so they can send offer if they haven't)
+    socket?.emit('call:accept', { callerId: remoteUser.id, conversationId });
+  }, [getLocalStream, createPeerConnection, socket, remoteUser.id, conversationId]);
 
   // Toggle mute
   const toggleMute = () => {
@@ -253,58 +273,54 @@ export default function VideoCall({
     }
   };
 
-  // Handle all socket events for WebRTC signaling
+  // Handle socket events for WebRTC signaling
   useEffect(() => {
     if (!socket) return;
 
-    // Received offer from caller - create answer
+    // RECEIVER: Got offer from caller - store it for when we accept
     const handleOffer = async (data: { callerId: string; offer: RTCSessionDescriptionInit }) => {
       if (data.callerId !== remoteUser.id) return;
       console.log('📥 Received offer');
 
-      // Make sure we have local stream
-      if (!localStreamRef.current) {
-        console.log('⏳ Waiting for local stream...');
-        // Store offer to process after acceptCall gets stream
-        pendingCandidatesRef.current = []; // Clear any old candidates
+      // If we already have a peer connection and stream, process immediately
+      const pc = peerConnectionRef.current;
+      if (pc && localStreamRef.current) {
+        try {
+          // Only set remote description if we haven't already
+          if (!pc.remoteDescription) {
+            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
 
-        // Wait a bit for stream
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (!localStreamRef.current) {
-          console.log('❌ Still no local stream');
-          return;
-        }
-      }
+            // Process pending ICE candidates
+            for (const candidate of pendingCandidatesRef.current) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              } catch (e) {
+                console.error('Error adding ICE candidate:', e);
+              }
+            }
+            pendingCandidatesRef.current = [];
 
-      try {
-        const pc = setupPeerConnection(localStreamRef.current);
+            // Create and send answer
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
 
-        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-
-        // Process any pending ICE candidates
-        for (const candidate of pendingCandidatesRef.current) {
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-          } catch (e) {
-            console.error('Error adding ICE candidate:', e);
+            socket.emit('call:answer', {
+              targetUserId: remoteUser.id,
+              answer: answer,
+            });
+            console.log('📤 Answer sent');
           }
+        } catch (error) {
+          console.error('Error handling offer:', error);
         }
-        pendingCandidatesRef.current = [];
-
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        socket.emit('call:answer', {
-          targetUserId: remoteUser.id,
-          answer: pc.localDescription
-        });
-        console.log('✅ Answer sent');
-      } catch (error) {
-        console.error('Error handling offer:', error);
+      } else {
+        // Store offer - will be processed when acceptCall is called
+        console.log('📦 Storing offer for later');
+        pendingOfferRef.current = data.offer;
       }
     };
 
-    // Received answer from receiver
+    // CALLER: Got answer from receiver
     const handleAnswer = async (data: { answererId: string; answer: RTCSessionDescriptionInit }) => {
       if (data.answererId !== remoteUser.id) return;
       console.log('📥 Received answer');
@@ -312,10 +328,16 @@ export default function VideoCall({
       const pc = peerConnectionRef.current;
       if (!pc) return;
 
+      // Only set if we're in the right state
+      if (pc.signalingState !== 'have-local-offer') {
+        console.log('⚠️ Ignoring answer - wrong state:', pc.signalingState);
+        return;
+      }
+
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
 
-        // Process any pending ICE candidates
+        // Process pending ICE candidates
         for (const candidate of pendingCandidatesRef.current) {
           try {
             await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -329,7 +351,7 @@ export default function VideoCall({
       }
     };
 
-    // Received ICE candidate
+    // ICE candidate from remote peer
     const handleIceCandidate = async (data: { fromUserId: string; candidate: RTCIceCandidateInit }) => {
       if (data.fromUserId !== remoteUser.id) return;
 
@@ -341,7 +363,6 @@ export default function VideoCall({
           console.error('Error adding ICE candidate:', error);
         }
       } else {
-        // Queue for later
         pendingCandidatesRef.current.push(data.candidate);
       }
     };
@@ -365,7 +386,7 @@ export default function VideoCall({
       socket.off('call:ended', handleCallEnded);
       socket.off('call:rejected', handleCallRejected);
     };
-  }, [socket, remoteUser.id, setupPeerConnection, endCall, onClose]);
+  }, [socket, remoteUser.id, endCall, onClose]);
 
   // Start call on mount (for outgoing calls)
   useEffect(() => {
