@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2332"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="url(#bgGrad)"/>
+  
+  <!-- Hexagon outline -->
+  <polygon 
+    points="16,5 26,10 26,22 16,27 6,22 6,10" 
+    fill="none" 
+    stroke="#2dd4bf" 
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+  
+  <!-- WP Text -->
+  <text x="16" y="18" 
+    font-family="Arial, sans-serif" 
+    font-size="8" 
+    font-weight="bold" 
+    fill="#ffffff" 
+    text-anchor="middle">WP</text>
+</svg>
+

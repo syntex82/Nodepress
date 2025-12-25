@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2332"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background - full coverage for maskable -->
+  <rect width="512" height="512" fill="url(#bgGrad)"/>
+  
+  <!-- Hexagon outline - scaled down for safe zone (80% of original, centered) -->
+  <polygon 
+    points="256,120 370,178 370,334 256,392 142,334 142,178" 
+    fill="none" 
+    stroke="#2dd4bf" 
+    stroke-width="3.5"
+    stroke-linejoin="round"
+  />
+  
+  <!-- Corner dots -->
+  <circle cx="256" cy="120" r="8" fill="#6366f1"/>
+  <circle cx="370" cy="178" r="8" fill="#2dd4bf"/>
+  <circle cx="370" cy="334" r="8" fill="#2dd4bf"/>
+  <circle cx="256" cy="392" r="8" fill="#6366f1"/>
+  <circle cx="142" cy="334" r="8" fill="#2dd4bf"/>
+  <circle cx="142" cy="178" r="8" fill="#2dd4bf"/>
+  
+  <!-- WP Text -->
+  <text x="256" y="245" 
+    font-family="Arial, sans-serif" 
+    font-size="60" 
+    font-weight="bold" 
+    fill="#ffffff" 
+    text-anchor="middle">WP</text>
+  
+  <!-- NODE Text -->
+  <text x="256" y="310" 
+    font-family="Arial, sans-serif" 
+    font-size="40" 
+    font-weight="bold" 
+    fill="#2dd4bf" 
+    text-anchor="middle" 
+    letter-spacing="6">NODE</text>
+</svg>
+
