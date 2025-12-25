@@ -4,13 +4,14 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { FiSend, FiSearch, FiMessageSquare, FiCheck, FiCheckCircle, FiPlus, FiX, FiTrash2, FiVideo, FiPaperclip, FiPhone, FiSmile } from 'react-icons/fi';
+import { FiSend, FiSearch, FiMessageSquare, FiCheck, FiCheckCircle, FiPlus, FiX, FiTrash2, FiVideo, FiPaperclip, FiPhone, FiSmile, FiBell } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
 import EmojiPicker, { EmojiClickData, Theme, EmojiStyle } from 'emoji-picker-react';
 import { messagesApi, profileApi } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import VideoCall from '../components/VideoCall';
+import { requestNotificationPermission, checkNotificationPermission } from '../utils/permissions';
 
 interface User {
   id: string;
@@ -86,11 +87,43 @@ export default function Messages() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<Conversation | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    const checkPermission = () => {
+      const status = checkNotificationPermission();
+      setNotificationPermission(status);
+    };
+    checkPermission();
+  }, []);
+
+  // Show browser notification for incoming calls
+  const showCallNotification = (callerName: string) => {
+    if (notificationPermission === 'granted' && 'Notification' in window) {
+      new Notification('Incoming Video Call', {
+        body: `${callerName} is calling you`,
+        icon: '/favicon.ico',
+        tag: 'incoming-call',
+        requireInteraction: true
+      });
+    }
+  };
+
+  const handleRequestNotificationPermission = async () => {
+    const result = await requestNotificationPermission();
+    setNotificationPermission(result);
+    if (result === 'granted') {
+      toast.success('Notifications enabled!');
+    } else if (result === 'denied') {
+      toast.error('Notifications blocked. Enable them in browser settings.');
+    }
+  };
 
   useEffect(() => {
     loadConversations();
@@ -164,6 +197,8 @@ export default function Messages() {
       newSocket.on('call:incoming', (data: { callerId: string; callerName: string; callerAvatar: string | null; conversationId: string }) => {
         setIncomingCall(data);
         toast('Incoming video call from ' + data.callerName, { icon: '📞', duration: 10000 });
+        // Show browser notification
+        showCallNotification(data.callerName);
       });
 
       newSocket.on('call:accepted', () => {
@@ -458,6 +493,24 @@ export default function Messages() {
             </div>
           </div>
         </div>
+
+        {/* Notification Permission Banner */}
+        {notificationPermission === 'default' && (
+          <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20">
+            <div className="flex items-center gap-3">
+              <FiBell className="text-amber-400 flex-shrink-0" size={18} />
+              <div className="flex-1">
+                <p className="text-amber-200 text-sm">Enable notifications for calls</p>
+              </div>
+              <button
+                onClick={handleRequestNotificationPermission}
+                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-sm rounded-lg transition-colors"
+              >
+                Enable
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto">
           {loading ? (

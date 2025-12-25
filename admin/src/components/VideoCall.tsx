@@ -3,8 +3,9 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FiPhone, FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiRefreshCw } from 'react-icons/fi';
+import { FiPhone, FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
 import { Socket } from 'socket.io-client';
+import { requestMediaPermissions, getPermissionInstructions } from '../utils/permissions';
 
 interface User {
   id: string;
@@ -38,13 +39,14 @@ export default function VideoCall({
 }: VideoCallProps) {
   void _currentUser;
 
-  const [callStatus, setCallStatus] = useState<'ringing' | 'connecting' | 'connected' | 'ended'>('ringing');
+  const [callStatus, setCallStatus] = useState<'ringing' | 'connecting' | 'connected' | 'ended' | 'permission_denied'>('ringing');
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const [currentFacingMode, setCurrentFacingMode] = useState<'user' | 'environment'>('user');
   const [hasRemoteStream, setHasRemoteStream] = useState(false);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -122,14 +124,34 @@ export default function VideoCall({
     return pc;
   }, [socket, remoteUser.id, endCall]);
 
-  // Get local media stream
+  // Get local media stream with proper permission handling
   const getLocalStream = useCallback(async (facingMode: 'user' | 'environment' = 'user') => {
-    try {
-      // Stop existing stream first
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(t => t.stop());
-      }
+    // Stop existing stream first
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => t.stop());
+    }
 
+    // First check/request permissions
+    const permResult = await requestMediaPermissions();
+
+    if (!permResult.granted) {
+      console.error('❌ Permission denied:', permResult.error);
+      setPermissionError(permResult.error || 'Permission denied');
+      setCallStatus('permission_denied');
+      // Stop the test stream if it was created
+      if (permResult.stream) {
+        permResult.stream.getTracks().forEach(t => t.stop());
+      }
+      return null;
+    }
+
+    // Stop the test stream from permission check
+    if (permResult.stream) {
+      permResult.stream.getTracks().forEach(t => t.stop());
+    }
+
+    // Now get the actual stream with our preferred constraints
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
@@ -140,10 +162,12 @@ export default function VideoCall({
         localVideoRef.current.srcObject = stream;
       }
 
+      setPermissionError(null);
       return stream;
     } catch (error) {
       console.error('❌ Failed to get media:', error);
-      alert('Could not access camera/microphone');
+      setPermissionError('Could not access camera/microphone');
+      setCallStatus('permission_denied');
       return null;
     }
   }, []);
@@ -446,8 +470,30 @@ export default function VideoCall({
           className="absolute inset-0 w-full h-full object-contain bg-slate-900"
         />
 
+        {/* Permission Denied Screen */}
+        {callStatus === 'permission_denied' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 p-6">
+            <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+              <FiAlertCircle className="text-red-500" size={40} />
+            </div>
+            <h3 className="text-white font-semibold text-lg mb-2 text-center">Permission Required</h3>
+            <p className="text-white/70 text-sm text-center mb-4 max-w-xs">
+              {permissionError || 'Camera and microphone access is required for video calls.'}
+            </p>
+            <p className="text-white/50 text-xs text-center max-w-xs mb-6">
+              {getPermissionInstructions()}
+            </p>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        )}
+
         {/* Placeholder when no remote stream */}
-        {!hasRemoteStream && (
+        {!hasRemoteStream && callStatus !== 'permission_denied' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-4xl sm:text-5xl mb-4">
               {remoteUser.avatar ? (
