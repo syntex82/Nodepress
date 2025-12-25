@@ -3,9 +3,9 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FiPhone, FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import { FiPhone, FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiRefreshCw, FiAlertCircle, FiInfo } from 'react-icons/fi';
 import { Socket } from 'socket.io-client';
-import { requestMediaPermissions, getPermissionInstructions } from '../utils/permissions';
+import { requestMediaPermissions, getPermissionInstructions, getPermissionDebugInfo, clearPermissionCache } from '../utils/permissions';
 
 interface User {
   id: string;
@@ -28,6 +28,71 @@ const iceServers: RTCConfiguration = {
     { urls: 'stun:stun1.l.google.com:19302' },
   ],
 };
+
+// Permission Denied Screen Component with Debug Info
+function PermissionDeniedScreen({
+  error,
+  onRetry,
+  onClose
+}: {
+  error: string | null;
+  onRetry: () => void;
+  onClose: () => void;
+}) {
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
+
+  const loadDebugInfo = async () => {
+    const info = await getPermissionDebugInfo();
+    setDebugInfo(info);
+    setShowDebug(true);
+  };
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 p-6 overflow-y-auto">
+      <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+        <FiAlertCircle className="text-red-500" size={40} />
+      </div>
+      <h3 className="text-white font-semibold text-lg mb-2 text-center">Camera Permission Required</h3>
+      <p className="text-white/70 text-sm text-center mb-4 max-w-xs">
+        {error || 'Camera and microphone access is required for video calls.'}
+      </p>
+      <div className="bg-slate-800 rounded-lg p-4 mb-6 max-w-sm">
+        <p className="text-amber-400 text-xs font-medium mb-2">📱 How to enable:</p>
+        <p className="text-white/60 text-xs leading-relaxed">
+          {getPermissionInstructions()}
+        </p>
+      </div>
+      <div className="flex gap-3 mb-4">
+        <button
+          onClick={onRetry}
+          className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+        >
+          <FiRefreshCw size={16} /> Try Again
+        </button>
+        <button
+          onClick={onClose}
+          className="px-5 py-2.5 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+      <button
+        onClick={loadDebugInfo}
+        className="text-white/40 text-xs hover:text-white/60 flex items-center gap-1"
+      >
+        <FiInfo size={12} /> {showDebug ? 'Hide' : 'Show'} Debug Info
+      </button>
+      {showDebug && debugInfo && (
+        <div className="mt-4 bg-slate-800/80 rounded-lg p-3 max-w-sm w-full">
+          <pre className="text-[10px] text-white/50 overflow-x-auto whitespace-pre-wrap">
+            {JSON.stringify(debugInfo, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function VideoCall({
   socket,
@@ -472,24 +537,20 @@ export default function VideoCall({
 
         {/* Permission Denied Screen */}
         {callStatus === 'permission_denied' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 p-6">
-            <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
-              <FiAlertCircle className="text-red-500" size={40} />
-            </div>
-            <h3 className="text-white font-semibold text-lg mb-2 text-center">Permission Required</h3>
-            <p className="text-white/70 text-sm text-center mb-4 max-w-xs">
-              {permissionError || 'Camera and microphone access is required for video calls.'}
-            </p>
-            <p className="text-white/50 text-xs text-center max-w-xs mb-6">
-              {getPermissionInstructions()}
-            </p>
-            <button
-              onClick={onClose}
-              className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Close
-            </button>
-          </div>
+          <PermissionDeniedScreen
+            error={permissionError}
+            onRetry={async () => {
+              clearPermissionCache();
+              setPermissionError(null);
+              setCallStatus('connecting');
+              if (isIncoming) {
+                await acceptCall();
+              } else {
+                await startCall();
+              }
+            }}
+            onClose={onClose}
+          />
         )}
 
         {/* Placeholder when no remote stream */}

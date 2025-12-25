@@ -948,8 +948,8 @@ export default function Messages() {
         />
       )}
 
-      {/* Incoming Call Modal */}
-      {incomingCall && (
+      {/* Incoming Call Modal - only show if not already in a video call */}
+      {incomingCall && !showVideoCall && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700/50 p-8 text-center max-w-sm w-full">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center animate-pulse">
@@ -969,8 +969,8 @@ export default function Messages() {
               </button>
               <button
                 onClick={() => {
+                  // Don't clear incomingCall yet - we need it for VideoCall component
                   setShowVideoCall(true);
-                  setIncomingCall(null);
                   // Find the conversation for this caller
                   const conv = conversations.find(c => c.otherUser.id === incomingCall.callerId);
                   if (conv) setActiveConversation(conv);

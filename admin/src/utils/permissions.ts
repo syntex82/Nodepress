@@ -285,16 +285,70 @@ export function isPWA(): boolean {
 }
 
 /**
+ * Get the browser/app name for permission instructions
+ */
+export function getBrowserName(): string {
+  const ua = navigator.userAgent;
+  if (ua.includes('SamsungBrowser')) return 'Samsung Internet';
+  if (ua.includes('Firefox')) return 'Firefox';
+  if (ua.includes('Edg')) return 'Microsoft Edge';
+  if (ua.includes('OPR') || ua.includes('Opera')) return 'Opera';
+  if (ua.includes('Chrome')) return 'Chrome';
+  if (ua.includes('Safari')) return 'Safari';
+  return 'your browser';
+}
+
+/**
  * Get permission instructions based on platform
  */
 export function getPermissionInstructions(): string {
+  const browserName = getBrowserName();
+  const isPwaInstalled = isPWA();
+
   if (isAndroid()) {
-    return 'Go to Settings > Apps > Your Browser > Permissions > Camera/Microphone > Allow';
+    if (isPwaInstalled) {
+      // For installed PWAs, the app itself should appear in Android settings
+      return `Go to Android Settings > Apps > "WordPress Node" (or ${browserName}) > Permissions > Camera & Microphone > Allow`;
+    }
+    return `Go to Android Settings > Apps > ${browserName} > Permissions > Camera & Microphone > Allow`;
   }
   if (isIOS()) {
-    return 'Go to Settings > Safari (or your browser) > Camera/Microphone > Allow';
+    return `Go to Settings > ${browserName} > Camera & Microphone > Allow`;
   }
-  return 'Click the lock/info icon in your browser address bar and allow camera/microphone access';
+  return 'Click the lock/site info icon in your browser address bar and allow camera/microphone access';
+}
+
+/**
+ * Get detailed permission debug info
+ */
+export async function getPermissionDebugInfo(): Promise<{
+  platform: string;
+  browser: string;
+  isPWA: boolean;
+  isSecure: boolean;
+  hasMediaDevices: boolean;
+  hasGetUserMedia: boolean;
+  cameraPermission: PermissionStatus;
+  micPermission: PermissionStatus;
+  cachedStatus: PermissionStatus | null;
+  userAgent: string;
+}> {
+  const camera = await checkCameraPermission();
+  const mic = await checkMicrophonePermission();
+  const cachedStatus = getCachedPermissionStatus();
+
+  return {
+    platform: isAndroid() ? 'Android' : isIOS() ? 'iOS' : 'Desktop',
+    browser: getBrowserName(),
+    isPWA: isPWA(),
+    isSecure: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
+    hasMediaDevices: !!navigator.mediaDevices,
+    hasGetUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+    cameraPermission: camera,
+    micPermission: mic,
+    cachedStatus,
+    userAgent: navigator.userAgent.substring(0, 150),
+  };
 }
 
 /**
