@@ -21,11 +21,16 @@ interface CreateRoomOptions {
 @Injectable()
 export class VideoService {
   private readonly logger = new Logger(VideoService.name);
-  private readonly meteredDomain = process.env.METERED_DOMAIN || 'wordpressnode.metered.live';
-  private readonly meteredSecretKey = process.env.METERED_SECRET_KEY;
-  private readonly apiBase = 'https://wordpressnode.metered.live/api/v1';
+  private readonly meteredDomain: string;
+  private readonly meteredSecretKey: string | undefined;
+  private readonly apiBase: string;
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) {
+    this.meteredDomain = process.env.METERED_DOMAIN || 'wordpressnode.metered.live';
+    this.meteredSecretKey = process.env.METERED_SECRET_KEY;
+    this.apiBase = `https://${this.meteredDomain}/api/v1`;
+    this.logger.log(`Metered Video Service initialized with domain: ${this.meteredDomain}`);
+  }
 
   /**
    * Create a new Metered video room
