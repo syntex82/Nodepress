@@ -981,6 +981,331 @@ git config --global --add safe.directory /var/www/WordPress-Node
 
 ---
 
+### ☁️ Render.com - Cloud Deployment
+
+<div align="center">
+
+**Deploy WordPress Node CMS to Render.com with automatic builds from GitHub!**
+
+</div>
+
+Render provides a simple way to deploy Docker-based applications with free SSL, automatic deploys, and managed PostgreSQL.
+
+#### Prerequisites
+
+- A [Render.com](https://render.com) account (free tier available)
+- Your code pushed to GitHub
+
+#### Step 1: Create a PostgreSQL Database
+
+1. Go to [Render Dashboard](https://dashboard.render.com)
+2. Click **New** → **PostgreSQL**
+3. Configure:
+   - **Name:** `wordpress-node-db`
+   - **Database:** `wordpress_node`
+   - **User:** `wordpress_node`
+   - **Region:** Oregon (or closest to your users)
+   - **Plan:** Free (or Starter for production)
+4. Click **Create Database**
+5. Copy the **Internal Database URL** (for connecting from your web service)
+
+#### Step 2: Create a Web Service
+
+1. Click **New** → **Web Service**
+2. Connect your GitHub repository
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `wordpress-node` |
+| **Region** | Same as database (e.g., Oregon) |
+| **Branch** | `main` |
+| **Runtime** | Docker |
+| **Instance Type** | Free (suspends after inactivity) or Starter ($7/mo - always on) |
+
+#### Step 3: Set Environment Variables
+
+Add these environment variables in the Render dashboard:
+
+| Variable | Value | Required |
+|----------|-------|:--------:|
+| `DATABASE_URL` | Your PostgreSQL Internal URL | ✅ |
+| `JWT_SECRET` | A random 32+ character string | ✅ |
+| `NODE_ENV` | `production` | ✅ |
+| `SESSION_SECRET` | A random secret string | ✅ |
+| `CORS_ORIGIN` | `https://your-app.onrender.com` | Optional |
+
+> 💡 **Tip:** Click "Generate" next to JWT_SECRET and SESSION_SECRET to create secure random values.
+
+#### Step 4: Deploy
+
+1. Click **Create Web Service**
+2. Wait for the Docker build (5-15 minutes for first deploy)
+3. Once deployed, access your app at `https://your-app.onrender.com`
+
+#### Render-Specific Notes
+
+| Topic | Details |
+|-------|---------|
+| **Free Tier Limits** | Service suspends after 15 minutes of inactivity; 750 hours/month |
+| **Cold Starts** | Free tier takes 30-60 seconds to wake up after suspension |
+| **Database** | Free PostgreSQL expires after 90 days; Starter plan is $7/month |
+| **Custom Domains** | Add custom domains in the service settings |
+| **Auto-Deploy** | Enabled by default - pushes to `main` trigger redeploys |
+| **Health Checks** | Render automatically checks `/health` endpoint |
+
+#### Using render.yaml (Blueprint)
+
+For automated infrastructure setup, create a `render.yaml` in your repo root:
+
+```yaml
+services:
+  - type: web
+    name: wordpress-node
+    runtime: docker
+    region: oregon
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wordpress-node-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+
+databases:
+  - name: wordpress-node-db
+    plan: starter
+    region: oregon
+```
+
+Then click **New** → **Blueprint** in Render dashboard and connect your repo.
+
+#### Troubleshooting Render Deployments
+
+<details>
+<summary><strong>🔧 Common Issues and Solutions</strong></summary>
+
+<br />
+
+**Build Failed - Docker Error:**
+- Check the build logs for specific errors
+- Ensure `Dockerfile` exists in the repository root
+- Verify all dependencies are listed in `package.json`
+
+**502 Bad Gateway:**
+- Check if the service is still deploying
+- View logs for application errors
+- Ensure DATABASE_URL is correct
+
+**Service Suspended:**
+- Free tier services suspend after inactivity
+- Visit your app URL to wake it up
+- Upgrade to Starter plan ($7/mo) for always-on
+
+**Database Connection Failed:**
+- Use the **Internal Database URL** (not External)
+- Ensure database and web service are in the same region
+- Check that the database is running
+
+</details>
+
+<br />
+
+---
+
+### 📱 Google Play Store - PWA to Android App
+
+<div align="center">
+
+**Publish WordPress Node CMS as a native Android app on the Google Play Store!**
+
+</div>
+
+WordPress Node CMS includes full PWA (Progressive Web App) support, which means you can package it as a native Android app using Trusted Web Activity (TWA).
+
+#### Prerequisites
+
+- Your app deployed and running (e.g., on Render.com)
+- A [Google Play Developer account](https://play.google.com/console) ($25 one-time fee)
+- The app must be served over HTTPS
+
+#### Step 1: Verify PWA Requirements
+
+Your deployment must have:
+
+| Requirement | Status | Location |
+|-------------|:------:|----------|
+| HTTPS | ✅ | Automatic on Render.com |
+| Web App Manifest | ✅ | `/api/pwa/manifest.json` |
+| Service Worker | ✅ | `/service-worker.js` |
+| Icons (192x192 & 512x512) | ✅ | `/api/pwa/icons/` |
+| Offline Support | ✅ | Built-in |
+
+Test your PWA at: https://pwabuilder.com
+
+#### Step 2: Generate Android Package with PWABuilder
+
+**Option A: PWABuilder Website**
+
+1. Go to [pwabuilder.com](https://pwabuilder.com)
+2. Enter your app URL: `https://your-app.onrender.com`
+3. Click **Start** and wait for analysis
+4. Click **Package for stores** → **Android**
+5. Configure:
+   - **Package ID:** `com.yourcompany.wpnode`
+   - **App name:** `WP Node`
+   - **App version:** `1.0.0`
+6. **Generate signing key** (save securely - you'll need it for updates!)
+7. Download the **AAB file** (Android App Bundle)
+
+**Option B: PWABuilder Studio (VS Code Extension)**
+
+1. Install "PWABuilder Studio" extension in VS Code
+2. Press `Ctrl+Shift+P` → "PWABuilder Studio"
+3. Enter your app URL
+4. Follow the wizard to generate the Android package
+
+#### Step 3: Set Up Digital Asset Links
+
+For TWA to work, you need to verify ownership of your domain:
+
+1. After generating the AAB, PWABuilder provides a `assetlinks.json` file
+2. The file is automatically served at `/.well-known/assetlinks.json` in WordPress Node
+3. Update it with your signing key fingerprint:
+
+```json
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.yourcompany.wpnode",
+    "sha256_cert_fingerprints": ["YOUR:SHA256:FINGERPRINT:HERE"]
+  }
+}]
+```
+
+> 💡 PWABuilder provides the fingerprint when you generate the signing key.
+
+#### Step 4: Create Google Play Developer Account
+
+1. Go to [Google Play Console](https://play.google.com/console)
+2. Pay the $25 one-time registration fee
+3. Complete identity verification
+4. Accept the Developer Distribution Agreement
+
+#### Step 5: Create App Listing
+
+In Google Play Console:
+
+1. Click **Create app**
+2. Fill in app details:
+   - **App name:** WP Node
+   - **Default language:** English
+   - **App or game:** App
+   - **Free or paid:** Free
+
+3. Complete all required sections:
+
+| Section | What to Add |
+|---------|-------------|
+| **Store listing** | Description, screenshots, feature graphic |
+| **App content** | Privacy policy, content ratings, target audience |
+| **Main store listing** | Short & full descriptions |
+
+#### Step 6: Upload App Bundle
+
+1. Go to **Production** → **Create new release**
+2. Upload your `.aab` file
+3. Add release notes
+4. Review and roll out
+
+#### Store Listing Content
+
+Use this for your app listing:
+
+**Short Description (80 chars):**
+```
+Modern CMS with real-time messaging, video calls, and collaboration tools.
+```
+
+**Full Description:**
+```
+WP Node is a powerful, modern content management system that brings
+real-time collaboration to your fingertips.
+
+🚀 KEY FEATURES
+
+📱 Real-Time Messaging
+• Instant messaging with other users
+• Rich media support (images, files, emojis)
+• Push notifications for new messages
+
+📹 Video Calling
+• One-on-one video calls
+• Crystal clear audio and video
+• Works on WiFi and mobile data
+
+📝 Content Management
+• Create and edit posts with rich text editor
+• Media library for images and files
+• SEO-friendly URLs
+
+🛒 E-Commerce Ready
+• Product catalog management
+• Shopping cart and checkout
+• Stripe payment integration
+
+📚 Learning Management (LMS)
+• Create online courses
+• Video lessons and quizzes
+• Student progress tracking
+
+Download WP Node today!
+```
+
+**Screenshots Needed:**
+1. Dashboard view
+2. Messages/chat interface
+3. Video calling
+4. Post editor
+5. Shop/products page
+6. Course catalog
+
+#### App Permissions
+
+In your app manifest, these permissions are requested:
+
+| Permission | Reason |
+|------------|--------|
+| Camera | For video calls |
+| Microphone | For audio in video calls |
+| Notifications | For message alerts |
+
+> 💡 These are declared in the TWA manifest and prompted at runtime.
+
+#### After Submission
+
+- Google review takes 1-3 days for new apps
+- You'll receive an email when approved
+- Once approved, your app appears in the Play Store within hours
+
+#### Updating Your App
+
+1. Increment version in PWABuilder
+2. Generate new AAB with same signing key
+3. Upload to Play Console → Create new release
+4. Roll out update
+
+<br />
+
+---
+
 ### 🪟 Windows 11 & Windows Server - One-Command Install
 
 <div align="center">
