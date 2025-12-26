@@ -2,13 +2,16 @@
 # Multi-stage build for optimized image size
 
 # Stage 1: Build the application
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies first (better caching)
 COPY package*.json ./
-RUN npm ci --only=production=false
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -27,10 +30,10 @@ COPY admin/ .
 RUN npm run build
 
 # Stage 2: Production image
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
-# Install OpenSSL 1.1 compatibility for Prisma
-RUN apk add --no-cache openssl1.1-compat
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates wget && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
