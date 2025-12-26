@@ -37,18 +37,21 @@ RUN apt-get update && apt-get install -y openssl ca-certificates wget && rm -rf 
 
 WORKDIR /app
 
-# Install production dependencies only
+# Copy package files
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application
+# Install ALL dependencies (including prisma CLI for migrations)
+RUN npm ci && npm cache clean --force
+
+# Copy built application from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/admin/dist ./admin/dist
 COPY --from=builder /app/themes ./themes
+
+# Create startup script
+RUN echo '#!/bin/sh\nnpx prisma migrate deploy\nnode dist/main.js' > /app/start.sh && chmod +x /app/start.sh
 
 # Create uploads directory
 RUN mkdir -p uploads && chown -R node:node /app
@@ -63,6 +66,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/ping || exit 1
 
-# Start script: run migrations then start app
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# Start the application
+CMD ["/app/start.sh"]
 
