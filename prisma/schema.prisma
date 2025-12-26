@@ -2,8 +2,7 @@
 // This defines all database models for our CMS platform
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["metrics", "tracing"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
