@@ -59,12 +59,13 @@ export class VideoService {
       );
 
       this.logger.log(`Created Metered room: ${roomName}`);
+      const data = response.data as MeteredRoom;
       return {
-        roomName: response.data.roomName,
-        roomUrl: `${this.meteredDomain}/${response.data.roomName}`,
-        _id: response.data._id,
+        roomName: data.roomName,
+        roomUrl: `${this.meteredDomain}/${data.roomName}`,
+        _id: data._id,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create Metered room:', error.response?.data || error.message);
       throw new BadRequestException('Failed to create video room');
     }
@@ -84,8 +85,8 @@ export class VideoService {
           `${this.apiBase}/room/${roomName}?secretKey=${this.meteredSecretKey}`,
         ),
       );
-      return response.data;
-    } catch (error) {
+      return response.data as MeteredRoom;
+    } catch (error: any) {
       if (error.response?.status === 404) {
         return null;
       }
@@ -134,8 +135,9 @@ export class VideoService {
           },
         ),
       );
-      return response.data.token;
-    } catch (error) {
+      const data = response.data as { token: string };
+      return data.token;
+    } catch (error: any) {
       this.logger.error('Failed to generate access token:', error.response?.data || error.message);
       throw new BadRequestException('Failed to generate access token');
     }
