@@ -49,12 +49,7 @@ export class VideoService {
           {
             roomName,
             privacy: options.privacy || 'public',
-            audioOnly: options.audioOnly || false,
-            enableRecording: options.enableRecording || false,
-            enableComposition: options.enableComposition || false,
-            maxParticipants: options.maxParticipants || 10,
             ejectAtRoomExp: options.ejectAtRoomExp || false,
-            // Enable camera/mic by default
             joinVideoOn: true,
             joinAudioOn: true,
             enableScreenSharing: true,
