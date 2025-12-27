@@ -414,5 +414,55 @@ export class SubscriptionsService {
 
     return { message: 'Default plans created', count: plans.length };
   }
+
+  /**
+   * Get the site's current subscription (for the primary admin/owner)
+   * In a single-tenant setup, this returns the first admin's subscription
+   * In a multi-tenant setup, this would be based on the domain/tenant
+   */
+  async getSiteSubscription() {
+    // Find the first admin user (site owner)
+    const admin = await this.prisma.user.findFirst({
+      where: { role: 'ADMIN' },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!admin) {
+      return null;
+    }
+
+    // Get their subscription
+    return this.prisma.subscription.findUnique({
+      where: { userId: admin.id },
+      include: { plan: true },
+    });
+  }
+
+  /**
+   * Check if the site has access to a specific feature
+   */
+  async siteHasFeature(feature: string): Promise<boolean> {
+    const subscription = await this.getSiteSubscription();
+    if (!subscription || subscription.status !== 'ACTIVE') {
+      return false;
+    }
+    const features = subscription.plan?.features as string[] || [];
+    return features.includes(feature);
+  }
+
+  /**
+   * Get site subscription status for public display
+   */
+  async getSiteSubscriptionStatus() {
+    const subscription = await this.getSiteSubscription();
+    const plans = await this.getPlans();
+
+    return {
+      hasActiveSubscription: subscription?.status === 'ACTIVE',
+      currentPlan: subscription?.plan || null,
+      currentPlanTier: subscription?.plan?.name || 'Free',
+      availablePlans: plans,
+    };
+  }
 }
 

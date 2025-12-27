@@ -1,6 +1,7 @@
 /**
  * Theme Renderer Service
  * Handles server-side rendering of theme templates
+ * Includes subscription context for premium feature gating
  */
 
 import { Injectable } from '@nestjs/common';
@@ -8,6 +9,7 @@ import { ThemesService } from './themes.service';
 import { SettingsService } from '../settings/settings.service';
 import { MenusService } from '../menus/menus.service';
 import { CustomizationRendererService } from './customization-renderer.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { parseUserAgent, getDeviceClasses, DeviceInfo } from '../../utils/device-detection';
 import * as Handlebars from 'handlebars';
 import * as fs from 'fs/promises';
@@ -23,8 +25,10 @@ export class ThemeRendererService {
     private settingsService: SettingsService,
     private menusService: MenusService,
     private customizationRenderer: CustomizationRendererService,
+    private subscriptionsService: SubscriptionsService,
   ) {
     this.registerHelpers();
+    this.registerSubscriptionHelpers();
   }
 
   /**
@@ -94,6 +98,71 @@ export class ThemeRendererService {
   }
 
   /**
+   * Register subscription-related Handlebars helpers
+   */
+  private registerSubscriptionHelpers() {
+    // Check if site has a specific feature enabled
+    Handlebars.registerHelper('hasFeature', function(this: any, feature: string, options: any) {
+      const subscription = this.subscription;
+      if (!subscription || !subscription.features) {
+        return options.inverse ? options.inverse(this) : '';
+      }
+      const hasIt = subscription.features.includes(feature);
+      return hasIt ? options.fn(this) : (options.inverse ? options.inverse(this) : '');
+    });
+
+    // Check if site has a specific plan or higher
+    Handlebars.registerHelper('hasPlan', function(this: any, planTier: string, options: any) {
+      const subscription = this.subscription;
+      const planHierarchy = ['free', 'starter', 'professional', 'enterprise'];
+      const currentPlanIndex = subscription ? planHierarchy.indexOf(subscription.planTier?.toLowerCase() || 'free') : 0;
+      const requiredPlanIndex = planHierarchy.indexOf(planTier.toLowerCase());
+      const hasIt = currentPlanIndex >= requiredPlanIndex;
+      return hasIt ? options.fn(this) : (options.inverse ? options.inverse(this) : '');
+    });
+
+    // Check if site is on free plan (show upgrade prompts)
+    Handlebars.registerHelper('isFreePlan', function(this: any, options: any) {
+      const subscription = this.subscription;
+      const isFree = !subscription || subscription.planTier?.toLowerCase() === 'free' || !subscription.isActive;
+      return isFree ? options.fn(this) : (options.inverse ? options.inverse(this) : '');
+    });
+
+    // Check if subscription is active
+    Handlebars.registerHelper('hasActiveSubscription', function(this: any, options: any) {
+      const subscription = this.subscription;
+      const isActive = subscription && subscription.isActive;
+      return isActive ? options.fn(this) : (options.inverse ? options.inverse(this) : '');
+    });
+
+    // Get current plan name
+    Handlebars.registerHelper('currentPlan', function(this: any) {
+      const subscription = this.subscription;
+      return subscription?.planName || 'Free';
+    });
+
+    // Format price with currency
+    Handlebars.registerHelper('formatPrice', (price: number, currency = 'USD') => {
+      if (typeof price !== 'number') return '$0';
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+      }).format(price / 100); // Stripe uses cents
+    });
+
+    // Check if a plan is the current plan
+    Handlebars.registerHelper('isCurrentPlan', function(this: any, planId: string) {
+      const subscription = this.subscription;
+      return subscription?.planId === planId;
+    });
+
+    // Get upgrade URL for a plan
+    Handlebars.registerHelper('upgradeUrl', (planId: string) => {
+      return `/admin/pricing?plan=${planId}`;
+    });
+  }
+
+  /**
    * Register partials for a theme
    */
   private async registerPartials(themeSlug: string) {
@@ -159,10 +228,11 @@ export class ThemeRendererService {
         'site_description',
       ]);
 
-      // Get menus
-      const [headerMenu, footerMenu] = await Promise.all([
+      // Get menus and subscription data in parallel
+      const [headerMenu, footerMenu, subscriptionData] = await Promise.all([
         this.menusService.findByLocation('header').catch(() => null),
         this.menusService.findByLocation('footer').catch(() => null),
+        this.getSubscriptionContext(),
       ]);
 
       // Add current year helper
@@ -188,6 +258,9 @@ export class ThemeRendererService {
         // Device detection info for responsive templates
         device,
         deviceClasses,
+        // Subscription data for premium features and upgrade prompts
+        subscription: subscriptionData.currentSubscription,
+        plans: subscriptionData.plans,
         // User info for templates (header user menu, etc.)
         // Use provided user parameter, or fall back to data.user if passed in data
         user: user
@@ -486,5 +559,70 @@ export class ThemeRendererService {
       },
       user,
     );
+  }
+
+  /**
+   * Get subscription context for templates
+   * Returns current subscription status and available plans
+   */
+  private async getSubscriptionContext(): Promise<{
+    currentSubscription: any;
+    plans: any[];
+  }> {
+    try {
+      // Get all available plans
+      const plans = await this.subscriptionsService.getPlans();
+
+      // Get site owner's current subscription (first admin user)
+      // In a multi-tenant setup, this would be based on domain/tenant
+      const currentSubscription = await this.subscriptionsService.getSiteSubscription();
+
+      return {
+        currentSubscription: currentSubscription ? {
+          planId: currentSubscription.planId,
+          planName: currentSubscription.plan?.name || 'Free',
+          planTier: currentSubscription.plan?.slug?.toUpperCase() || 'FREE',
+          isActive: currentSubscription.status === 'ACTIVE',
+          features: currentSubscription.plan?.features || [],
+          expiresAt: currentSubscription.currentPeriodEnd,
+        } : {
+          planId: null,
+          planName: 'Free',
+          planTier: 'FREE',
+          isActive: false,
+          features: [],
+          expiresAt: null,
+        },
+        plans: plans.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          slug: plan.slug,
+          description: plan.description,
+          monthlyPrice: plan.monthlyPrice,
+          yearlyPrice: plan.yearlyPrice,
+          features: plan.features,
+          maxUsers: plan.maxUsers,
+          maxStorageMb: plan.maxStorageMb,
+          maxCourses: plan.maxCourses,
+          maxProducts: plan.maxProducts,
+          isFeatured: plan.isFeatured,
+          badgeText: plan.badgeText,
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching subscription context:', error);
+      // Return default free plan context on error
+      return {
+        currentSubscription: {
+          planId: null,
+          planName: 'Free',
+          planTier: 'FREE',
+          isActive: false,
+          features: [],
+          expiresAt: null,
+        },
+        plans: [],
+      };
+    }
   }
 }

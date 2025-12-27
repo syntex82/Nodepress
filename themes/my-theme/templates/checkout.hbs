@@ -35,14 +35,45 @@
           <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" id="placeOrderBtn"><span class="btn-text">Pay Now</span><span class="btn-loading" style="display: none;">Processing...</span></button>
         </form>
       </div>
-      <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; height: fit-content;">
-        <h3 style="margin-bottom: 1rem;">Order Summary</h3>
-        <div id="orderItems" style="margin-bottom: 1rem; max-height: 300px; overflow-y: auto;"><div class="loading-state">Loading...</div></div>
-        <div style="border-top: 1px solid var(--color-border); padding-top: 1rem;">
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;"><span>Tax</span><span id="tax">$0.00</span></div>
-          <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 600; font-size: 1.1rem;"><span>Total</span><span id="total">$0.00</span></div>
+      <div style="height: fit-content;">
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 1rem;">
+          <h3 style="margin-bottom: 1rem;">Order Summary</h3>
+          <div id="orderItems" style="margin-bottom: 1rem; max-height: 300px; overflow-y: auto;"><div class="loading-state">Loading...</div></div>
+          <div style="border-top: 1px solid var(--color-border); padding-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;"><span>Tax</span><span id="tax">$0.00</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 600; font-size: 1.1rem;"><span>Total</span><span id="total">$0.00</span></div>
+          </div>
         </div>
+
+        {{!-- Premium Upsell for Free Users --}}
+        {{#isFreePlan}}
+        <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: var(--border-radius); padding: 1.25rem; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+            <span style="font-size: 1.5rem;">✨</span>
+            <div>
+              <h4 style="margin: 0 0 0.5rem 0; color: #0369a1; font-size: 1rem;">Upgrade to Pro</h4>
+              <p style="margin: 0 0 0.75rem 0; color: #0c4a6e; font-size: 0.875rem; line-height: 1.5;">Get 10% off all purchases, free shipping, and exclusive member discounts.</p>
+              <a href="/admin/pricing" style="display: inline-block; background: #0284c7; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; text-decoration: none;">View Plans →</a>
+            </div>
+          </div>
+        </div>
+        {{/isFreePlan}}
+
+        {{!-- Premium Member Benefits --}}
+        {{#hasActiveSubscription}}
+        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; border-radius: var(--border-radius); padding: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.25rem;">🎉</span>
+            <span style="font-weight: 600; color: #166534;">{{subscription.planName}} Member Benefits</span>
+          </div>
+          <ul style="margin: 0; padding-left: 1.5rem; color: #15803d; font-size: 0.875rem;">
+            <li>Priority order processing</li>
+            <li>Exclusive member discounts applied</li>
+            <li>Free shipping on orders over $50</li>
+          </ul>
+        </div>
+        {{/hasActiveSubscription}}
       </div>
     </div>
   </div>

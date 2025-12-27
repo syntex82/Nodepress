@@ -24,6 +24,7 @@ import { ContentModule } from '../content/content.module';
 import { SettingsModule } from '../settings/settings.module';
 import { MenusModule } from '../menus/menus.module';
 import { EmailModule } from '../email/email.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { EmailModule } from '../email/email.module';
     SettingsModule,
     MenusModule,
     EmailModule,
+    SubscriptionsModule,
     // JWT for preview token generation
     JwtModule.registerAsync({
       imports: [ConfigModule],
