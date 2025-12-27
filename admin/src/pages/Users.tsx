@@ -45,16 +45,24 @@ export default function Users() {
     isOpen: false,
     userId: null,
   });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 20;
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page]);
 
   const fetchUsers = async () => {
     try {
-      const response = await usersApi.getAll();
+      const response = await usersApi.getAll({ page, limit });
       // Backend returns { users, meta }
       setUsers(response.data.users || []);
+      if (response.data.meta) {
+        setTotalPages(response.data.meta.totalPages || 1);
+        setTotal(response.data.meta.total || 0);
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load users');
       console.error('Users error:', error);
@@ -222,6 +230,34 @@ export default function Users() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-2">
+          <p className="text-sm text-slate-400">
+            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} users
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-sm rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <span className="px-3 py-1.5 text-sm text-slate-400">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 text-sm rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* User Form Modal */}
       {showModal && (

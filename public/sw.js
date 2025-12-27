@@ -1,12 +1,11 @@
-const CACHE_NAME = 'wp-node-v2';
+const CACHE_NAME = 'wp-node-v3';
 const OFFLINE_URL = '/offline.html';
 
-// Install - cache essential files
+// Install - cache only offline page (not admin to avoid stale data)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        '/admin/',
         '/offline.html'
       ]);
     }).then(() => self.skipWaiting())

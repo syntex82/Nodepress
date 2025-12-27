@@ -391,17 +391,23 @@ async function bootstrap() {
   });
 
   // Helper function to generate service worker code
+  // v3: Don't cache /admin/ to prevent stale data issues
   const generateServiceWorker = () => `
-const CACHE = 'wp-node-v1';
+const CACHE = 'wp-node-v3';
 const OFFLINE_URL = '/api/pwa/offline';
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(['/admin/', OFFLINE_URL])).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll([OFFLINE_URL])).then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || e.request.url.includes('/api/') || e.request.url.includes('/socket.io')) return;
