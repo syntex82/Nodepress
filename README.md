@@ -2051,6 +2051,274 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
 <br />
 
+### 💳 Complete Stripe & Subscriptions Setup Guide
+
+This guide walks you through setting up Stripe payments for subscriptions and e-commerce.
+
+#### Step 1: Create a Stripe Account
+
+1. Go to [https://stripe.com](https://stripe.com) and create an account
+2. Complete the account verification process (required for live payments)
+3. For testing, you can skip verification and use test mode
+
+#### Step 2: Get Your Stripe API Keys
+
+1. Log into [Stripe Dashboard](https://dashboard.stripe.com)
+2. Navigate to **Developers** → **API Keys**
+3. Copy your keys:
+
+| Key Type | Test Mode | Live Mode |
+|----------|-----------|-----------|
+| Publishable Key | `pk_test_...` | `pk_live_...` |
+| Secret Key | `sk_test_...` | `sk_live_...` |
+
+> 💡 **Tip:** Toggle "Test mode" in the Stripe Dashboard to switch between test and live keys.
+
+#### Step 3: Configure Stripe in Admin Panel
+
+1. Start your app: `npm run dev`
+2. Go to: `http://localhost:3000/admin`
+3. Navigate to: **Settings** → **Payment** tab
+4. Enter your Stripe keys:
+   - **Publishable Key**: Your `pk_test_...` or `pk_live_...` key
+   - **Secret Key**: Your `sk_test_...` or `sk_live_...` key
+5. Click **Save**
+6. Click **Test Connection** to verify the keys work
+
+> 💡 Keys are encrypted before storage using AES-256-GCM.
+
+#### Step 4: Create Products in Stripe Dashboard
+
+Create subscription products that match your plans:
+
+1. Go to **Stripe Dashboard** → **Products** → **+ Add Product**
+2. Create each subscription tier:
+
+| Product Name | Monthly Price | Yearly Price | Stripe Price IDs |
+|--------------|---------------|--------------|------------------|
+| **Pro** | $19/month | $190/year | Copy both `price_` IDs |
+| **Business** | $49/month | $490/year | Copy both `price_` IDs |
+| **Enterprise** | $199/month | $1,990/year | Copy both `price_` IDs |
+
+For each product:
+1. Click **+ Add Product**
+2. Enter **Name** (e.g., "Pro Plan")
+3. Under **Pricing**, add a recurring price:
+   - Set **Price**: $19
+   - Set **Billing period**: Monthly
+   - Click **Add another price** for yearly option
+4. After saving, copy the **Price ID** (starts with `price_`)
+
+#### Step 5: Seed Subscription Plans
+
+Create a file `scripts/seed-plans.ts`:
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+async function seedPlans() {
+  const plans = [
+    {
+      name: 'Free',
+      slug: 'free',
+      description: 'Perfect for getting started',
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      maxUsers: 1,
+      maxStorageMb: 100,
+      maxProducts: 5,
+      maxCourses: 1,
+      features: ['basic_cms', 'media_library'],
+      displayOrder: 0,
+    },
+    {
+      name: 'Pro',
+      slug: 'pro',
+      description: 'For professionals and small teams',
+      monthlyPrice: 19,
+      yearlyPrice: 190,
+      // Replace with your actual Stripe Price IDs from Step 4
+      stripePriceIdMonthly: 'price_REPLACE_WITH_YOUR_PRO_MONTHLY_ID',
+      stripePriceIdYearly: 'price_REPLACE_WITH_YOUR_PRO_YEARLY_ID',
+      maxUsers: 5,
+      maxStorageMb: 10240,
+      maxProducts: 100,
+      maxCourses: 10,
+      features: ['basic_cms', 'media_library', 'video_calls', 'lms', 'ecommerce', 'analytics'],
+      isFeatured: true,
+      badgeText: 'Most Popular',
+      displayOrder: 1,
+    },
+    {
+      name: 'Business',
+      slug: 'business',
+      description: 'For growing businesses',
+      monthlyPrice: 49,
+      yearlyPrice: 490,
+      stripePriceIdMonthly: 'price_REPLACE_WITH_YOUR_BUSINESS_MONTHLY_ID',
+      stripePriceIdYearly: 'price_REPLACE_WITH_YOUR_BUSINESS_YEARLY_ID',
+      maxUsers: 25,
+      maxStorageMb: 102400,
+      features: ['basic_cms', 'media_library', 'video_calls', 'lms', 'ecommerce', 'analytics', 'api_access', 'priority_support', 'custom_domain'],
+      displayOrder: 2,
+    },
+    {
+      name: 'Enterprise',
+      slug: 'enterprise',
+      description: 'Custom solutions for large organizations',
+      monthlyPrice: 199,
+      yearlyPrice: 1990,
+      stripePriceIdMonthly: 'price_REPLACE_WITH_YOUR_ENTERPRISE_MONTHLY_ID',
+      stripePriceIdYearly: 'price_REPLACE_WITH_YOUR_ENTERPRISE_YEARLY_ID',
+      features: ['basic_cms', 'media_library', 'video_calls', 'lms', 'ecommerce', 'analytics', 'api_access', 'priority_support', 'custom_domain', 'sla', 'dedicated_support'],
+      badgeText: 'Best Value',
+      displayOrder: 3,
+    },
+  ];
+
+  for (const plan of plans) {
+    await prisma.subscriptionPlan.upsert({
+      where: { slug: plan.slug },
+      update: plan,
+      create: plan,
+    });
+    console.log(`✅ Created/updated plan: ${plan.name}`);
+  }
+
+  console.log('\n🎉 All subscription plans seeded successfully!');
+  await prisma.$disconnect();
+}
+
+seedPlans().catch(console.error);
+```
+
+Run the seed script:
+
+```bash
+npx ts-node scripts/seed-plans.ts
+```
+
+#### Step 6: Set Up Stripe Webhooks
+
+Webhooks notify your app when payments succeed or subscriptions change.
+
+**For Local Development (using Stripe CLI):**
+
+1. Install the [Stripe CLI](https://stripe.com/docs/stripe-cli)
+2. Login: `stripe login`
+3. Forward webhooks to your local server:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/subscriptions/webhook
+   ```
+4. Copy the webhook signing secret (`whsec_...`) that appears
+5. Add it to Admin Panel → Settings → Payment → **Webhook Secret**
+
+**For Production:**
+
+1. Go to **Stripe Dashboard** → **Developers** → **Webhooks**
+2. Click **+ Add endpoint**
+3. Enter your endpoint URL: `https://yourdomain.com/api/subscriptions/webhook`
+4. Select events to listen for:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `invoice.paid`
+   - `invoice.payment_failed`
+5. Click **Add endpoint**
+6. Click **Reveal** under Signing secret and copy it
+7. Add it to Admin Panel → Settings → Payment → **Webhook Secret**
+
+#### Step 7: Test the Payment Flow
+
+1. Make sure your app is running: `npm run dev`
+2. Go to your homepage: `http://localhost:3000`
+3. The pricing table should display your plans
+4. Click on a plan to start checkout
+5. Use Stripe test card numbers:
+
+| Card Number | Description |
+|-------------|-------------|
+| `4242 4242 4242 4242` | Successful payment |
+| `4000 0000 0000 3220` | Requires 3D Secure authentication |
+| `4000 0000 0000 9995` | Declined (insufficient funds) |
+
+Use any future expiry date (e.g., `12/34`) and any 3-digit CVC.
+
+#### Theme Integration
+
+The default theme includes subscription components that automatically display your plans:
+
+| Partial | Location | Description |
+|---------|----------|-------------|
+| `pricing-table.hbs` | `themes/default/partials/` | Plan comparison table |
+| `upgrade-banner.hbs` | `themes/default/partials/` | Banner prompting free users to upgrade |
+| `subscription-status.hbs` | `themes/default/partials/` | Current subscription display |
+| `subscription-cta.hbs` | `themes/default/partials/` | Call-to-action buttons |
+| `feature-gate.hbs` | `themes/default/partials/` | Lock premium content |
+
+These are integrated into `home.hbs`, `my-account.hbs`, and `checkout.hbs`.
+
+#### Subscription Handlebars Helpers
+
+Use these helpers in your theme templates:
+
+```handlebars
+{{!-- Check if user has a specific plan --}}
+{{#if (hasPlan "pro")}}
+  <p>You have Pro access!</p>
+{{/if}}
+
+{{!-- Check if user has a specific feature --}}
+{{#if (hasFeature "video_calls")}}
+  <button>Start Video Call</button>
+{{else}}
+  <button disabled>Upgrade to unlock</button>
+{{/if}}
+
+{{!-- Display current plan name --}}
+<p>Current Plan: {{subscription.planName}}</p>
+
+{{!-- Show upgrade CTA for free users --}}
+{{#unless (hasPlan "pro" "business" "enterprise")}}
+  {{> upgrade-banner}}
+{{/unless}}
+```
+
+#### Troubleshooting
+
+<details>
+<summary><strong>🔧 Common Issues and Solutions</strong></summary>
+
+<br />
+
+**"Stripe is not configured" error:**
+- Ensure you've added both publishable and secret keys in Admin → Settings → Payment
+- Click "Test Connection" to verify the keys work
+
+**Checkout redirects to error page:**
+- Check that your subscription plans have valid `stripePriceIdMonthly` and `stripePriceIdYearly` values
+- Verify the Price IDs exist in your Stripe Dashboard
+
+**Webhook events not received:**
+- For local dev, ensure `stripe listen` is running
+- Check the webhook signing secret matches what's in your admin settings
+- Verify the webhook URL is correct: `/api/subscriptions/webhook`
+
+**"Invalid API Key" error:**
+- Don't mix test and live keys (e.g., `pk_test_` with `sk_live_`)
+- Ensure there are no extra spaces in your keys
+
+**Subscription not updating after payment:**
+- Check webhook logs in Stripe Dashboard → Developers → Webhooks → Select endpoint → View logs
+- Ensure `checkout.session.completed` event is being sent
+
+</details>
+
+<br />
+
 ### 🔴 Redis Configuration (Optional)
 
 Redis is used for caching, session storage, rate limiting, and background job queues. The app works without Redis but with reduced performance.
