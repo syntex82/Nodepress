@@ -12,6 +12,7 @@ import EmojiPicker, { EmojiClickData, Theme, EmojiStyle } from 'emoji-picker-rea
 import { groupsApi, messagesApi } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import GroupVideoCall from '../components/GroupVideoCall';
+import VideoCall from '../components/VideoCall';
 
 interface MediaAttachment {
   url: string;
@@ -109,6 +110,7 @@ export default function GroupChat() {
   const [lightboxMedia, setLightboxMedia] = useState<MediaAttachment | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [videoCallTarget, setVideoCallTarget] = useState<{ id: string; name: string; avatar: string | null } | null>(null);
   const [activeVideoCall, setActiveVideoCall] = useState<{ roomUrl: string; startedBy: { id: string; name: string } } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -792,8 +794,8 @@ export default function GroupChat() {
         </div>
       )}
 
-      {/* Group Video Call */}
-      {showVideoCall && group && user && (
+      {/* Group Video Call - Member Picker */}
+      {showVideoCall && !videoCallTarget && group && user && (
         <GroupVideoCall
           groupId={group.id}
           groupName={group.name}
@@ -805,9 +807,38 @@ export default function GroupChat() {
             avatar: m.user.avatar,
           }))}
           onlineUsers={onlineUsers}
+          onCallUser={(userId) => {
+            const targetMember = members.find(m => m.user.id === userId);
+            if (targetMember) {
+              setVideoCallTarget({
+                id: targetMember.user.id,
+                name: targetMember.user.name,
+                avatar: targetMember.user.avatar,
+              });
+            }
+          }}
           onClose={() => {
             setShowVideoCall(false);
             setActiveVideoCall(null);
+          }}
+        />
+      )}
+
+      {/* Active 1-on-1 Video Call */}
+      {videoCallTarget && socket && user && (
+        <VideoCall
+          socket={socket}
+          currentUser={{
+            id: user.id,
+            name: user.name || 'User',
+            avatar: user.avatar || null,
+          }}
+          remoteUser={videoCallTarget}
+          conversationId={`group-call-${group?.id}-${videoCallTarget.id}`}
+          isIncoming={false}
+          onClose={() => {
+            setVideoCallTarget(null);
+            setShowVideoCall(false);
           }}
         />
       )}
