@@ -228,19 +228,17 @@ async function bootstrap() {
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
         password: process.env.REDIS_PASSWORD || undefined,
         db: parseInt(process.env.REDIS_DB || '0', 10),
-        keyPrefix: process.env.REDIS_PREFIX || 'wpnode:',
         maxRetriesPerRequest: null,
-        lazyConnect: true,
         enableReadyCheck: true,
       });
 
-      // Test Redis connection
-      await redisClient.connect();
+      // Test Redis connection with ping
+      await redisClient.ping();
       logger.log('🔴 Redis session store connected successfully');
 
       sessionConfig.store = new RedisStore({
         client: redisClient,
-        prefix: 'session:',
+        prefix: 'wpnode:session:',
         ttl: 60 * 60 * 24 * 7, // 7 days in seconds
       });
     } catch (error) {
