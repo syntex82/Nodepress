@@ -112,7 +112,8 @@ export default function GroupChat() {
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [videoCallTarget, setVideoCallTarget] = useState<{ id: string; name: string; avatar: string | null } | null>(null);
   const [activeVideoCall, setActiveVideoCall] = useState<{ roomUrl: string; startedBy: { id: string; name: string } } | null>(null);
-  const [callSocket, setCallSocket] = useState<Socket | null>(null); // Separate socket for call signaling via messages namespace
+  const [callSocket, setCallSocket] = useState<Socket | null>(null);
+  const [callSocketReady, setCallSocketReady] = useState(false); // Track when socket is authenticated
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +240,12 @@ export default function GroupChat() {
         console.log('Connected to messages gateway for video call');
       });
 
+      // Wait for server to confirm authentication before marking ready
+      newCallSocket.on('connected', () => {
+        console.log('Messages socket authenticated for video call');
+        setCallSocketReady(true);
+      });
+
       setCallSocket(newCallSocket);
     }
 
@@ -246,6 +253,7 @@ export default function GroupChat() {
     if (!videoCallTarget && callSocket) {
       callSocket.disconnect();
       setCallSocket(null);
+      setCallSocketReady(false);
     }
   }, [videoCallTarget, token]);
 
@@ -862,7 +870,7 @@ export default function GroupChat() {
       )}
 
       {/* Active 1-on-1 Video Call - uses messages socket for cross-namespace signaling */}
-      {videoCallTarget && callSocket && user && (
+      {videoCallTarget && callSocket && callSocketReady && user && (
         <VideoCall
           socket={callSocket}
           currentUser={{
@@ -878,6 +886,16 @@ export default function GroupChat() {
             setShowVideoCall(false);
           }}
         />
+      )}
+
+      {/* Connecting overlay while socket is being set up */}
+      {videoCallTarget && (!callSocket || !callSocketReady) && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white text-lg">Connecting...</p>
+          </div>
+        </div>
       )}
     </div>
   );
