@@ -6,11 +6,12 @@ import {
   createCheckout,
   getBillingPortal,
   cancelSubscription,
+  seedDefaultPlans,
   Subscription as SubscriptionType,
   SubscriptionPlan,
 } from '../services/subscriptionApi';
 import { showToast } from '../utils/toast';
-import { FaCreditCard, FaCalendar, FaExclamationTriangle, FaCheck, FaExternalLinkAlt, FaCrown, FaStar } from 'react-icons/fa';
+import { FaCreditCard, FaCalendar, FaExclamationTriangle, FaCheck, FaExternalLinkAlt, FaCrown, FaStar, FaDatabase } from 'react-icons/fa';
 
 export default function Subscription() {
   const [subscription, setSubscription] = useState<SubscriptionType | null>(null);
@@ -76,6 +77,19 @@ export default function Subscription() {
       loadData();
     } catch {
       showToast.error('Failed to cancel subscription');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSeedPlans = async () => {
+    setActionLoading(true);
+    try {
+      const result = await seedDefaultPlans();
+      showToast.success(result.message + (result.count ? ` (${result.count} plans created)` : ''));
+      loadData();
+    } catch {
+      showToast.error('Failed to seed plans');
     } finally {
       setActionLoading(false);
     }
@@ -211,42 +225,60 @@ export default function Subscription() {
           </div>
 
           {/* Available Plans */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.filter(p => p.monthlyPrice > 0).map((plan) => (
-              <div key={plan.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.description}</p>
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-gray-900 dark:text-white">${plan.monthlyPrice}</span>
-                  <span className="text-gray-500">/month</span>
+          {plans.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+              <FaDatabase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Subscription Plans Found</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                No subscription plans have been configured yet. Click below to create the default plans (Free, Pro, Business, Enterprise).
+              </p>
+              <button
+                onClick={handleSeedPlans}
+                disabled={actionLoading}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+              >
+                <FaDatabase className="h-5 w-5" />
+                {actionLoading ? 'Creating Plans...' : 'Create Default Plans'}
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {plans.filter(p => p.monthlyPrice > 0).map((plan) => (
+                <div key={plan.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.description}</p>
+                  <div className="mb-6">
+                    <span className="text-3xl font-bold text-gray-900 dark:text-white">${plan.monthlyPrice}</span>
+                    <span className="text-gray-500">/month</span>
+                  </div>
+                  <div className="space-y-2 mb-6">
+                    {(plan.features as string[]).slice(0, 5).map((feature) => (
+                      <div key={feature} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <FaCheck className="h-4 w-4 text-green-500" />
+                        <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => handleUpgrade(plan, 'monthly')}
+                      disabled={actionLoading}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+                    >
+                      Monthly ${plan.monthlyPrice}
+                    </button>
+                    <button
+                      onClick={() => handleUpgrade(plan, 'yearly')}
+                      disabled={actionLoading}
+                      className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
+                    >
+                      Yearly ${plan.yearlyPrice} (Save 17%)
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-2 mb-6">
-                  {(plan.features as string[]).slice(0, 5).map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                      <FaCheck className="h-4 w-4 text-green-500" />
-                      <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleUpgrade(plan, 'monthly')}
-                    disabled={actionLoading}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
-                  >
-                    Monthly ${plan.monthlyPrice}
-                  </button>
-                  <button
-                    onClick={() => handleUpgrade(plan, 'yearly')}
-                    disabled={actionLoading}
-                    className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
-                  >
-                    Yearly ${plan.yearlyPrice} (Save 17%)
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -238,7 +238,7 @@ export default function Pricing() {
             Contact us for enterprise pricing with custom limits, SLA, and dedicated support.
           </p>
           <a
-            href="mailto:sales@example.com"
+            href="mailto:support@wordpressnode.co.uk"
             className="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition"
           >
             Contact Sales
