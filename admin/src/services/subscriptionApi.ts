@@ -117,3 +117,9 @@ export const seedDefaultPlans = async (): Promise<{ message: string; count?: num
   return response.data;
 };
 
+// Activate all plans
+export const activateAllPlans = async (): Promise<{ message: string; count?: number }> => {
+  const response = await api.post('/subscriptions/admin/activate-all-plans');
+  return response.data;
+};
+

@@ -126,5 +126,12 @@ export class SubscriptionsController {
   async seedDefaultPlans() {
     return this.subscriptionsService.seedDefaultPlans();
   }
+
+  @Post('admin/activate-all-plans')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async activateAllPlans() {
+    return this.subscriptionsService.activateAllPlans();
+  }
 }
 

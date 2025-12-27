@@ -363,6 +363,7 @@ export class SubscriptionsService {
         maxCourses: 1,
         maxProducts: 5,
         features: ['basic_cms', 'media_library'],
+        isActive: true,
         displayOrder: 0,
       },
       {
@@ -377,6 +378,7 @@ export class SubscriptionsService {
         maxCourses: 10,
         maxProducts: 100,
         features: ['basic_cms', 'media_library', 'video_calls', 'lms', 'ecommerce', 'analytics'],
+        isActive: true,
         isFeatured: true,
         badgeText: 'Most Popular',
         displayOrder: 1,
@@ -392,6 +394,7 @@ export class SubscriptionsService {
         maxCourses: null,
         maxProducts: null,
         features: ['basic_cms', 'media_library', 'video_calls', 'lms', 'ecommerce', 'analytics', 'api_access', 'priority_support', 'custom_domain'],
+        isActive: true,
         displayOrder: 2,
       },
       {
@@ -403,6 +406,7 @@ export class SubscriptionsService {
         maxUsers: null,
         maxStorageMb: null,
         features: ['basic_cms', 'media_library', 'video_calls', 'lms', 'ecommerce', 'analytics', 'api_access', 'priority_support', 'custom_domain', 'sla', 'dedicated_support', 'custom_integrations'],
+        isActive: true,
         badgeText: 'Best Value',
         displayOrder: 3,
       },
@@ -413,6 +417,16 @@ export class SubscriptionsService {
     }
 
     return { message: 'Default plans created', count: plans.length };
+  }
+
+  /**
+   * Activate all existing plans (fix for plans created without isActive)
+   */
+  async activateAllPlans() {
+    const result = await this.prisma.subscriptionPlan.updateMany({
+      data: { isActive: true },
+    });
+    return { message: 'All plans activated', count: result.count };
   }
 
   /**

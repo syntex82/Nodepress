@@ -7,6 +7,7 @@ import {
   getBillingPortal,
   cancelSubscription,
   seedDefaultPlans,
+  activateAllPlans,
   Subscription as SubscriptionType,
   SubscriptionPlan,
 } from '../services/subscriptionApi';
@@ -90,6 +91,19 @@ export default function Subscription() {
       loadData();
     } catch {
       showToast.error('Failed to seed plans');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleActivatePlans = async () => {
+    setActionLoading(true);
+    try {
+      const result = await activateAllPlans();
+      showToast.success(result.message + (result.count ? ` (${result.count} plans activated)` : ''));
+      loadData();
+    } catch {
+      showToast.error('Failed to activate plans');
     } finally {
       setActionLoading(false);
     }
@@ -230,16 +244,26 @@ export default function Subscription() {
               <FaDatabase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Subscription Plans Found</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                No subscription plans have been configured yet. Click below to create the default plans (Free, Pro, Business, Enterprise).
+                No subscription plans have been configured yet. Click below to create the default plans or activate existing ones.
               </p>
-              <button
-                onClick={handleSeedPlans}
-                disabled={actionLoading}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
-              >
-                <FaDatabase className="h-5 w-5" />
-                {actionLoading ? 'Creating Plans...' : 'Create Default Plans'}
-              </button>
+              <div className="flex justify-center gap-4 flex-wrap">
+                <button
+                  onClick={handleSeedPlans}
+                  disabled={actionLoading}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+                >
+                  <FaDatabase className="h-5 w-5" />
+                  {actionLoading ? 'Creating...' : 'Create Default Plans'}
+                </button>
+                <button
+                  onClick={handleActivatePlans}
+                  disabled={actionLoading}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
+                >
+                  <FaCheck className="h-5 w-5" />
+                  {actionLoading ? 'Activating...' : 'Activate All Plans'}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
