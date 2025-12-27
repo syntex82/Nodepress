@@ -96,6 +96,19 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-16 px-4">
       <div className="max-w-7xl mx-auto">
+        {/* Back to Home Link */}
+        <div className="mb-8">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+          </a>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
@@ -231,19 +244,7 @@ export default function Pricing() {
           })}
         </div>
 
-        {/* Enterprise CTA */}
-        <div className="mt-16 text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white">
-          <h2 className="text-3xl font-bold mb-4">Need a Custom Solution?</h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Contact us for enterprise pricing with custom limits, SLA, and dedicated support.
-          </p>
-          <a
-            href="mailto:support@wordpressnode.co.uk"
-            className="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition"
-          >
-            Contact Sales
-          </a>
-        </div>
+
       </div>
     </div>
   );
