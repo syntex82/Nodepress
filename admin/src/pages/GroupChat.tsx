@@ -112,8 +112,7 @@ export default function GroupChat() {
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [videoCallTarget, setVideoCallTarget] = useState<{ id: string; name: string; avatar: string | null } | null>(null);
   const [activeVideoCall, setActiveVideoCall] = useState<{ roomUrl: string; startedBy: { id: string; name: string } } | null>(null);
-  const [callSocket, setCallSocket] = useState<Socket | null>(null);
-  const [callSocketReady, setCallSocketReady] = useState(false); // Track when socket is authenticated
+  const [messagesSocket, setMessagesSocket] = useState<Socket | null>(null); // For video calls via messages namespace
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -219,15 +218,11 @@ export default function GroupChat() {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Create messages socket when initiating a video call (for cross-namespace signaling)
+  // Connect to messages namespace for video calls (so target user receives the call)
   useEffect(() => {
-    if (videoCallTarget && token && !callSocket) {
+    if (token && group?.isMember) {
       const wsUrl = `${window.location.protocol}//${window.location.host}/messages`;
-      const newCallSocket = io(wsUrl, {
+      const msgSocket = io(wsUrl, {
         auth: { token },
         transports: ['websocket', 'polling'],
         path: '/socket.io',
@@ -236,35 +231,24 @@ export default function GroupChat() {
         reconnectionDelay: 1000,
       });
 
-      newCallSocket.on('connect', () => {
-        console.log('Connected to messages gateway for video call');
+      msgSocket.on('connect', () => {
+        console.log('Messages socket connected for video calls');
       });
 
-      // Wait for server to confirm authentication before marking ready
-      newCallSocket.on('connected', () => {
-        console.log('Messages socket authenticated for video call');
-        setCallSocketReady(true);
-      });
+      setMessagesSocket(msgSocket);
 
-      setCallSocket(newCallSocket);
+      return () => {
+        msgSocket.disconnect();
+        setMessagesSocket(null);
+      };
     }
+  }, [token, group?.isMember]);
 
-    // Cleanup when video call ends
-    if (!videoCallTarget && callSocket) {
-      callSocket.disconnect();
-      setCallSocket(null);
-      setCallSocketReady(false);
-    }
-  }, [videoCallTarget, token]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  // Cleanup call socket on unmount
-  useEffect(() => {
-    return () => {
-      if (callSocket) {
-        callSocket.disconnect();
-      }
-    };
-  }, []);
+
 
   const loadGroup = async () => {
     try {
@@ -869,10 +853,10 @@ export default function GroupChat() {
         />
       )}
 
-      {/* Active 1-on-1 Video Call - uses messages socket for cross-namespace signaling */}
-      {videoCallTarget && callSocket && callSocketReady && user && (
+      {/* Active 1-on-1 Video Call - uses messages socket so target receives call */}
+      {videoCallTarget && messagesSocket?.connected && user && (
         <VideoCall
-          socket={callSocket}
+          socket={messagesSocket}
           currentUser={{
             id: user.id,
             name: user.name || 'User',
@@ -886,16 +870,6 @@ export default function GroupChat() {
             setShowVideoCall(false);
           }}
         />
-      )}
-
-      {/* Connecting overlay while socket is being set up */}
-      {videoCallTarget && (!callSocket || !callSocketReady) && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-white text-lg">Connecting...</p>
-          </div>
-        </div>
       )}
     </div>
   );
