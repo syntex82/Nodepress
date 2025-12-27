@@ -1,17 +1,21 @@
 /**
  * Products Controller
  * Admin endpoints for product management
+ * Requires E-commerce feature in subscription
  */
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
+import { FeatureGuard } from '../../../common/guards/feature.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
+import { RequiresFeature, SUBSCRIPTION_FEATURES } from '../../../common/decorators/subscription.decorator';
 import { UserRole } from '@prisma/client';
 import { ProductsService } from '../services/products.service';
 import { CreateProductDto, UpdateProductDto, ProductQueryDto } from '../dto/product.dto';
 
 @Controller('api/shop/products')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
+@RequiresFeature(SUBSCRIPTION_FEATURES.ECOMMERCE)
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
 

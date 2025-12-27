@@ -1,11 +1,14 @@
 /**
  * Analytics Controller - API endpoints for analytics dashboard
+ * Admin dashboard routes require Analytics feature in subscription
  */
 import { Controller, Get, Post, Body, Query, UseGuards, Req } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { FeatureGuard } from '../../common/guards/feature.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { RequiresFeature, SUBSCRIPTION_FEATURES } from '../../common/decorators/subscription.decorator';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { PrismaService } from '../../database/prisma.service';
@@ -17,52 +20,59 @@ export class AnalyticsController {
     private readonly prisma: PrismaService,
   ) {}
 
-  // Admin endpoints (protected)
+  // Admin endpoints (protected + requires analytics feature)
   @Get('dashboard')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getDashboardStats(@Query('period') period?: string) {
     return this.analyticsService.getDashboardStats(period || 'week');
   }
 
   @Get('pageviews')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getPageViewsOverTime(@Query('period') period?: string) {
     return this.analyticsService.getPageViewsOverTime(period || 'week');
   }
 
   @Get('top-pages')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getTopPages(@Query('period') period?: string, @Query('limit') limit?: string) {
     return this.analyticsService.getTopPages(period || 'week', parseInt(limit || '10'));
   }
 
   @Get('traffic-sources')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getTrafficSources(@Query('period') period?: string, @Query('limit') limit?: string) {
     return this.analyticsService.getTrafficSources(period || 'week', parseInt(limit || '10'));
   }
 
   @Get('devices')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getDeviceBreakdown(@Query('period') period?: string) {
     return this.analyticsService.getDeviceBreakdown(period || 'week');
   }
 
   @Get('browsers')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getBrowserBreakdown(@Query('period') period?: string) {
     return this.analyticsService.getBrowserBreakdown(period || 'week');
   }
 
   @Get('realtime')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, FeatureGuard)
   @Roles(UserRole.ADMIN)
+  @RequiresFeature(SUBSCRIPTION_FEATURES.ANALYTICS)
   getRealTimeStats() {
     return this.analyticsService.getRealTimeStats();
   }

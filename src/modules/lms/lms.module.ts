@@ -27,6 +27,7 @@ import { CertificatesController } from './controllers/certificates.controller';
 
 // Guards
 import { CourseOwnershipGuard } from './guards/course-ownership.guard';
+import { FeatureGuard } from '../../common/guards/feature.guard';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
@@ -51,6 +52,7 @@ import { CourseOwnershipGuard } from './guards/course-ownership.guard';
     CertificateGeneratorService,
     CoursePlaceholderService,
     CourseOwnershipGuard,
+    FeatureGuard,
   ],
   exports: [
     CoursesService,

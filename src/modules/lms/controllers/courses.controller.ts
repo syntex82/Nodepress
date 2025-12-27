@@ -1,6 +1,7 @@
 /**
  * Courses Controller for LMS Module
  * Handles admin course management
+ * Requires LMS feature in subscription
  */
 import {
   Controller,
@@ -17,6 +18,8 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { FeatureGuard } from '../../../common/guards/feature.guard';
+import { RequiresFeature, SUBSCRIPTION_FEATURES } from '../../../common/decorators/subscription.decorator';
 import { CoursesService } from '../services/courses.service';
 import { CoursePlaceholderService } from '../services/course-placeholder.service';
 import { CreateCourseDto, UpdateCourseDto, CourseQueryDto } from '../dto/course.dto';
@@ -24,7 +27,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 @Controller('api/lms/admin/courses')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FeatureGuard)
+@RequiresFeature(SUBSCRIPTION_FEATURES.LMS)
 export class CoursesController {
   constructor(
     private readonly coursesService: CoursesService,

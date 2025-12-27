@@ -108,6 +108,10 @@ const MarketplaceProjects = lazy(() => import('./pages/marketplace').then(m => (
 const DeveloperApplication = lazy(() => import('./pages/marketplace').then(m => ({ default: m.DeveloperApplication })));
 const HireForm = lazy(() => import('./pages/marketplace').then(m => ({ default: m.HireForm })));
 
+// Lazy-loaded pages - Subscriptions
+const Pricing = lazy(() => import('./pages/Pricing'));
+const Subscription = lazy(() => import('./pages/Subscription'));
+
 function App() {
   const { isAuthenticated, _hasHydrated } = useAuthStore();
 
@@ -135,6 +139,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/pricing" element={<Pricing />} />
 
             {/* Public Profile */}
             <Route path="/u/:identifier" element={<PublicProfile />} />
@@ -241,6 +246,10 @@ function App() {
 
                 {/* Settings */}
                 <Route path="settings" element={<ProtectedRoute feature="settings" requiredRole="ADMIN"><Settings /></ProtectedRoute>} />
+
+                {/* Subscription */}
+                <Route path="subscription" element={<Subscription />} />
+                <Route path="subscription/success" element={<Subscription />} />
 
                 {/* Catch-all for authenticated users - redirect to dashboard */}
                 <Route path="*" element={<Navigate to="/" replace />} />

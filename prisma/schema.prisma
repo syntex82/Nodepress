@@ -126,6 +126,9 @@ model User {
 
   // System Updates
   initiatedUpdates      UpdateHistory[]
+
+  // Subscription
+  subscription          Subscription?
 }
 
 // Follow relationship for users
@@ -2759,4 +2762,112 @@ model SystemVersion {
 
   @@index([isCurrentVersion])
   @@index([version])
+}
+
+// ============================================
+// SUBSCRIPTION & BILLING MODELS
+// ============================================
+
+// Subscription Plans (what you sell)
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  name            String   // "Free", "Pro", "Business", "Enterprise"
+  slug            String   @unique
+  description     String?  @db.Text
+
+  // Pricing
+  monthlyPrice    Decimal  @db.Decimal(10, 2) @default(0)
+  yearlyPrice     Decimal  @db.Decimal(10, 2) @default(0)
+
+  // Stripe Price IDs (created in Stripe Dashboard)
+  stripePriceIdMonthly String?
+  stripePriceIdYearly  String?
+  stripeProductId      String?
+
+  // Plan Limits
+  maxUsers        Int?     // null = unlimited
+  maxStorageMb    Int?     // Storage in MB, null = unlimited
+  maxProjects     Int?     // null = unlimited
+  maxCourses      Int?     // LMS courses, null = unlimited
+  maxProducts     Int?     // Shop products, null = unlimited
+
+  // Feature Flags (what's included)
+  features        Json     @default("[]") // ["video_calls", "lms", "ecommerce", "api", "priority_support"]
+
+  // Display
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false) // Highlight this plan
+  displayOrder    Int      @default(0)
+  badgeText       String?  // "Most Popular", "Best Value"
+
+  // Trial
+  trialDays       Int      @default(0)
+
+  subscriptions   Subscription[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+// User Subscriptions
+model Subscription {
+  id              String   @id @default(uuid())
+
+  // User relationship
+  userId          String   @unique // One subscription per user
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Plan relationship
+  planId          String
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  // Status
+  status          SubscriptionStatus @default(ACTIVE)
+  billingCycle    BillingCycle @default(MONTHLY)
+
+  // Stripe fields
+  stripeSubscriptionId String? @unique
+  stripeCustomerId     String?
+
+  // Billing period
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+
+  // Cancellation
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+  cancelReason       String?
+
+  // Trial
+  trialStart         DateTime?
+  trialEnd           DateTime?
+
+  // Metadata
+  metadata           Json?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  PAUSED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
 }

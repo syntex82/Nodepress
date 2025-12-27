@@ -24,6 +24,7 @@ import {
 } from './controllers/orders.controller';
 import { CheckoutController, RefundsController } from './controllers/checkout.controller';
 import { StorefrontController } from './controllers/storefront.controller';
+import { FeatureGuard } from '../../common/guards/feature.guard';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
@@ -40,7 +41,7 @@ import { StorefrontController } from './controllers/storefront.controller';
     CheckoutController,
     StorefrontController,
   ],
-  providers: [ProductsService, CategoriesService, CartService, OrdersService, StripeService],
+  providers: [ProductsService, CategoriesService, CartService, OrdersService, StripeService, FeatureGuard],
   exports: [ProductsService, CategoriesService, CartService, OrdersService, StripeService],
 })
 export class ShopModule {}

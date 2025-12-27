@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { VideoService } from './video.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FeatureGuard } from '../../common/guards/feature.guard';
+import { RequiresFeature, SUBSCRIPTION_FEATURES } from '../../common/decorators/subscription.decorator';
 
 interface CreateRoomDto {
   roomName?: string;
@@ -19,7 +21,8 @@ interface CreateRoomDto {
 }
 
 @Controller('api/video')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FeatureGuard)
+@RequiresFeature(SUBSCRIPTION_FEATURES.VIDEO_CALLS)
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
