@@ -439,4 +439,131 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     return { success: true };
   }
+
+  // ==================== 1-ON-1 VIDEO CALL SIGNALING ====================
+  // These handlers enable 1-on-1 video calls initiated from groups
+
+  /**
+   * Helper to emit event to a specific user (all their sockets)
+   */
+  private emitToUser(userId: string, event: string, data: any) {
+    const socketIds = this.userSockets.get(userId);
+    if (socketIds) {
+      socketIds.forEach((socketId) => {
+        this.server.to(socketId).emit(event, data);
+      });
+    }
+  }
+
+  @SubscribeMessage('call:initiate')
+  async handleCallInitiate(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string; conversationId?: string },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    // Emit incoming call to target user
+    this.emitToUser(data.targetUserId, 'call:incoming', {
+      callerId: user.id,
+      callerName: user.name,
+      callerAvatar: user.avatar,
+      conversationId: data.conversationId || `direct-${user.id}-${data.targetUserId}`,
+    });
+
+    return { success: true };
+  }
+
+  @SubscribeMessage('call:accept')
+  async handleCallAccept(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    this.emitToUser(data.targetUserId, 'call:accepted', {
+      accepterId: user.id,
+    });
+
+    return { success: true };
+  }
+
+  @SubscribeMessage('call:reject')
+  async handleCallReject(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    this.emitToUser(data.targetUserId, 'call:rejected', {
+      rejecterId: user.id,
+    });
+
+    return { success: true };
+  }
+
+  @SubscribeMessage('call:offer')
+  async handleCallOffer(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string; offer: RTCSessionDescriptionInit },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    this.emitToUser(data.targetUserId, 'call:offer', {
+      callerId: user.id,
+      offer: data.offer,
+    });
+
+    return { success: true };
+  }
+
+  @SubscribeMessage('call:answer')
+  async handleCallAnswer(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string; answer: RTCSessionDescriptionInit },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    this.emitToUser(data.targetUserId, 'call:answer', {
+      answererId: user.id,
+      answer: data.answer,
+    });
+
+    return { success: true };
+  }
+
+  @SubscribeMessage('call:ice-candidate')
+  async handleIceCandidate(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string; candidate: RTCIceCandidateInit },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    this.emitToUser(data.targetUserId, 'call:ice-candidate', {
+      senderId: user.id,
+      candidate: data.candidate,
+    });
+
+    return { success: true };
+  }
+
+  @SubscribeMessage('call:end')
+  async handleCallEnd(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { targetUserId: string },
+  ) {
+    const user = this.socketUsers.get(client.id);
+    if (!user) return { error: 'Unauthorized' };
+
+    this.emitToUser(data.targetUserId, 'call:ended', {
+      enderId: user.id,
+    });
+
+    return { success: true };
+  }
 }
