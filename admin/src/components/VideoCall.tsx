@@ -262,7 +262,6 @@ export default function VideoCall({
           channelCount: { ideal: 1 }, // Mono for voice
           sampleRate: { ideal: 48000 },
           sampleSize: { ideal: 16 },
-          latency: { ideal: 0.01 }, // Low latency
         }
       });
 
