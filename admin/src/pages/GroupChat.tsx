@@ -799,6 +799,12 @@ export default function GroupChat() {
           groupName={group.name}
           userName={user.name || 'User'}
           socket={socket}
+          members={members.map(m => ({
+            id: m.user.id,
+            name: m.user.name,
+            avatar: m.user.avatar,
+          }))}
+          onlineUsers={onlineUsers}
           onClose={() => {
             setShowVideoCall(false);
             setActiveVideoCall(null);
