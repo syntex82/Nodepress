@@ -21,6 +21,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { DevelopersService } from '../marketplace/services/developers.service';
 import { MarketplaceService } from '../themes/marketplace.service';
 import { PluginMarketplaceService } from '../plugins/plugin-marketplace.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { PostStatus } from '@prisma/client';
 import { CourseLevel, CoursePriceType } from '../lms/dto/course.dto';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -48,6 +49,8 @@ export class PublicController {
     private themeMarketplaceService: MarketplaceService,
     @Inject(forwardRef(() => PluginMarketplaceService))
     private pluginMarketplaceService: PluginMarketplaceService,
+    @Inject(forwardRef(() => SubscriptionsService))
+    private subscriptionsService: SubscriptionsService,
   ) {}
 
   /**
@@ -1112,6 +1115,34 @@ export class PublicController {
     } catch (error) {
       console.error('Error rendering developer guidelines:', error);
       res.status(500).send('Error loading guidelines');
+    }
+  }
+
+  // ============================================
+  // PRICING & SUBSCRIPTION ROUTES
+  // ============================================
+
+  /**
+   * Pricing page - show subscription plans
+   * GET /pricing
+   */
+  @Get('pricing')
+  @UseGuards(OptionalJwtAuthGuard)
+  async pricing(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = (req as any).user;
+      const plans = await this.subscriptionsService.getPlans(false);
+
+      const html = await this.themeRenderer.render('pricing', {
+        title: 'Pricing Plans',
+        description: 'Choose the perfect plan for your needs',
+        plans,
+        user,
+      });
+      res.send(html);
+    } catch (error) {
+      console.error('Error rendering pricing page:', error);
+      res.status(500).send('Error loading pricing');
     }
   }
 

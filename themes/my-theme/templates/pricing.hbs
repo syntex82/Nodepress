@@ -1,0 +1,179 @@
+{{> header}}
+
+<style>
+  .pricing-page {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    padding: 100px 20px 80px;
+  }
+  .pricing-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  .pricing-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.75rem;
+  }
+  .pricing-header p {
+    color: #94a3b8;
+    font-size: 1.1rem;
+  }
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .plan-card {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .plan-card:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(-4px);
+  }
+  .plan-card.featured {
+    border-color: #6366f1;
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+  }
+  .plan-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .plan-description {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+  .plan-price {
+    margin-bottom: 1.5rem;
+  }
+  .plan-price .amount {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .plan-price .period {
+    color: #64748b;
+    font-size: 1rem;
+  }
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+  }
+  .plan-features li {
+    padding: 0.5rem 0;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .plan-features li::before {
+    content: "✓";
+    color: #10b981;
+    font-weight: bold;
+  }
+  .btn-plan {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-plan:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  }
+  .btn-plan.free {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 16px;
+  }
+  .empty-state h2 { color: #fff; margin-bottom: 0.5rem; }
+  .empty-state p { color: #94a3b8; }
+  @media (max-width: 768px) {
+    .pricing-page { padding-top: 80px; }
+    .pricing-header h1 { font-size: 2rem; }
+    .plans-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="pricing-page">
+  <div class="pricing-container">
+    <div class="pricing-header">
+      <h1>💎 {{title}}</h1>
+      <p>{{description}}</p>
+    </div>
+
+    {{#if plans.length}}
+    <div class="plans-grid">
+      {{#each plans}}
+      <div class="plan-card {{#if isFeatured}}featured{{/if}}">
+        {{#if badgeText}}<div class="plan-badge">{{badgeText}}</div>{{/if}}
+        <h3 class="plan-name">{{name}}</h3>
+        <p class="plan-description">{{description}}</p>
+        <div class="plan-price">
+          <span class="amount">${{monthlyPrice}}</span>
+          <span class="period">/month</span>
+        </div>
+        <ul class="plan-features">
+          {{#each features}}
+          <li>{{this}}</li>
+          {{/each}}
+        </ul>
+        {{#if (eq monthlyPrice 0)}}
+        <a href="/admin/subscription" class="btn-plan free">Get Started Free</a>
+        {{else}}
+        <a href="/admin/subscription" class="btn-plan">Choose {{name}}</a>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+    {{else}}
+    <div class="empty-state">
+      <h2>No plans available</h2>
+      <p>Please check back later.</p>
+    </div>
+    {{/if}}
+  </div>
+</div>
+
+{{> footer}}
+
