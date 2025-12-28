@@ -1,0 +1,23 @@
+# Robots.txt for WordPress Node CMS
+# https://wordpressnode.co.uk
+
+User-agent: *
+Allow: /
+
+# Disallow admin and API paths
+Disallow: /admin/
+Disallow: /api/
+Disallow: /uploads/messages/
+
+# Allow search engines to access these
+Allow: /blog/
+Allow: /shop/
+Allow: /courses/
+Allow: /page/
+
+# Sitemap location
+Sitemap: https://wordpressnode.co.uk/sitemap.xml
+
+# Crawl delay (optional, for politeness)
+Crawl-delay: 1
+
