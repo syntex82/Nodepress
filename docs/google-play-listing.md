@@ -1,10 +1,10 @@
-# WP Node - Google Play Store Listing
+# Learn Online - Google Play Store Listing
 
 ## App Name
-WP Node
+Learn Online
 
 ## Short Description (80 characters max)
-Modern CMS with real-time messaging, video calls, and collaboration tools.
+Modern LMS with real-time messaging, video calls, and online course creation.
 
 ## Full Description (4000 characters max)
 
@@ -89,10 +89,10 @@ CMS, messaging, video call, blog, e-commerce, LMS, learning, collaboration, cont
 Everyone
 
 ## Privacy Policy URL
-https://wp-node.onrender.com/privacy-policy.html
+https://learnonline.cc/privacy-policy.html
 
 ## Contact Email
-support@wpnode.app
+support@learnonline.cc
 
 ---
 
@@ -109,11 +109,13 @@ support@wpnode.app
 
 ## Feature Graphic (1024x500)
 Create a banner with:
-- WP Node logo (hexagon)
-- Tagline: "Modern CMS. Real-time Collaboration."
+- Learn Online logo
+- Tagline: "Learn Anywhere. Connect Everywhere."
 - Dark background (#0f172a)
-- Teal accents (#2dd4bf)
+- Indigo accents (#4f46e5)
+- Save to: `android-app/play-store-assets/feature-graphic.png`
 
 ## App Icon
-Use the icon-512.svg from public/pwa/icons/
+- Source: `public/pwa/icons/icon-512.svg`
+- Export to: `android-app/play-store-assets/icon-512.png`
 

@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "cc.learnonline.app-merged_res-32:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "cc.learnonline.app-main-34:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "cc.learnonline.app-merged_res-32:/xml_network_security_config.xml.flat",
+        "source": "cc.learnonline.app-main-34:/xml/network_security_config.xml"
+    },
+    {
+        "merged": "cc.learnonline.app-merged_res-32:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "cc.learnonline.app-main-34:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "cc.learnonline.app-merged_res-32:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "cc.learnonline.app-main-34:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "cc.learnonline.app-merged_res-32:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "cc.learnonline.app-main-34:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "cc.learnonline.app-merged_res-32:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "cc.learnonline.app-main-34:/mipmap-xxxhdpi/ic_launcher.png"
+    }
+]
