@@ -398,29 +398,31 @@ async function bootstrap() {
   });
 
   // Helper function to generate service worker code
-  // v3: Don't cache /admin/ to prevent stale data issues
+  // v4: Minimal interception - only cache static assets, never intercept navigation
   const generateServiceWorker = () => `
-const CACHE = 'wp-node-v3';
-const OFFLINE_URL = '/api/pwa/offline';
+const CACHE = 'wp-node-v4';
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll([OFFLINE_URL])).then(() => self.skipWaiting())
-  );
-});
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET' || e.request.url.includes('/api/') || e.request.url.includes('/socket.io')) return;
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request).then(c => c || caches.match(OFFLINE_URL)))
-  );
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (e.request.mode === 'navigate') return;
+  if (url.pathname.startsWith('/admin')) return;
+  if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.includes('/socket.io')) return;
+  if (url.pathname.includes('/messages')) return;
+  if (url.pathname.includes('/lms')) return;
+  if (url.pathname.includes('/courses')) return;
+  if (url.pathname.includes('/shop')) return;
+  if (url.origin !== self.location.origin) return;
+  const isStatic = url.pathname.match(/\\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/);
+  if (!isStatic) return;
+  e.respondWith(fetch(e.request).then(r => { if (r.status === 200) { const c = r.clone(); caches.open(CACHE).then(cache => cache.put(e.request, c)); } return r; }).catch(() => caches.match(e.request)));
 });
 `;
 

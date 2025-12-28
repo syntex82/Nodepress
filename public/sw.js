@@ -1,45 +1,49 @@
-const CACHE_NAME = 'wp-node-v3';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'wp-node-v4';
 
-// Install - cache only offline page (not admin to avoid stale data)
+// Install - skip waiting immediately
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/offline.html'
-      ]);
-    }).then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
-// Activate - clean up old caches (clear all previous versions)
+// Activate - clean up old caches and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+        cacheNames.map((name) => caches.delete(name))
       );
     }).then(() => self.clients.claim())
   );
 });
 
-// Fetch - network first, fall back to cache
+// Fetch - minimal interception, let most requests pass through
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests and API/socket requests
+  // Only handle GET requests
   if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('/api/')) return;
-  if (event.request.url.includes('/socket.io')) return;
-  if (event.request.url.includes('/messages')) return;
-  if (event.request.url.includes('/groups')) return;
 
-  // Skip external URLs (Stripe, fonts, etc.)
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
 
+  // Never intercept these - let them pass through directly
+  if (event.request.mode === 'navigate') return; // All page navigations
+  if (url.pathname.startsWith('/admin')) return; // Admin panel
+  if (url.pathname.startsWith('/api/')) return; // API calls
+  if (url.pathname.includes('/socket.io')) return; // WebSocket
+  if (url.pathname.includes('/messages')) return; // Messages
+  if (url.pathname.includes('/lms')) return; // LMS pages
+  if (url.pathname.includes('/courses')) return; // Course pages
+  if (url.pathname.includes('/shop')) return; // Shop pages
+  if (url.origin !== self.location.origin) return; // External URLs
+
+  // Only cache static assets (images, CSS, JS, fonts)
+  const isStaticAsset =
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/);
+
+  if (!isStaticAsset) return; // Don't intercept non-static assets
+
+  // For static assets: try network first, fallback to cache
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful responses
         if (response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -49,17 +53,7 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // Return cached version or offline page
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // For navigation requests, show offline page
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL);
-          }
-          return new Response('Offline', { status: 503 });
-        });
+        return caches.match(event.request);
       })
   );
 });
