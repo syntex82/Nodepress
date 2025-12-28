@@ -240,6 +240,8 @@
         .container.cms .meta-item .value { color: #9b59b6; }
         .more-link { display: block; margin-top: 20px; color: #8899a6; font-size: 14px; text-decoration: none; }
         .more-link:hover { color: #2ecc71; }
+        .home-link { display: inline-flex; align-items: center; gap: 8px; color: #2ecc71; text-decoration: none; margin-bottom: 30px; }
+        .home-link:hover { text-decoration: underline; }
         @media (max-width: 480px) {
             .container { padding: 30px 20px; }
             h2 { font-size: 20px; }
@@ -250,8 +252,13 @@
 </head>
 <body>
     <div class="page-container">
+        <a href="/" class="home-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Back to Home
+        </a>
+
         <div class="header">
-            <div class="logo">
+            <a href="/" class="logo">
                 <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <polygon points="60,10 110,35 110,85 60,110 10,85 10,35" fill="none" stroke="#2ecc71" stroke-width="3"/>
                     <circle cx="60" cy="10" r="6" fill="#2ecc71"/><circle cx="110" cy="35" r="6" fill="#9b59b6"/>
@@ -260,7 +267,7 @@
                     <text x="60" y="58" text-anchor="middle" fill="#ffffff" font-family="Arial" font-size="24" font-weight="bold">WP</text>
                     <text x="60" y="78" text-anchor="middle" fill="#2ecc71" font-family="Arial" font-size="14" font-weight="600">NODE</text>
                 </svg>
-            </div>
+            </a>
             <h1>Downloads</h1>
             <p>Get WP Node for your platform</p>
         </div>

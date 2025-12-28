@@ -10,7 +10,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a2332; min-height: 100vh; padding: 40px 20px; color: #fff; }
         .container { max-width: 600px; margin: 0 auto; }
-        .back-link { display: inline-flex; align-items: center; gap: 8px; color: #2ecc71; text-decoration: none; margin-bottom: 30px; }
+        .nav-links { display: flex; gap: 20px; margin-bottom: 30px; }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: #2ecc71; text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
         .header { text-align: center; margin-bottom: 40px; }
         .card-icon { width: 80px; height: 80px; margin: 0 auto 20px; background: rgba(46, 204, 113, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
@@ -34,10 +35,16 @@
 </head>
 <body>
     <div class="container">
-        <a href="/downloads/" class="back-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            Back to Downloads
-        </a>
+        <div class="nav-links">
+            <a href="/" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Home
+            </a>
+            <a href="/downloads/" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                Downloads
+            </a>
+        </div>
 
         <div class="header">
             <div class="card-icon">📱</div>
