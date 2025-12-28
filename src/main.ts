@@ -343,16 +343,17 @@ async function bootstrap() {
   // and must be requested at runtime via navigator.mediaDevices.getUserMedia()
   // The permissions_policy field is informational for Android WebView / TWA apps
   const generateManifest = (_req: any) => ({
-    name: 'WP Node',
-    short_name: 'WP Node',
-    description: 'Modern CMS with real-time messaging, video calling, and collaboration',
-    start_url: '/admin/',
+    id: '/',
+    name: 'Learn Online',
+    short_name: 'LearnOnline',
+    description: 'Online learning platform with courses, quizzes, certificates, and real-time messaging',
+    start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'any',
-    theme_color: '#1a2332',
+    theme_color: '#4f46e5',
     background_color: '#0f172a',
-    categories: ['productivity', 'social', 'education', 'communication'],
+    categories: ['education', 'productivity'],
     icons: [
       {
         src: '/api/pwa/icons/icon-192.svg',
@@ -380,14 +381,20 @@ async function bootstrap() {
       },
     ],
     prefer_related_applications: false,
-    // Permissions policy for Android WebView/TWA and supported browsers
-    permissions_policy: {
-      camera: ['self'],
-      microphone: ['self'],
-      geolocation: ['self'],
-      fullscreen: ['self'],
-      'display-capture': ['self'],
-    },
+    shortcuts: [
+      {
+        name: 'Courses',
+        short_name: 'Courses',
+        url: '/courses',
+        icons: [{ src: '/api/pwa/icons/icon-96.svg', sizes: '96x96' }],
+      },
+      {
+        name: 'Messages',
+        short_name: 'Messages',
+        url: '/admin/messages',
+        icons: [{ src: '/api/pwa/icons/icon-96.svg', sizes: '96x96' }],
+      },
+    ],
   });
 
   // Helper function to generate service worker code

@@ -1,20 +1,20 @@
 {
-  "packageId": "com.wpnode.app",
-  "host": "wordpress-node.onrender.com",
-  "name": "WP Node",
-  "launcherName": "WP Node",
+  "packageId": "cc.learnonline.app",
+  "host": "learnonline.cc",
+  "name": "Learn Online",
+  "launcherName": "Learn Online",
   "display": "standalone",
-  "themeColor": "#1a2332",
+  "themeColor": "#4f46e5",
   "navigationColor": "#0f172a",
   "navigationColorDark": "#0f172a",
   "navigationDividerColor": "#0f172a",
   "navigationDividerColorDark": "#0f172a",
   "backgroundColor": "#0f172a",
   "enableNotifications": true,
-  "startUrl": "/admin/",
-  "iconUrl": "https://wordpress-node.onrender.com/api/pwa/icons/icon-512.svg",
-  "maskableIconUrl": "https://wordpress-node.onrender.com/api/pwa/icons/icon-512-maskable.svg",
-  "monochromeIconUrl": "https://wordpress-node.onrender.com/api/pwa/icons/icon-512.svg",
+  "startUrl": "/",
+  "iconUrl": "https://learnonline.cc/api/pwa/icons/icon-512.svg",
+  "maskableIconUrl": "https://learnonline.cc/api/pwa/icons/icon-512-maskable.svg",
+  "monochromeIconUrl": "https://learnonline.cc/api/pwa/icons/icon-512.svg",
   "splashScreenFadeOutDuration": 300,
   "signingMode": "new",
   "appVersionCode": 1,
@@ -27,14 +27,20 @@
       "icons": []
     },
     {
+      "name": "Courses",
+      "shortName": "Courses",
+      "url": "/courses",
+      "icons": []
+    },
+    {
       "name": "Dashboard",
-      "shortName": "Dashboard", 
+      "shortName": "Dashboard",
       "url": "/admin/dashboard",
       "icons": []
     }
   ],
   "generatorApp": "PWABuilder",
-  "webManifestUrl": "https://wordpress-node.onrender.com/api/pwa/manifest.json",
+  "webManifestUrl": "https://learnonline.cc/api/pwa/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "locationDelegation": {
@@ -47,7 +53,7 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://wordpress-node.onrender.com/",
+  "fullScopeUrl": "https://learnonline.cc/",
   "minSdkVersion": 19,
   "orientation": "any",
   "fingerprints": []
