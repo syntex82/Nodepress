@@ -17,7 +17,9 @@
   <meta property="og:url" content="{{#if pageUrl}}{{pageUrl}}{{else}}{{siteUrl}}{{/if}}">
   <meta property="og:title" content="{{#if ogTitle}}{{ogTitle}}{{else}}{{#if metaTitle}}{{metaTitle}}{{else}}{{siteName}}{{/if}}{{/if}}">
   <meta property="og:description" content="{{#if ogDescription}}{{ogDescription}}{{else}}{{#if metaDescription}}{{metaDescription}}{{else}}The modern WordPress alternative built with Node.js. Enterprise-grade features out of the box.{{/if}}{{/if}}">
-  {{#if ogImage}}<meta property="og:image" content="{{ogImage}}">{{/if}}
+  <meta property="og:image" content="{{#if ogImage}}{{ogImage}}{{else}}{{siteUrl}}/images/og-image.svg{{/if}}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="{{siteName}}">
   <meta property="og:locale" content="en_US">
 
@@ -26,7 +28,7 @@
   {{#if twitterHandle}}<meta name="twitter:site" content="{{twitterHandle}}">{{/if}}
   <meta name="twitter:title" content="{{#if ogTitle}}{{ogTitle}}{{else}}{{#if metaTitle}}{{metaTitle}}{{else}}{{siteName}}{{/if}}{{/if}}">
   <meta name="twitter:description" content="{{#if ogDescription}}{{ogDescription}}{{else}}{{#if metaDescription}}{{metaDescription}}{{else}}Modern CMS built with Node.js{{/if}}{{/if}}">
-  {{#if ogImage}}<meta name="twitter:image" content="{{ogImage}}">{{/if}}
+  <meta name="twitter:image" content="{{#if ogImage}}{{ogImage}}{{else}}{{siteUrl}}/images/og-image.svg{{/if}}">
 
   <!-- Search Engine Verification -->
   {{#if googleVerification}}<meta name="google-site-verification" content="{{googleVerification}}">{{/if}}
@@ -39,11 +41,44 @@
   <meta name="apple-mobile-web-app-title" content="{{siteName}}">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/pwa/icons/icon-192x192.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+  <!-- RSS Feed -->
+  <link rel="alternate" type="application/rss+xml" title="{{siteName}} RSS Feed" href="/feed.xml">
 
   <!-- Structured Data / JSON-LD -->
   {{#if schemaMarkup}}
   <script type="application/ld+json">{{{schemaMarkup}}}</script>
   {{/if}}
+
+  <!-- Default Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "{{siteName}}",
+    "url": "{{siteUrl}}",
+    "logo": "{{siteUrl}}/favicon.svg",
+    "sameAs": [
+      "https://github.com/syntex82/WordPress-Node"
+    ]
+  }
+  </script>
+
+  <!-- WebSite Schema with Search -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "{{siteName}}",
+    "url": "{{siteUrl}}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{siteUrl}}/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

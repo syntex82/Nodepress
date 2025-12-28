@@ -15,6 +15,7 @@ import { RecommendationsModule } from '../recommendations/recommendations.module
 import { MarketplaceModule } from '../marketplace/marketplace.module';
 import { PluginsModule } from '../plugins/plugins.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { SeoModule } from '../seo/seo.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
     forwardRef(() => MarketplaceModule),
     forwardRef(() => PluginsModule),
     forwardRef(() => SubscriptionsModule),
+    forwardRef(() => SeoModule),
   ],
   controllers: [PublicController],
 })
