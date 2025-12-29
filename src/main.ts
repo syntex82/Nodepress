@@ -100,6 +100,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: isProduction ? ['error', 'warn', 'log'] : ['error', 'warn', 'log', 'debug'],
+    rawBody: true, // Required for Stripe webhook signature verification
   });
 
   // Enable trust proxy for load balancer setups (required for rate limiting, IP detection)

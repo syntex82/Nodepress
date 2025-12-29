@@ -33,9 +33,11 @@ export class CheckoutController {
 
   // Get Stripe publishable key
   @Get('config')
-  getConfig() {
+  async getConfig() {
+    const publishableKey = await this.stripeService.getPublishableKey();
     return {
-      publishableKey: this.stripeService.getPublishableKey(),
+      publishableKey,
+      isConfigured: !!publishableKey,
     };
   }
 
