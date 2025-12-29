@@ -5,9 +5,15 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { cartApi, checkoutApi, Cart } from '../../services/api';
+import { cartApi, checkoutApi, Cart, shippingApi, ShippingMethod } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
+
+interface ShippingRate extends ShippingMethod {
+  estimatedDelivery: string;
+  isFree: boolean;
+  originalCost?: number;
+}
 
 let stripePromise: Promise<any> | null = null;
 
@@ -75,6 +81,12 @@ export default function Checkout() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [creatingOrder, setCreatingOrder] = useState(false);
+  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
+  const [shippingCost, setShippingCost] = useState(0);
+
+  // Check if cart has physical products that need shipping
+  const hasPhysicalProducts = cart?.items.some(item => item.product?.type === 'PHYSICAL') ?? false;
 
   useEffect(() => {
     loadCart();
@@ -84,6 +96,34 @@ export default function Checkout() {
       setEmail(user.email);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (cart && hasPhysicalProducts) {
+      loadShippingRates();
+    }
+  }, [cart, hasPhysicalProducts]);
+
+  const loadShippingRates = async () => {
+    try {
+      // Default to US for now - in a real app you'd get this from the address
+      const { data } = await shippingApi.getRates('US', cart?.subtotal || 0);
+      setShippingRates(data);
+      // Auto-select cheapest option
+      if (data.length > 0 && !selectedShipping) {
+        const cheapest = data.reduce((min, r) => r.cost < min.cost ? r : min, data[0]);
+        setSelectedShipping(cheapest.id);
+        setShippingCost(cheapest.cost);
+      }
+    } catch (error) {
+      console.error('Failed to load shipping rates:', error);
+    }
+  };
+
+  const handleShippingChange = (methodId: string) => {
+    setSelectedShipping(methodId);
+    const method = shippingRates.find(r => r.id === methodId);
+    setShippingCost(method?.cost || 0);
+  };
 
   const initStripe = async () => {
     try {
@@ -118,10 +158,18 @@ export default function Checkout() {
       toast.error('Please enter your email');
       return;
     }
+    if (hasPhysicalProducts && !selectedShipping) {
+      toast.error('Please select a shipping method');
+      return;
+    }
 
     try {
       setCreatingOrder(true);
-      const { data } = await checkoutApi.createOrder({ email });
+      const orderData: any = { email };
+      if (selectedShipping) {
+        orderData.shippingMethod = selectedShipping;
+      }
+      const { data } = await checkoutApi.createOrder(orderData);
       setClientSecret(data.clientSecret);
       setOrderId(data.order.id);
       setStep('payment');
@@ -132,6 +180,8 @@ export default function Checkout() {
       setCreatingOrder(false);
     }
   };
+
+  const orderTotal = (cart?.subtotal || 0) + shippingCost;
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
@@ -208,9 +258,60 @@ export default function Checkout() {
                     />
                     <p className="text-sm text-slate-400 mt-2">We'll send your order confirmation here</p>
                   </div>
+
+                  {/* Shipping Method Selection */}
+                  {hasPhysicalProducts && shippingRates.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                        Shipping Method
+                      </h3>
+                      <div className="space-y-3">
+                        {shippingRates.map(rate => (
+                          <label
+                            key={rate.id}
+                            className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                              selectedShipping === rate.id
+                                ? 'border-violet-500 bg-violet-50'
+                                : 'border-slate-200 hover:border-violet-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="radio"
+                                name="shipping"
+                                value={rate.id}
+                                checked={selectedShipping === rate.id}
+                                onChange={() => handleShippingChange(rate.id)}
+                                className="w-4 h-4 text-violet-600"
+                              />
+                              <div>
+                                <div className="font-semibold text-slate-900">{rate.name}</div>
+                                <div className="text-sm text-slate-500">
+                                  {rate.estimatedDelivery}
+                                  {rate.description && ` • ${rate.description}`}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              {rate.isFree ? (
+                                <span className="text-emerald-600 font-bold">FREE</span>
+                              ) : (
+                                <span className="font-bold text-slate-900">${rate.cost.toFixed(2)}</span>
+                              )}
+                              {rate.originalCost && rate.isFree && (
+                                <div className="text-xs text-slate-400 line-through">${rate.originalCost.toFixed(2)}</div>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    disabled={creatingOrder || !email}
+                    disabled={creatingOrder || !email || (hasPhysicalProducts && !selectedShipping)}
                     className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-xl font-semibold text-lg shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all flex items-center justify-center gap-3"
                   >
                     {creatingOrder ? (
@@ -234,7 +335,7 @@ export default function Checkout() {
                     </div>
                     Payment Details
                   </h2>
-                  <CheckoutForm orderId={orderId} total={cart?.subtotal || 0} />
+                  <CheckoutForm orderId={orderId} total={orderTotal} />
                 </Elements>
               ) : (
                 <div className="flex items-center justify-center py-16">
@@ -302,14 +403,18 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Shipping</span>
-                  <span className="text-emerald-600 font-medium">FREE</span>
+                  {shippingCost === 0 ? (
+                    <span className="text-emerald-600 font-medium">FREE</span>
+                  ) : (
+                    <span>${shippingCost.toFixed(2)}</span>
+                  )}
                 </div>
               </div>
 
               <div className="pt-4 border-t border-slate-200">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-slate-900">Total</span>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">${cart?.subtotal.toFixed(2)}</span>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">${orderTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>

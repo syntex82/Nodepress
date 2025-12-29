@@ -63,6 +63,7 @@ const ShopProductEditor = lazy(() => import('./pages/shop/ProductEditor'));
 const ShopOrders = lazy(() => import('./pages/shop/Orders'));
 const ShopOrderDetail = lazy(() => import('./pages/shop/OrderDetail'));
 const ShopCategories = lazy(() => import('./pages/shop/Categories'));
+const ShopShipping = lazy(() => import('./pages/shop/Shipping'));
 
 // Lazy-loaded pages - Storefront
 const StorefrontShop = lazy(() => import('./pages/storefront/Shop'));
@@ -208,6 +209,7 @@ function App() {
                 <Route path="shop/orders" element={<ProtectedRoute feature="shop"><ShopOrders /></ProtectedRoute>} />
                 <Route path="shop/orders/:id" element={<ProtectedRoute feature="shop"><ShopOrderDetail /></ProtectedRoute>} />
                 <Route path="shop/categories" element={<ProtectedRoute feature="shop"><ShopCategories /></ProtectedRoute>} />
+                <Route path="shop/shipping" element={<ProtectedRoute feature="shop"><ShopShipping /></ProtectedRoute>} />
 
                 {/* LMS Admin - IMPORTANT: specific routes MUST come before parameterized routes */}
                 <Route path="lms" element={<ProtectedRoute feature="lms"><LmsAdminDashboard /></ProtectedRoute>} />

@@ -1069,6 +1069,37 @@ export const categoriesApi = {
   delete: (id: string) => api.delete(`/shop/categories/${id}`),
 };
 
+// Shipping API
+export interface ShippingMethod {
+  id: string;
+  name: string;
+  description?: string;
+  cost: number;
+  freeAbove?: number;
+  minDays?: number;
+  maxDays?: number;
+  countries?: string;
+  isActive: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const shippingApi = {
+  getAll: (includeInactive = false) =>
+    api.get<ShippingMethod[]>('/shop/shipping', { params: { includeInactive: includeInactive ? 'true' : undefined } }),
+  getById: (id: string) => api.get<ShippingMethod>(`/shop/shipping/${id}`),
+  create: (data: Partial<ShippingMethod>) => api.post<ShippingMethod>('/shop/shipping', data),
+  update: (id: string, data: Partial<ShippingMethod>) => api.put<ShippingMethod>(`/shop/shipping/${id}`, data),
+  delete: (id: string) => api.delete(`/shop/shipping/${id}`),
+  // Public endpoints
+  getAvailable: (country: string) => api.get<ShippingMethod[]>('/shop/storefront/shipping/methods', { params: { country } }),
+  getRates: (country: string, subtotal: number) =>
+    api.get<Array<ShippingMethod & { estimatedDelivery: string; isFree: boolean }>>('/shop/storefront/shipping/rates', {
+      params: { country, subtotal: String(subtotal) }
+    }),
+};
+
 // Orders API
 export const ordersApi = {
   getAll: (params?: { page?: number; limit?: number; status?: string; paymentStatus?: string; search?: string }) =>

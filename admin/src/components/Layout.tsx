@@ -6,7 +6,7 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX, FiCommand, FiHardDrive, FiZap, FiArrowUp, FiVideo, FiPhone, FiPhoneOff } from 'react-icons/fi';
+import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX, FiCommand, FiHardDrive, FiZap, FiArrowUp, FiVideo, FiPhone, FiPhoneOff, FiTruck } from 'react-icons/fi';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { messagesApi, systemConfigApi } from '../services/api';
@@ -232,6 +232,7 @@ export default function Layout() {
     { name: 'Products', path: '/shop/products', icon: FiPackage, tooltipKey: 'products' },
     { name: 'Orders', path: '/shop/orders', icon: FiShoppingCart, tooltipKey: 'orders' },
     { name: 'Categories', path: '/shop/categories', icon: FiTag, tooltipKey: 'shopCategories' },
+    { name: 'Shipping', path: '/shop/shipping', icon: FiTruck, tooltipKey: 'shipping' },
   ];
 
   const lmsNavigation: Array<{ name: string; path: string; icon: any; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [

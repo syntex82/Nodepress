@@ -116,37 +116,35 @@
           {{{product.description}}}
         </div>
 
-        {{!-- Variant Selectors --}}
-        {{#if product.hasVariants}}
-          {{!-- Size Selector --}}
-          {{#if product.variantOptions.sizes}}
-          <div class="variant-selector" id="sizeSelector">
-            <label>Size: <span class="selected-value" id="selectedSizeLabel"></span></label>
-            <div class="size-options">
-              {{#each product.variantOptions.sizes}}
-              <div class="size-option" data-size="{{this}}">{{this}}</div>
-              {{/each}}
-            </div>
-          </div>
-          {{/if}}
+        {{!-- Variant Selectors - show if variants exist --}}
+        {{#if product.variants.length}}
+          <div id="variantSelectors">
+            {{!-- Build available sizes/colors from variants --}}
+            <script type="application/json" id="variantConfig">
+              {{{json product.variantOptions}}}
+            </script>
 
-          {{!-- Color Selector --}}
-          {{#if product.variantOptions.colors}}
-          <div class="variant-selector" id="colorSelector">
-            <label>Color: <span class="selected-value" id="selectedColorLabel"></span></label>
-            <div class="color-options">
-              {{#each product.variantOptions.colors}}
-              <div class="color-option" data-color="{{this.name}}" data-color-code="{{this.code}}" style="background-color: {{this.code}};" title="{{this.name}}">
-                <span class="color-name">{{this.name}}</span>
-              </div>
-              {{/each}}
+            {{!-- Size Selector --}}
+            <div class="variant-selector" id="sizeSelector" style="display: none;">
+              <label>Size: <span class="selected-value" id="selectedSizeLabel"></span></label>
+              <div class="size-options" id="sizeOptions"></div>
             </div>
-          </div>
-          {{/if}}
 
-          {{!-- Variant Stock Status --}}
-          <div class="variant-stock-status" id="variantStockStatus" style="display: none;">
-            <span id="stockStatusText"></span>
+            {{!-- Color Selector --}}
+            <div class="variant-selector" id="colorSelector" style="display: none;">
+              <label>Color: <span class="selected-value" id="selectedColorLabel"></span></label>
+              <div class="color-options" id="colorOptions"></div>
+            </div>
+
+            {{!-- Variant Stock Status --}}
+            <div class="variant-stock-status" id="variantStockStatus" style="display: none;">
+              <span id="stockStatusText"></span>
+            </div>
+
+            {{!-- Variant SKU display --}}
+            <div class="variant-sku" id="variantSkuDisplay" style="display: none;">
+              <span class="text-muted">SKU: </span><span id="variantSku"></span>
+            </div>
           </div>
         {{/if}}
 
@@ -159,12 +157,12 @@
           </div>
         </div>
 
-        <button class="btn btn-primary add-to-cart-btn" id="addToCartBtn" data-product-id="{{product.id}}" {{#if product.hasVariants}}disabled{{/if}}>
-          {{#if product.hasVariants}}Select Options{{else}}🛒 Add to Cart{{/if}}
+        <button class="btn btn-primary add-to-cart-btn" id="addToCartBtn" data-product-id="{{product.id}}" {{#if product.variants.length}}disabled{{/if}}>
+          {{#if product.variants.length}}Select Options{{else}}🛒 Add to Cart{{/if}}
         </button>
 
         {{!-- Hidden variant data for JavaScript --}}
-        {{#if product.hasVariants}}
+        {{#if product.variants.length}}
         <script type="application/json" id="variantData">
           {{{json product.variants}}}
         </script>
@@ -208,30 +206,128 @@
 
   // Variant selection logic
   var variants = [];
+  var variantConfig = null;
   var selectedSize = null;
   var selectedColor = null;
   var selectedVariant = null;
   var hasVariants = false;
+  var availableSizes = [];
+  var availableColors = [];
+  var originalPrice = document.querySelector('.product-price .current')?.textContent || '';
 
   // Load variant data if available
   var variantDataEl = document.getElementById('variantData');
+  var variantConfigEl = document.getElementById('variantConfig');
+
   if (variantDataEl) {
     try {
-      variants = JSON.parse(variantDataEl.textContent);
-      hasVariants = true;
+      variants = JSON.parse(variantDataEl.textContent.trim()) || [];
+      hasVariants = variants.length > 0;
     } catch (e) {
       console.error('Failed to parse variant data:', e);
+    }
+  }
+
+  if (variantConfigEl) {
+    try {
+      variantConfig = JSON.parse(variantConfigEl.textContent.trim()) || {};
+    } catch (e) {
+      console.error('Failed to parse variant config:', e);
+    }
+  }
+
+  // Extract unique sizes and colors from variants
+  if (hasVariants) {
+    var sizeSet = new Set();
+    var colorMap = new Map();
+
+    variants.forEach(function(v) {
+      if (v.size) sizeSet.add(v.size);
+      if (v.color) {
+        colorMap.set(v.color, v.colorCode || '#888888');
+      }
+    });
+
+    // Use config sizes if available (maintains order), otherwise use extracted
+    if (variantConfig && variantConfig.sizes && variantConfig.sizes.length > 0) {
+      availableSizes = variantConfig.sizes.filter(function(s) { return sizeSet.has(s); });
+    } else {
+      availableSizes = Array.from(sizeSet);
+    }
+
+    // Use config colors if available (has color codes), otherwise use extracted
+    if (variantConfig && variantConfig.colors && variantConfig.colors.length > 0) {
+      availableColors = variantConfig.colors.filter(function(c) {
+        return colorMap.has(c.name);
+      });
+    } else {
+      availableColors = Array.from(colorMap.entries()).map(function(entry) {
+        return { name: entry[0], code: entry[1] };
+      });
+    }
+
+    // Build size options dynamically
+    if (availableSizes.length > 0) {
+      var sizeSelector = document.getElementById('sizeSelector');
+      var sizeOptionsContainer = document.getElementById('sizeOptions');
+      if (sizeSelector && sizeOptionsContainer) {
+        sizeSelector.style.display = 'block';
+        availableSizes.forEach(function(size) {
+          var div = document.createElement('div');
+          div.className = 'size-option';
+          div.dataset.size = size;
+          div.textContent = size;
+          div.addEventListener('click', function() {
+            if (this.classList.contains('out-of-stock')) return;
+            document.querySelectorAll('.size-option').forEach(function(o) { o.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedSize = this.dataset.size;
+            document.getElementById('selectedSizeLabel').textContent = selectedSize;
+            updateVariantUI();
+          });
+          sizeOptionsContainer.appendChild(div);
+        });
+      }
+    }
+
+    // Build color options dynamically
+    if (availableColors.length > 0) {
+      var colorSelector = document.getElementById('colorSelector');
+      var colorOptionsContainer = document.getElementById('colorOptions');
+      if (colorSelector && colorOptionsContainer) {
+        colorSelector.style.display = 'block';
+        availableColors.forEach(function(color) {
+          var div = document.createElement('div');
+          div.className = 'color-option';
+          div.dataset.color = color.name;
+          div.dataset.colorCode = color.code;
+          div.style.backgroundColor = color.code;
+          div.title = color.name;
+          var span = document.createElement('span');
+          span.className = 'color-name';
+          span.textContent = color.name;
+          div.appendChild(span);
+          div.addEventListener('click', function() {
+            if (this.classList.contains('out-of-stock')) return;
+            document.querySelectorAll('.color-option').forEach(function(o) { o.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedColor = this.dataset.color;
+            document.getElementById('selectedColorLabel').textContent = selectedColor;
+            updateVariantUI();
+          });
+          colorOptionsContainer.appendChild(div);
+        });
+      }
     }
   }
 
   // Find matching variant based on selected size and color
   function findVariant() {
     if (!hasVariants) return null;
-
     return variants.find(function(v) {
-      var sizeMatch = !selectedSize || v.size === selectedSize;
-      var colorMatch = !selectedColor || v.color === selectedColor;
-      return sizeMatch && colorMatch && v.isActive;
+      var sizeMatch = availableSizes.length === 0 || !selectedSize || v.size === selectedSize;
+      var colorMatch = availableColors.length === 0 || !selectedColor || v.color === selectedColor;
+      return sizeMatch && colorMatch && v.isActive !== false;
     });
   }
 
@@ -242,20 +338,21 @@
     var stockStatusEl = document.getElementById('variantStockStatus');
     var stockTextEl = document.getElementById('stockStatusText');
     var skuEl = document.getElementById('variantSku');
+    var skuDisplay = document.getElementById('variantSkuDisplay');
 
     selectedVariant = findVariant();
-
     if (!hasVariants) return;
 
-    // Check if we need both size and color
-    var needsSize = document.getElementById('sizeSelector') !== null;
-    var needsColor = document.getElementById('colorSelector') !== null;
+    // Check if selection is complete
+    var needsSize = availableSizes.length > 0;
+    var needsColor = availableColors.length > 0;
     var selectionComplete = (!needsSize || selectedSize) && (!needsColor || selectedColor);
 
     if (!selectionComplete) {
       btn.disabled = true;
       btn.innerHTML = 'Select Options';
       if (stockStatusEl) stockStatusEl.style.display = 'none';
+      if (skuDisplay) skuDisplay.style.display = 'none';
       return;
     }
 
@@ -268,13 +365,14 @@
       // Update SKU
       if (skuEl && selectedVariant.sku) {
         skuEl.textContent = selectedVariant.sku;
+        if (skuDisplay) skuDisplay.style.display = 'block';
       }
 
       // Update stock status
       if (stockStatusEl && stockTextEl) {
         stockStatusEl.style.display = 'block';
         var stock = selectedVariant.stock || 0;
-        var lowThreshold = selectedVariant.lowStockThreshold || 5;
+        var lowThreshold = 5;
 
         stockStatusEl.className = 'variant-stock-status';
         if (stock === 0) {
@@ -305,6 +403,7 @@
     } else {
       btn.disabled = true;
       btn.innerHTML = 'Unavailable';
+      delete btn.dataset.variantId;
       if (stockStatusEl) {
         stockStatusEl.style.display = 'block';
         stockStatusEl.className = 'variant-stock-status out-of-stock';
@@ -312,38 +411,6 @@
       }
     }
   }
-
-  // Size selection
-  document.querySelectorAll('.size-option').forEach(function(option) {
-    option.addEventListener('click', function() {
-      if (this.classList.contains('out-of-stock')) return;
-
-      document.querySelectorAll('.size-option').forEach(function(o) { o.classList.remove('selected'); });
-      this.classList.add('selected');
-      selectedSize = this.dataset.size;
-
-      var label = document.getElementById('selectedSizeLabel');
-      if (label) label.textContent = selectedSize;
-
-      updateVariantUI();
-    });
-  });
-
-  // Color selection
-  document.querySelectorAll('.color-option').forEach(function(option) {
-    option.addEventListener('click', function() {
-      if (this.classList.contains('out-of-stock')) return;
-
-      document.querySelectorAll('.color-option').forEach(function(o) { o.classList.remove('selected'); });
-      this.classList.add('selected');
-      selectedColor = this.dataset.color;
-
-      var label = document.getElementById('selectedColorLabel');
-      if (label) label.textContent = selectedColor;
-
-      updateVariantUI();
-    });
-  });
 
   // Add to cart
   document.getElementById('addToCartBtn').addEventListener('click', async function() {
@@ -353,9 +420,8 @@
     var btn = this;
     var originalText = btn.innerHTML;
 
-    // Validate variant selection for products with variants
     if (hasVariants && !variantId) {
-      alert('Please select size and/or color options');
+      alert('Please select all options before adding to cart');
       return;
     }
 
@@ -366,14 +432,17 @@
       var success = await window.addToCart('product', productId, quantity, variantId);
       if (success) {
         btn.innerHTML = '✓ Added to Cart!';
-        setTimeout(function() { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        setTimeout(function() {
+          btn.innerHTML = originalText;
+          if (!hasVariants || selectedVariant) btn.disabled = false;
+        }, 2000);
       } else {
         btn.innerHTML = originalText;
-        btn.disabled = false;
+        if (!hasVariants || selectedVariant) btn.disabled = false;
       }
     } catch (e) {
       btn.innerHTML = originalText;
-      btn.disabled = false;
+      if (!hasVariants || selectedVariant) btn.disabled = false;
     }
   });
 })();

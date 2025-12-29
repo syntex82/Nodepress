@@ -67,6 +67,10 @@ export const NAV_TOOLTIPS = {
     title: 'Product Categories',
     content: 'Organize products into categories for easy navigation and filtering.',
   },
+  shipping: {
+    title: 'Shipping Methods',
+    content: 'Configure shipping rates by region, set free shipping thresholds, and manage delivery options.',
+  },
 
   // LMS
   lmsDashboard: {
