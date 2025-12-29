@@ -381,41 +381,42 @@ export default function ProductEditor() {
           </div>
         </div>
 
-        {/* Inventory - only show if no variants */}
-        {!hasVariants && (
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Inventory</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">SKU</label>
-                <input
-                  type="text"
-                  value={form.sku}
-                  onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                  className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Stock</label>
-                <input
-                  type="number"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                  className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Low Stock Threshold</label>
-                <input
-                  type="number"
-                  value={form.lowStockThreshold}
-                  onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })}
-                  className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                />
-              </div>
+        {/* Inventory - show if no variants or no variants generated yet */}
+        <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">
+            Inventory {hasVariants && variants.length > 0 && <span className="text-sm text-slate-400 font-normal">(managed per variant below)</span>}
+          </h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">SKU</label>
+              <input
+                type="text"
+                value={form.sku}
+                onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                placeholder={hasVariants && variants.length > 0 ? "Base SKU (variants have own SKUs)" : ""}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Stock {hasVariants && variants.length > 0 && "(base)"}</label>
+              <input
+                type="number"
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Low Stock Threshold</label>
+              <input
+                type="number"
+                value={form.lowStockThreshold}
+                onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })}
+                className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              />
             </div>
           </div>
-        )}
+        </div>
 
         {/* Variants Section */}
         <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700/50 p-6">
