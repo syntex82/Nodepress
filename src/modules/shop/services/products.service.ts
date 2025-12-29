@@ -1,10 +1,17 @@
 /**
  * Products Service
- * Handles product CRUD operations
+ * Handles product CRUD operations with variant management
  */
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { CreateProductDto, UpdateProductDto, ProductQueryDto } from '../dto/product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductQueryDto,
+  CreateVariantDto,
+  GenerateVariantsDto,
+  ColorOptionDto,
+} from '../dto/product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -17,8 +24,87 @@ export class ProductsService {
       .replace(/^-|-$/g, '');
   }
 
+  /**
+   * Generate variant name from size and color
+   */
+  private generateVariantName(size?: string, color?: string): string {
+    const parts: string[] = [];
+    if (size) parts.push(size);
+    if (color) parts.push(color);
+    return parts.join(' / ') || 'Default';
+  }
+
+  /**
+   * Generate all variant combinations from sizes and colors
+   */
+  generateVariantCombinations(
+    sizes: string[],
+    colors: ColorOptionDto[],
+    defaultPrice?: number,
+    defaultStock = 0,
+  ): CreateVariantDto[] {
+    const variants: CreateVariantDto[] = [];
+    let sortOrder = 0;
+
+    if (sizes.length === 0 && colors.length === 0) {
+      return variants;
+    }
+
+    // If only sizes
+    if (colors.length === 0) {
+      for (const size of sizes) {
+        variants.push({
+          name: size,
+          size,
+          price: defaultPrice,
+          stock: defaultStock,
+          options: { size },
+          isDefault: sortOrder === 0,
+          sortOrder: sortOrder++,
+        });
+      }
+      return variants;
+    }
+
+    // If only colors
+    if (sizes.length === 0) {
+      for (const color of colors) {
+        variants.push({
+          name: color.name,
+          color: color.name,
+          colorCode: color.code,
+          price: defaultPrice,
+          stock: defaultStock,
+          options: { color: color.name, colorCode: color.code },
+          isDefault: sortOrder === 0,
+          sortOrder: sortOrder++,
+        });
+      }
+      return variants;
+    }
+
+    // Both sizes and colors - create all combinations
+    for (const size of sizes) {
+      for (const color of colors) {
+        variants.push({
+          name: `${size} / ${color.name}`,
+          size,
+          color: color.name,
+          colorCode: color.code,
+          price: defaultPrice,
+          stock: defaultStock,
+          options: { size, color: color.name, colorCode: color.code },
+          isDefault: sortOrder === 0,
+          sortOrder: sortOrder++,
+        });
+      }
+    }
+
+    return variants;
+  }
+
   async create(dto: CreateProductDto) {
-    const slug = this.generateSlug(dto.name);
+    const slug = dto.slug || this.generateSlug(dto.name);
 
     // Check for existing slug
     const existing = await this.prisma.product.findUnique({ where: { slug } });
@@ -34,7 +120,28 @@ export class ProductsService {
       }
     }
 
-    const { variants, tags, ...productData } = dto;
+    const { variants, tags, variantOptions, ...productData } = dto;
+
+    // Build variant create data with proper clothing fields
+    const variantCreateData = variants?.map((v, index) => ({
+      name: v.name || this.generateVariantName(v.size, v.color),
+      sku: v.sku,
+      price: v.price,
+      salePrice: v.salePrice,
+      costPrice: v.costPrice,
+      stock: v.stock ?? 0,
+      lowStockThreshold: v.lowStockThreshold ?? 5,
+      image: v.image,
+      images: v.images,
+      size: v.size,
+      color: v.color,
+      colorCode: v.colorCode,
+      weight: v.weight,
+      options: v.options || { size: v.size, color: v.color, colorCode: v.colorCode },
+      isDefault: v.isDefault ?? index === 0,
+      isActive: v.isActive ?? true,
+      sortOrder: v.sortOrder ?? index,
+    }));
 
     const product = await this.prisma.product.create({
       data: {
@@ -44,15 +151,10 @@ export class ProductsService {
         salePrice: dto.salePrice,
         costPrice: dto.costPrice,
         weight: dto.weight,
-        variants: variants
-          ? {
-              create: variants.map((v) => ({
-                ...v,
-                price: v.price,
-                salePrice: v.salePrice,
-                options: v.options || {},
-              })),
-            }
+        hasVariants: dto.hasVariants ?? (variants && variants.length > 0),
+        variantOptions: variantOptions as any,
+        variants: variantCreateData
+          ? { create: variantCreateData }
           : undefined,
         tags: tags
           ? {
@@ -65,7 +167,7 @@ export class ProductsService {
       },
       include: {
         category: true,
-        variants: true,
+        variants: { orderBy: { sortOrder: 'asc' } },
         tags: true,
       },
     });
@@ -173,15 +275,36 @@ export class ProductsService {
       await this.prisma.productVariant.deleteMany({ where: { productId: id } });
     }
 
+    // Build variant update data with proper clothing fields
+    const variantCreateData = variants?.map((v, index) => ({
+      name: v.name || this.generateVariantName(v.size, v.color),
+      sku: v.sku,
+      price: v.price,
+      salePrice: v.salePrice,
+      costPrice: v.costPrice,
+      stock: v.stock ?? 0,
+      lowStockThreshold: v.lowStockThreshold ?? 5,
+      image: v.image,
+      images: v.images,
+      size: v.size,
+      color: v.color,
+      colorCode: v.colorCode,
+      weight: v.weight,
+      options: v.options || { size: v.size, color: v.color, colorCode: v.colorCode },
+      isDefault: v.isDefault ?? index === 0,
+      isActive: v.isActive ?? true,
+      sortOrder: v.sortOrder ?? index,
+    }));
+
     const product = await this.prisma.product.update({
       where: { id },
       data: {
         ...productData,
         slug,
-        variants: variants
-          ? {
-              create: variants.map((v) => ({ ...v, options: v.options || {} })),
-            }
+        hasVariants: dto.hasVariants ?? (variants && variants.length > 0),
+        variantOptions: dto.variantOptions as any,
+        variants: variantCreateData
+          ? { create: variantCreateData }
           : undefined,
         tags: tags
           ? {
@@ -193,7 +316,7 @@ export class ProductsService {
             }
           : undefined,
       },
-      include: { category: true, variants: true, tags: true },
+      include: { category: true, variants: { orderBy: { sortOrder: 'asc' } }, tags: true },
     });
 
     return product;
@@ -212,7 +335,7 @@ export class ProductsService {
     return this.findAll({ ...query, status: 'ACTIVE' as any });
   }
 
-  // Update stock
+  // Update stock for product or variant
   async updateStock(id: string, quantity: number, variantId?: string) {
     if (variantId) {
       await this.prisma.productVariant.update({
@@ -225,5 +348,191 @@ export class ProductsService {
         data: { stock: { increment: quantity } },
       });
     }
+  }
+
+  // Set absolute stock for a variant
+  async setVariantStock(variantId: string, stock: number) {
+    const variant = await this.prisma.productVariant.findUnique({ where: { id: variantId } });
+    if (!variant) throw new NotFoundException('Variant not found');
+
+    return this.prisma.productVariant.update({
+      where: { id: variantId },
+      data: { stock },
+    });
+  }
+
+  // Get variant by ID
+  async getVariant(variantId: string) {
+    const variant = await this.prisma.productVariant.findUnique({
+      where: { id: variantId },
+      include: { product: true },
+    });
+    if (!variant) throw new NotFoundException('Variant not found');
+    return variant;
+  }
+
+  // Get available variants for a product (only active and in-stock)
+  async getAvailableVariants(productId: string) {
+    return this.prisma.productVariant.findMany({
+      where: {
+        productId,
+        isActive: true,
+        stock: { gt: 0 },
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
+  }
+
+  // Get variant stock summary for a product
+  async getVariantStockSummary(productId: string) {
+    const variants = await this.prisma.productVariant.findMany({
+      where: { productId },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    const totalStock = variants.reduce((sum, v) => sum + v.stock, 0);
+    const inStockCount = variants.filter((v) => v.stock > 0).length;
+    const lowStockCount = variants.filter((v) => v.stock > 0 && v.stock <= v.lowStockThreshold).length;
+    const outOfStockCount = variants.filter((v) => v.stock === 0).length;
+
+    return {
+      variants,
+      summary: {
+        totalVariants: variants.length,
+        totalStock,
+        inStockCount,
+        lowStockCount,
+        outOfStockCount,
+      },
+    };
+  }
+
+  // Update a single variant
+  async updateVariant(variantId: string, data: Partial<CreateVariantDto>) {
+    const variant = await this.prisma.productVariant.findUnique({ where: { id: variantId } });
+    if (!variant) throw new NotFoundException('Variant not found');
+
+    return this.prisma.productVariant.update({
+      where: { id: variantId },
+      data: {
+        name: data.name,
+        sku: data.sku,
+        price: data.price,
+        salePrice: data.salePrice,
+        costPrice: data.costPrice,
+        stock: data.stock,
+        lowStockThreshold: data.lowStockThreshold,
+        image: data.image,
+        images: data.images as any,
+        size: data.size,
+        color: data.color,
+        colorCode: data.colorCode,
+        weight: data.weight,
+        options: data.options as any,
+        isDefault: data.isDefault,
+        isActive: data.isActive,
+        sortOrder: data.sortOrder,
+      },
+    });
+  }
+
+  // Delete a single variant
+  async deleteVariant(variantId: string) {
+    const variant = await this.prisma.productVariant.findUnique({ where: { id: variantId } });
+    if (!variant) throw new NotFoundException('Variant not found');
+
+    // Check if variant is in any active carts
+    const cartItems = await this.prisma.cartItem.count({ where: { variantId } });
+    if (cartItems > 0) {
+      throw new BadRequestException('Cannot delete variant that is in active carts');
+    }
+
+    await this.prisma.productVariant.delete({ where: { id: variantId } });
+    return { message: 'Variant deleted successfully' };
+  }
+
+  // Generate and add variants to existing product
+  async generateProductVariants(productId: string, dto: GenerateVariantsDto) {
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    const variants = this.generateVariantCombinations(
+      dto.sizes,
+      dto.colors,
+      dto.defaultPrice,
+      dto.defaultStock,
+    );
+
+    // Delete existing variants
+    await this.prisma.productVariant.deleteMany({ where: { productId } });
+
+    // Create new variants
+    const variantCreateData = variants.map((v, index) => ({
+      productId,
+      name: v.name || this.generateVariantName(v.size, v.color),
+      sku: v.sku,
+      price: v.price,
+      salePrice: v.salePrice,
+      stock: v.stock ?? 0,
+      lowStockThreshold: v.lowStockThreshold ?? 5,
+      image: v.image,
+      size: v.size,
+      color: v.color,
+      colorCode: v.colorCode,
+      options: v.options || {},
+      isDefault: v.isDefault ?? index === 0,
+      isActive: true,
+      sortOrder: index,
+    }));
+
+    await this.prisma.productVariant.createMany({ data: variantCreateData });
+
+    // Update product variant options
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        hasVariants: true,
+        variantOptions: JSON.parse(JSON.stringify({
+          sizes: dto.sizes,
+          colors: dto.colors,
+        })),
+      },
+    });
+
+    return this.findOne(productId);
+  }
+
+  // Check variant availability (for add to cart validation)
+  async checkVariantAvailability(productId: string, variantId?: string, quantity = 1) {
+    if (variantId) {
+      const variant = await this.prisma.productVariant.findUnique({
+        where: { id: variantId },
+        include: { product: true },
+      });
+
+      if (!variant) {
+        return { available: false, reason: 'Variant not found' };
+      }
+      if (!variant.isActive) {
+        return { available: false, reason: 'Variant is not available' };
+      }
+      if (variant.stock < quantity) {
+        return { available: false, reason: 'Insufficient stock', currentStock: variant.stock };
+      }
+      return { available: true, variant };
+    }
+
+    // Check product stock (for non-variant products)
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) {
+      return { available: false, reason: 'Product not found' };
+    }
+    if (product.hasVariants) {
+      return { available: false, reason: 'Please select a size/color option' };
+    }
+    if (product.trackStock && product.stock < quantity) {
+      return { available: false, reason: 'Insufficient stock', currentStock: product.stock };
+    }
+    return { available: true, product };
   }
 }

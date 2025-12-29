@@ -1151,6 +1151,10 @@ model Product {
   weight          Decimal?        @db.Decimal(10, 3)
   dimensions      Json?           // {length, width, height}
 
+  // Variant configuration for clothing/apparel
+  hasVariants     Boolean         @default(false) // Enable variant mode
+  variantOptions  Json?           // Available options: {sizes: ["S","M","L"], colors: [{name:"Red",code:"#FF0000"}]}
+
   // Digital product fields
   downloadUrl     String?
   downloadLimit   Int?
@@ -1176,6 +1180,7 @@ model Product {
   @@index([status])
   @@index([categoryId])
   @@index([sku])
+  @@index([hasVariants])
 }
 
 enum ProductStatus {
@@ -1199,10 +1204,23 @@ model ProductVariant {
   sku         String?   @unique
   price       Decimal?  @db.Decimal(10, 2)  // Override product price
   salePrice   Decimal?  @db.Decimal(10, 2)
+  costPrice   Decimal?  @db.Decimal(10, 2)  // Cost price per variant
   stock       Int       @default(0)
+  lowStockThreshold Int @default(5)
   image       String?
-  options     Json      // {size: "Large", color: "Red"}
+  images      Json?     // Array of variant-specific image URLs
+  options     Json      // {size: "Large", color: "Red", colorCode: "#FF0000"}
+
+  // Explicit clothing variant fields for easier querying
+  size        String?   // XS, S, M, L, XL, XXL, etc.
+  color       String?   // Color name
+  colorCode   String?   // Hex color code for display
+
+  weight      Decimal?  @db.Decimal(10, 3) // Variant-specific weight
   isDefault   Boolean   @default(false)
+  isActive    Boolean   @default(true) // Enable/disable specific variant
+  sortOrder   Int       @default(0)    // Display order
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -1211,6 +1229,35 @@ model ProductVariant {
 
   @@index([productId])
   @@index([sku])
+  @@index([size])
+  @@index([color])
+  @@index([isActive])
+}
+
+// Product Option Definition - reusable size/color options
+model ProductOption {
+  id          String    @id @default(uuid())
+  type        ProductOptionType
+  name        String    // e.g., "Red", "Large"
+  value       String    // The actual value
+  displayValue String?  // Display text (optional override)
+  metadata    Json?     // Additional data like colorCode, measurements
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([type, value])
+  @@index([type])
+  @@index([isActive])
+}
+
+enum ProductOptionType {
+  SIZE
+  COLOR
+  MATERIAL
+  STYLE
+  CUSTOM
 }
 
 // Product Tags

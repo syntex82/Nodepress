@@ -893,6 +893,19 @@ export const menusApi = {
   delete: (id: string) => api.delete(`/menus/${id}`),
 };
 
+// Color option for product variants
+export interface ColorOption {
+  name: string;
+  code: string; // Hex color code
+  image?: string; // Swatch image URL
+}
+
+// Variant options configuration
+export interface VariantOptions {
+  sizes?: string[];
+  colors?: ColorOption[];
+}
+
 // Shop Product interface
 export interface Product {
   id: string;
@@ -906,10 +919,16 @@ export interface Product {
   costPrice?: number;
   stock: number;
   lowStockThreshold: number;
+  trackStock: boolean;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
   type: 'PHYSICAL' | 'DIGITAL' | 'SERVICE';
-  featured: boolean;
-  images: string[];
+  featuredImage?: string;
+  images?: string[];
+  weight?: number;
+  dimensions?: { length?: number; width?: number; height?: number };
+  // Variant configuration
+  hasVariants: boolean;
+  variantOptions?: VariantOptions;
   categoryId?: string;
   category?: ProductCategory;
   variants?: ProductVariant[];
@@ -931,17 +950,53 @@ export interface ProductCategory {
 
 export interface ProductVariant {
   id: string;
+  productId: string;
   name: string;
   sku?: string;
-  price: number;
+  price?: number;
+  salePrice?: number;
+  costPrice?: number;
   stock: number;
+  lowStockThreshold: number;
+  image?: string;
+  images?: string[];
+  // Explicit clothing variant fields
+  size?: string;
+  color?: string;
+  colorCode?: string;
+  weight?: number;
   options: Record<string, string>;
+  isDefault: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductTag {
   id: string;
   name: string;
   slug: string;
+}
+
+// Generate variants request
+export interface GenerateVariantsRequest {
+  sizes: string[];
+  colors: ColorOption[];
+  defaultPrice?: number;
+  defaultStock?: number;
+}
+
+// Variant stock summary
+export interface VariantStockSummary {
+  variants: ProductVariant[];
+  summary: {
+    totalVariants: number;
+    totalStock: number;
+    inStockCount: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+  };
 }
 
 // Shop Order interface
@@ -988,6 +1043,20 @@ export const productsApi = {
   update: (id: string, data: Partial<Product>) => api.put<Product>(`/shop/products/${id}`, data),
   delete: (id: string) => api.delete(`/shop/products/${id}`),
   updateStock: (id: string, stock: number) => api.patch(`/shop/products/${id}/stock`, { stock }),
+
+  // Variant management
+  getVariant: (variantId: string) => api.get<ProductVariant>(`/shop/variants/${variantId}`),
+  updateVariant: (variantId: string, data: Partial<ProductVariant>) =>
+    api.patch<ProductVariant>(`/shop/variants/${variantId}`, data),
+  deleteVariant: (variantId: string) => api.delete(`/shop/variants/${variantId}`),
+  setVariantStock: (variantId: string, stock: number) =>
+    api.patch<ProductVariant>(`/shop/variants/${variantId}/stock`, { stock }),
+  getVariantStockSummary: (productId: string) =>
+    api.get<VariantStockSummary>(`/shop/products/${productId}/variants/stock`),
+  generateVariants: (productId: string, data: GenerateVariantsRequest) =>
+    api.post<Product>(`/shop/products/${productId}/variants/generate`, data),
+  getAvailableVariants: (productId: string) =>
+    api.get<ProductVariant[]>(`/shop/products/${productId}/variants/available`),
 };
 
 // Categories API

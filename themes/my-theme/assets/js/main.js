@@ -35,8 +35,8 @@
     } catch (e) {}
   }
 
-  // Add to cart function
-  async function addToCart(type, id, quantity) {
+  // Add to cart function (supports product variants)
+  async function addToCart(type, id, quantity, variantId) {
     quantity = quantity || 1;
     try {
       var body = { quantity: quantity };
@@ -44,6 +44,10 @@
         body.courseId = id;
       } else {
         body.productId = id;
+        // Include variant ID if provided (for size/color variants)
+        if (variantId) {
+          body.variantId = variantId;
+        }
       }
 
       var r = await fetch(API + '/shop/cart/add', {

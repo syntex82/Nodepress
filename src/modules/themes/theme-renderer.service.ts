@@ -95,6 +95,11 @@ export class ThemeRendererService {
     Handlebars.registerHelper('uppercase', (str) => {
       return str ? String(str).toUpperCase() : '';
     });
+
+    // JSON helper - serialize data for JavaScript
+    Handlebars.registerHelper('json', (context) => {
+      return JSON.stringify(context || []);
+    });
   }
 
   /**
