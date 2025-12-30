@@ -47,6 +47,7 @@ https://github.com/user-attachments/assets/bd8a8a34-a0d5-432d-8555-5d74f8ee886b
 [✨ Features](#-features) •
 [🛠 Tech Stack](#-tech-stack) •
 [📦 Installation](#-installation) •
+[📚 Documentation](#-documentation) •
 [⚙️ Configuration](#️-complete-configuration-guide) •
 [📁 Project Structure](#-project-structure) •
 [📡 API Docs](#-api-documentation) •
@@ -547,6 +548,19 @@ Before you begin, ensure you have the following installed:
 
 ---
 
+## 📚 Documentation
+
+For detailed setup and deployment guides, see our comprehensive documentation:
+
+| Guide | Description |
+|-------|-------------|
+| **[🐧 Local Development (Ubuntu)](./docs/LOCAL-DEVELOPMENT.md)** | Complete guide for setting up a local development environment on Ubuntu |
+| **[🚀 Production Deployment (Hostinger VPS)](./docs/PRODUCTION-DEPLOYMENT.md)** | Step-by-step production deployment with Nginx, SSL, PM2, and security hardening |
+
+<br />
+
+---
+
 ### 🐧 Ubuntu Server - One-Command Install
 
 <div align="center">
@@ -652,6 +666,8 @@ The update script will:
 **Deploy WordPress Node CMS on Hostinger VPS with a custom domain and SSL!**
 
 </div>
+
+> 📖 **For a comprehensive guide with troubleshooting, security hardening, and performance optimization, see the [Production Deployment Guide](./docs/PRODUCTION-DEPLOYMENT.md).**
 
 This guide covers deploying to a Hostinger VPS with a custom domain (e.g., `wordpressnode.co.uk`).
 
@@ -1464,6 +1480,8 @@ c:\Users\<YourUsername>\WordPress-Node\.env
 ---
 
 ### 🚀 Quick Start (Manual)
+
+> 📖 **For a detailed step-by-step guide with troubleshooting, see the [Local Development Guide](./docs/LOCAL-DEVELOPMENT.md).**
 
 ```bash
 # 1️⃣ Clone the repository
