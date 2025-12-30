@@ -109,7 +109,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     seo: { canView: false, canCreate: false, canEdit: false, canDelete: false }, // ADMIN only
     posts: { canView: false, canCreate: false, canEdit: false, canDelete: false }, // ADMIN only
     pages: { canView: false, canCreate: false, canEdit: false, canDelete: false }, // ADMIN only
-    media: { canView: true, canCreate: false, canEdit: false, canDelete: false },
+    media: { canView: false, canCreate: false, canEdit: false, canDelete: false }, // No access - VIEWER only has messages and groups
     menus: { canView: false, canCreate: false, canEdit: false, canDelete: false }, // ADMIN only
     users: { canView: false, canCreate: false, canEdit: false, canDelete: false }, // ADMIN only
     messages: { canView: true, canCreate: true, canEdit: true, canDelete: true }, // All roles
@@ -146,7 +146,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, { title: string; description: s
   },
   VIEWER: {
     title: 'Viewer',
-    description: 'Read-only access to content and messaging',
+    description: 'Access to messages and groups only',
     color: 'text-gray-400 bg-gray-500/20',
   },
 };
