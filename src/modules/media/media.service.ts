@@ -65,11 +65,13 @@ export class MediaService {
     let width: number | undefined;
     let height: number | undefined;
 
-    return this.prisma.media.create({
+    const url = `/uploads/${filename}`;
+
+    const media = await this.prisma.media.create({
       data: {
         filename,
         originalName: file.originalname,
-        path: `/uploads/${filename}`,
+        path: url,
         mimeType: file.mimetype,
         size: file.size,
         width,
@@ -77,6 +79,12 @@ export class MediaService {
         uploadedById: userId,
       },
     });
+
+    // Return with url field for frontend compatibility
+    return {
+      ...media,
+      url,
+    };
   }
 
   /**
