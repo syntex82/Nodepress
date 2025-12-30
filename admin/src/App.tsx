@@ -94,6 +94,9 @@ const LmsCertificate = lazy(() => import('./pages/lms/Certificate'));
 const MyProfile = lazy(() => import('./pages/profile/MyProfile'));
 const PublicProfile = lazy(() => import('./pages/profile/PublicProfile'));
 
+// Lazy-loaded pages - Feed
+const ActivityFeed = lazy(() => import('./pages/feed/ActivityFeed'));
+
 // Lazy-loaded pages - Email
 const EmailTemplates = lazy(() => import('./pages/email/EmailTemplates'));
 const EmailComposer = lazy(() => import('./pages/email/EmailComposer'));
@@ -108,6 +111,7 @@ const HiringRequests = lazy(() => import('./pages/marketplace').then(m => ({ def
 const MarketplaceProjects = lazy(() => import('./pages/marketplace').then(m => ({ default: m.Projects })));
 const DeveloperApplication = lazy(() => import('./pages/marketplace').then(m => ({ default: m.DeveloperApplication })));
 const HireForm = lazy(() => import('./pages/marketplace').then(m => ({ default: m.HireForm })));
+const MyDeveloperProfile = lazy(() => import('./pages/marketplace').then(m => ({ default: m.MyDeveloperProfile })));
 
 // Lazy-loaded pages - Subscriptions
 const Pricing = lazy(() => import('./pages/Pricing'));
@@ -201,6 +205,7 @@ function App() {
                 <Route path="dev-marketplace/projects" element={<ProtectedRoute feature="marketplace"><MarketplaceProjects /></ProtectedRoute>} />
                 <Route path="dev-marketplace/apply" element={<ProtectedRoute feature="marketplace"><DeveloperApplication /></ProtectedRoute>} />
                 <Route path="dev-marketplace/hire/:developerId" element={<ProtectedRoute feature="marketplace"><HireForm /></ProtectedRoute>} />
+                <Route path="dev-marketplace/my-profile" element={<ProtectedRoute feature="marketplace"><MyDeveloperProfile /></ProtectedRoute>} />
 
                 {/* Shop Admin - specific routes before parameterized */}
                 <Route path="shop/products" element={<ProtectedRoute feature="shop"><ShopProducts /></ProtectedRoute>} />
@@ -232,6 +237,9 @@ function App() {
                 {/* Profile */}
                 <Route path="profile" element={<MyProfile />} />
                 <Route path="profile/:identifier" element={<PublicProfile />} />
+
+                {/* Activity Feed */}
+                <Route path="feed" element={<ActivityFeed />} />
 
                 {/* Security */}
                 <Route path="security/*" element={<ProtectedRoute feature="security" requiredRole="ADMIN"><Security /></ProtectedRoute>} />

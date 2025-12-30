@@ -1,752 +1,33 @@
-// Prisma Schema for WordPress Node CMS
-// This defines all database models for our CMS platform
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// User model with role-based access control
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  username  String?  @unique  // Public username/handle
-  name      String
-  password  String   // Hashed with bcrypt
-  role      UserRole @default(AUTHOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Profile fields
-  avatar       String?   // Profile picture URL
-  coverImage   String?   // Profile banner/cover image
-  bio          String?   // Short bio (displayed on cards)
-  about        String?   @db.Text // Full about section (HTML)
-  headline     String?   // Professional headline/tagline
-  location     String?   // City, Country
-  website      String?   // Personal website URL
-  company      String?   // Company/organization
-  jobTitle     String?   // Current job title
-  skills       String[]  // Array of skills/expertise
-  interests    String[]  // Array of interests
-  isPublic     Boolean   @default(true) // Public profile visibility
-
-  // Social links (JSON object)
-  socialLinks  Json?     // { twitter, linkedin, github, youtube, instagram, facebook, etc. }
-
-  // Profile stats (denormalized for performance)
-  followersCount  Int @default(0)
-  followingCount  Int @default(0)
-  postsCount      Int @default(0)
-  coursesCount    Int @default(0)
-
-  // 2FA fields
-  twoFactorEnabled Boolean  @default(false)
-  twoFactorSecret  String?  // Encrypted TOTP secret
-  recoveryCodes    Json?    // Array of hashed recovery codes
-
-  // Security tracking
-  failedLoginAttempts Int      @default(0)
-  lastFailedLogin     DateTime?
-  accountLockedUntil  DateTime?
-  lastLoginAt         DateTime?
-  lastLoginIp         String?
-
-  // Password reset
-  passwordResetToken   String?   @unique
-  passwordResetExpires DateTime?
-
-  // Relations
-  posts           Post[]
-  pages           Page[]
-  media           Media[]
-  pageViews       PageView[]
-  sessions        Session[]
-  securityEvents  SecurityEvent[]
-  passwordHistory PasswordHistory[]
-  ownedGroups     Group[]         @relation("GroupOwner")
-  groupMemberships GroupMember[]
-  groupMessages   GroupMessage[]
-
-  // LMS Relations
-  instructedCourses Course[]        @relation("CourseInstructor")
-  enrollments       Enrollment[]    @relation("UserEnrollments")
-  lessonProgress    LessonProgress[] @relation("UserLessonProgress")
-  quizAttempts      QuizAttempt[]   @relation("UserQuizAttempts")
-  certificates      Certificate[]   @relation("UserCertificates")
-
-  // Follow system
-  followers     UserFollow[]  @relation("FollowedUser")
-  following     UserFollow[]  @relation("FollowerUser")
-
-  // Badges/Achievements
-  badges        UserBadge[]
-
-  // Direct Messaging
-  conversationsAsP1 Conversation[]  @relation("ConversationParticipant1")
-  conversationsAsP2 Conversation[]  @relation("ConversationParticipant2")
-  directMessages    DirectMessage[] @relation("DirectMessageSender")
-
-  // Custom Themes
-  customThemes      CustomTheme[]
-
-  // Email System
-  emailTemplatesCreated EmailTemplate[] @relation("EmailTemplateCreator")
-  emailsReceived        EmailLog[]      @relation("EmailRecipient")
-
-  // Theme Marketplace
-  submittedThemes       MarketplaceTheme[] @relation("MarketplaceThemeSubmitter")
-  approvedThemes        MarketplaceTheme[] @relation("MarketplaceThemeApprover")
-  themeRatings          MarketplaceThemeRating[]
-
-  // Plugin Marketplace
-  submittedPlugins      MarketplacePlugin[] @relation("MarketplacePluginSubmitter")
-  approvedPlugins       MarketplacePlugin[] @relation("MarketplacePluginApprover")
-  pluginRatings         MarketplacePluginRating[]
-
-  // Notifications
-  notifications         Notification[] @relation("UserNotifications")
-
-  // Backups
-  backups               Backup[] @relation("UserBackups")
-
-  // Recommendations System
-  userInteractions      UserInteraction[]
-  recommendationClicks  RecommendationClick[]
-
-  // Developer Marketplace
-  developerProfile      Developer?
-  clientHiringRequests  HiringRequest[] @relation("ClientHiringRequests")
-  clientProjects        Project[] @relation("ClientProjects")
-  developerReviews      DeveloperReview[] @relation("ReviewerDeveloperReviews")
-
-  // System Updates
-  initiatedUpdates      UpdateHistory[]
-
-  // Subscription
-  subscription          Subscription?
-}
-
-// Follow relationship for users
-model UserFollow {
-  id          String   @id @default(uuid())
-  followerId  String   // User who follows
-  followingId String   // User being followed
-  createdAt   DateTime @default(now())
-
-  follower    User @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User @relation("FollowedUser", fields: [followingId], references: [id], onDelete: Cascade)
-
-  @@unique([followerId, followingId])
-  @@index([followerId])
-  @@index([followingId])
-}
-
-// Badges/Achievements system
-model Badge {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  icon        String?  // Icon URL or emoji
-  color       String?  // Badge color
-  category    String?  // e.g., "learning", "contribution", "engagement"
-  criteria    Json?    // Criteria for earning the badge
-  createdAt   DateTime @default(now())
-
-  users       UserBadge[]
-}
-
-// User-Badge relationship
-model UserBadge {
-  id        String   @id @default(uuid())
-  userId    String
-  badgeId   String
-  earnedAt  DateTime @default(now())
-  metadata  Json?    // Additional context (e.g., which course completed)
-
-  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge     Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, badgeId])
-  @@index([userId])
-  @@index([badgeId])
-}
-
-enum UserRole {
-  ADMIN
-  EDITOR
-  AUTHOR
-  VIEWER
-}
-
-// Content Type model - allows defining custom content types
-model ContentType {
-  id          String   @id @default(uuid())
-  name        String   @unique // e.g., "Product", "Event"
-  slug        String   @unique
-  description String?
-  icon        String?
-  fields      Json     // Array of field definitions
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// Post model - blog posts
-model Post {
-  id            String      @id @default(uuid())
-  title         String
-  slug          String      @unique
-  content       String      @db.Text
-  excerpt       String?
-  featuredImage String?
-  status        PostStatus  @default(DRAFT)
-  publishedAt   DateTime?
-  authorId      String
-  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  // SEO fields (can be extended by plugins)
-  metaTitle       String?
-  metaDescription String?
-
-  // Custom fields (JSON for flexibility)
-  customFields  Json?
-
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  // Menu items linking to this post
-  menuItems     MenuItem[]
-
-  // Post customization
-  customization PostCustomization?
-
-  @@index([slug])
-  @@index([status])
-  @@index([authorId])
-}
-
-enum PostStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
-// Page model - static pages
-model Page {
-  id            String     @id @default(uuid())
-  title         String
-  slug          String     @unique
-  content       String     @db.Text
-  template      String?    // Template name from theme
-  featuredImage String?
-  status        PostStatus @default(DRAFT)
-  publishedAt   DateTime?
-  authorId      String
-  author        User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  // SEO fields
-  metaTitle       String?
-  metaDescription String?
-
-  // Custom fields
-  customFields  Json?
-
-  // Hierarchy support
-  parentId      String?
-  parent        Page?      @relation("PageHierarchy", fields: [parentId], references: [id])
-  children      Page[]     @relation("PageHierarchy")
-
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  // Menu items linking to this page
-  menuItems     MenuItem[]
-
-  // Page customization
-  customization PageCustomization?
-
-  @@index([slug])
-  @@index([status])
-  @@index([authorId])
-}
-
-// Media Library model
-model Media {
-  id          String   @id @default(uuid())
-  filename    String
-  originalName String
-  path        String   // Relative path or URL
-  mimeType    String
-  size        Int      // Size in bytes
-  width       Int?     // For images
-  height      Int?     // For images
-  alt         String?
-  caption     String?
-  uploadedById String
-  uploadedBy   User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([uploadedById])
-  @@index([mimeType])
-}
-
-// Theme model - manages installed themes
-model Theme {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  version     String
-  author      String?
-  description String?
-  thumbnail   String?
-  path        String   // Path to theme directory
-  config      Json     // theme.json content
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Theme customization relations
-  customizationImages   ThemeCustomizationImage[]
-  customizationBlocks   ThemeCustomizationBlock[]
-  customizationLinks    ThemeCustomizationLink[]
-
-  @@index([isActive])
-}
-
-// CustomTheme model - user-created themes from Theme Designer
-model CustomTheme {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  settings    Json     // Full theme configuration (colors, typography, layout, etc.)
-  customCSS   String?  @db.Text // Custom CSS code
-  pages       Json?    // Array of theme pages with blocks for page builder
-  isActive    Boolean  @default(false)
-  isDefault   Boolean  @default(false)
-  previewUrl  String?  // URL to preview image
-  createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([createdById])
-}
-
-// MarketplaceTheme model - themes submitted to the marketplace
-model MarketplaceTheme {
-  id              String   @id @default(uuid())
-  name            String
-  slug            String   @unique
-  description     String?  @db.Text
-  longDescription String?  @db.Text
-  version         String
-  author          String
-  authorEmail     String?
-  authorUrl       String?
-
-  // Theme package
-  thumbnailUrl    String?  // Preview image URL
-  screenshotUrls  Json?    // Array of additional screenshot URLs
-  downloadUrl     String?  // URL to download the theme ZIP
-  demoUrl         String?  // Live demo URL
-  repositoryUrl   String?  // GitHub/GitLab repository URL
-  fileSize        Int?     // Size in bytes
-
-  // Categorization
-  category        String   @default("blog") // blog, business, portfolio, ecommerce, magazine, etc.
-  tags            Json?    // Array of tags
-  features        Json?    // Array of feature strings
-
-  // Pricing
-  price           Float    @default(0)
-  isPremium       Boolean  @default(false)
-
-  // Stats & Ratings
-  downloads       Int      @default(0)
-  rating          Float    @default(0)
-  ratingCount     Int      @default(0)
-
-  // Approval workflow
-  status          String   @default("pending") // pending, approved, rejected, suspended
-  submittedById   String?
-  submittedBy     User?    @relation("MarketplaceThemeSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
-  approvedById    String?
-  approvedBy      User?    @relation("MarketplaceThemeApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  approvedAt      DateTime?
-  rejectionReason String?
-
-  // Featured/Promoted
-  isFeatured      Boolean  @default(false)
-  featuredOrder   Int?
-
-  // Compatibility
-  minVersion      String?  // Minimum CMS version required
-  maxVersion      String?  // Maximum CMS version supported
-
-  // Metadata
-  changelog       String?  @db.Text
-  documentation   String?  @db.Text
-  supportUrl      String?
-  licenseType     String?  @default("GPL-2.0")
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  ratings         MarketplaceThemeRating[]
-
-  @@index([status])
-  @@index([category])
-  @@index([isFeatured])
-  @@index([downloads])
-  @@index([rating])
-  @@index([submittedById])
-}
-
-// MarketplaceThemeRating model - user ratings for marketplace themes
-model MarketplaceThemeRating {
-  id        String   @id @default(uuid())
-  themeId   String
-  theme     MarketplaceTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5 stars
-  review    String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([themeId, userId])
-  @@index([themeId])
-  @@index([userId])
-}
-
-// PageCustomization model - per-page theme customization
-model PageCustomization {
-  id              String   @id @default(uuid())
-  pageId          String   @unique
-  page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
-
-  // Layout settings
-  layout          String?  // 'default', 'full-width', 'sidebar-left', 'sidebar-right'
-  showHeader      Boolean  @default(true)
-  showFooter      Boolean  @default(true)
-  showSidebar     Boolean  @default(false)
-
-  // Styling
-  customCSS       String?  @db.Text
-  backgroundColor String?
-  textColor       String?
-
-  // Header/Footer customization
-  headerStyle     String?  // 'default', 'minimal', 'transparent'
-  footerStyle     String?  // 'default', 'minimal', 'full'
-
-  // Featured image
-  featuredImagePosition String? // 'top', 'background', 'hidden'
-
-  // Metadata
-  customFields    Json?
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([pageId])
-}
-
-// PostCustomization model - per-post theme customization
-model PostCustomization {
-  id              String   @id @default(uuid())
-  postId          String   @unique
-  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  // Layout settings
-  layout          String?  // 'default', 'full-width', 'sidebar-left', 'sidebar-right'
-  showHeader      Boolean  @default(true)
-  showFooter      Boolean  @default(true)
-  showSidebar     Boolean  @default(false)
-
-  // Author display
-  showAuthor      Boolean  @default(true)
-  showDate        Boolean  @default(true)
-  showCategory    Boolean  @default(true)
-  showTags        Boolean  @default(true)
-
-  // Related posts
-  showRelatedPosts Boolean @default(true)
-  relatedPostsCount Int    @default(3)
-
-  // Styling
-  customCSS       String?  @db.Text
-  backgroundColor String?
-  textColor       String?
-
-  // Featured image
-  featuredImagePosition String? // 'top', 'background', 'hidden'
-
-  // Metadata
-  customFields    Json?
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([postId])
-}
-
-// ThemeCustomizationImage model - manages theme images (logo, hero, backgrounds, etc.)
-model ThemeCustomizationImage {
-  id              String   @id @default(uuid())
-  themeId         String
-  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
-
-  // Image metadata
-  name            String   // e.g., 'logo', 'hero-image', 'background'
-  type            String   // 'logo', 'hero', 'background', 'featured', 'banner', 'custom'
-  url             String   // URL to the image
-  altText         String?  // Alt text for accessibility
-  title           String?  // Display title
-  description     String?  // Description of the image
-
-  // Image properties
-  width           Int?     // Image width in pixels
-  height          Int?     // Image height in pixels
-  mimeType        String?  // e.g., 'image/png', 'image/jpeg'
-  fileSize        Int?     // File size in bytes
-
-  // Usage metadata
-  section         String?  // Which section uses this image (e.g., 'header', 'hero', 'footer')
-  position        Int      @default(0) // Order/position in the section
-
-  // Metadata
-  customData      Json?    // Additional custom properties
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([themeId])
-  @@index([type])
-  @@index([section])
-}
-
-// ThemeCustomizationBlock model - manages content blocks/sections
-model ThemeCustomizationBlock {
-  id              String   @id @default(uuid())
-  themeId         String
-  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
-
-  // Block metadata
-  name            String   // e.g., 'hero-section', 'features', 'testimonials'
-  type            String   // 'hero', 'features', 'testimonials', 'cta', 'gallery', 'text', 'custom'
-  title           String?  // Block title/heading
-  description     String?  // Block description
-
-  // Content
-  content         String?  @db.Text // HTML or text content
-  richContent     Json?    // Structured content (for rich editors)
-
-  // Styling
-  backgroundColor String?  // Background color
-  textColor       String?  // Text color
-  customCSS       String?  @db.Text // Custom CSS for this block
-
-  // Layout
-  layout          String?  // 'full-width', 'contained', 'grid', 'flex'
-  columns         Int      @default(1) // Number of columns for grid layouts
-  padding         String?  // Padding (e.g., '20px', '2rem')
-  margin          String?  // Margin (e.g., '20px', '2rem')
-
-  // Media
-  backgroundImage String?  // Background image URL
-  featuredImage   String?  // Featured image URL
-
-  // Visibility & Ordering
-  isVisible       Boolean  @default(true)
-  position        Int      @default(0) // Order in the theme
-
-  // Metadata
-  customData      Json?    // Additional custom properties
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([themeId])
-  @@index([type])
-  @@index([position])
-}
-
-// ThemeCustomizationLink model - manages theme links (nav, social, CTA, etc.)
-model ThemeCustomizationLink {
-  id              String   @id @default(uuid())
-  themeId         String
-  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
-
-  // Link metadata
-  name            String   // e.g., 'home', 'about', 'facebook', 'cta-button'
-  type            String   // 'navigation', 'social', 'cta', 'footer', 'custom'
-  label           String   // Display text for the link
-  url             String   // Link URL
-
-  // Link properties
-  icon            String?  // Icon class or name (e.g., 'facebook', 'twitter')
-  target          String   @default("_self") // '_self', '_blank', '_parent', '_top'
-  rel             String?  // rel attribute (e.g., 'noopener noreferrer')
-  title           String?  // Title attribute for hover text
-
-  // Styling
-  className       String?  // CSS class names
-  customCSS       String?  @db.Text // Custom CSS for this link
-
-  // Grouping & Ordering
-  group           String?  // Group links together (e.g., 'main-nav', 'social-links', 'footer-links')
-  position        Int      @default(0) // Order within the group
-
-  // Visibility
-  isVisible       Boolean  @default(true)
-  isActive        Boolean  @default(true)
-
-  // Metadata
-  customData      Json?    // Additional custom properties
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([themeId])
-  @@index([type])
-  @@index([group])
-  @@index([position])
-}
-
-// Plugin model - manages installed plugins
-model Plugin {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  version     String
-  author      String?
-  description String?
-  path        String   // Path to plugin directory
-  config      Json     // plugin.json content
-  isActive    Boolean  @default(false)
-  settings    Json?    // Plugin-specific settings
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-}
-
-// Settings model - global site settings
-model Setting {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  value     Json
-  type      String   // 'string', 'number', 'boolean', 'json'
-  group     String?  // Group settings together (e.g., 'general', 'seo', 'theme')
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([key])
-  @@index([group])
-}
-
-// SystemConfig model - encrypted system configuration stored in database
-// Used for SMTP settings, API keys, and other sensitive configuration
-model SystemConfig {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  value       String   @db.Text  // Encrypted for sensitive fields
-  isEncrypted Boolean  @default(false)
-  group       String   // 'email', 'domain', 'security', etc.
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([key])
-  @@index([group])
-}
-
-// SetupStatus model - tracks installation and setup progress
-model SetupStatus {
-  id            String   @id @default(uuid())
-  setupComplete Boolean  @default(false)
-  adminCreated  Boolean  @default(false)
-  smtpConfigured Boolean @default(false)
-  domainConfigured Boolean @default(false)
-  completedAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// Session model - for admin session management
-model Session {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token        String   @unique
-  ip           String?
-  userAgent    String?
-  lastActivity DateTime @default(now())
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([userId])
-  @@index([token])
-}
-
-// PageView model - for analytics plugin
-model PageView {
-  id          String   @id @default(uuid())
-  path        String
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  sessionId   String?
-  ipAddress   String?
-  userAgent   String?
-  referer     String?
-  // Enhanced tracking fields
-  country     String?
-  city        String?
-  device      String?  // desktop, mobile, tablet
-  browser     String?
-  os          String?
-  duration    Int?     // time spent on page in seconds
-  scrollDepth Int?     // percentage scrolled (0-100)
-  createdAt   DateTime @default(now())
-
-  @@index([path])
-  @@index([createdAt])
-  @@index([sessionId])
-  @@index([device])
-  @@index([country])
-}
-
-// Analytics Event - track custom events
 model AnalyticsEvent {
-  id         String   @id @default(uuid())
-  sessionId  String?
-  userId     String?
-  category   String   // e.g., "button", "form", "video", "purchase"
-  action     String   // e.g., "click", "submit", "play", "complete"
-  label      String?  // optional label for additional context
-  value      Float?   // optional numeric value
-  path       String?  // page where event occurred
-  metadata   Json?    // additional event data
-  ipAddress  String?
-  createdAt  DateTime @default(now())
+  id        String   @id
+  sessionId String?
+  userId    String?
+  category  String
+  action    String
+  label     String?
+  value     Float?
+  path      String?
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
 
-  @@index([category])
   @@index([action])
-  @@index([sessionId])
+  @@index([category])
   @@index([createdAt])
+  @@index([sessionId])
 }
 
-// Analytics Session - track user sessions
 model AnalyticsSession {
-  id          String    @id @default(uuid())
+  id          String    @id
   userId      String?
   ipAddress   String?
   userAgent   String?
@@ -759,277 +40,2161 @@ model AnalyticsSession {
   landingPage String?
   exitPage    String?
   pageCount   Int       @default(0)
-  duration    Int       @default(0) // total session duration in seconds
+  duration    Int       @default(0)
   startedAt   DateTime  @default(now())
   endedAt     DateTime?
   isActive    Boolean   @default(true)
 
-  @@index([userId])
+  @@index([isActive])
   @@index([startedAt])
+  @@index([userId])
+}
+
+model Backup {
+  id               String          @id
+  name             String
+  description      String?
+  type             BackupType      @default(FULL)
+  status           BackupStatus    @default(PENDING)
+  filePath         String?
+  fileSize         BigInt?
+  checksum         String?
+  includesDatabase Boolean         @default(true)
+  includesMedia    Boolean         @default(true)
+  includesThemes   Boolean         @default(true)
+  includesPlugins  Boolean         @default(true)
+  tablesCount      Int?
+  recordsCount     Int?
+  filesCount       Int?
+  errorMessage     String?
+  isScheduled      Boolean         @default(false)
+  scheduleId       String?
+  createdById      String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  User             User?           @relation(fields: [createdById], references: [id])
+  UpdateHistory    UpdateHistory[]
+
+  @@index([createdAt])
+  @@index([createdById])
+  @@index([status])
+  @@index([type])
+}
+
+model BackupSchedule {
+  id             String     @id
+  name           String
+  isActive       Boolean    @default(true)
+  frequency      String
+  cronExpression String?
+  hour           Int        @default(3)
+  dayOfWeek      Int?
+  dayOfMonth     Int?
+  backupType     BackupType @default(FULL)
+  retentionDays  Int        @default(30)
+  maxBackups     Int        @default(10)
+  lastRunAt      DateTime?
+  nextRunAt      DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime
+
+  @@index([isActive])
+  @@index([nextRunAt])
+}
+
+model Badge {
+  id          String      @id
+  name        String      @unique
+  slug        String      @unique
+  description String?
+  icon        String?
+  color       String?
+  category    String?
+  criteria    Json?
+  createdAt   DateTime    @default(now())
+  UserBadge   UserBadge[]
+}
+
+model BlockedIP {
+  id        String    @id
+  ip        String    @unique
+  reason    String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+
+  @@index([expiresAt])
+  @@index([ip])
+}
+
+model Cart {
+  id         String     @id
+  userId     String?    @unique
+  sessionId  String?    @unique
+  couponCode String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime
+  CartItem   CartItem[]
+
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model CartItem {
+  id             String          @id
+  cartId         String
+  productId      String?
+  variantId      String?
+  quantity       Int             @default(1)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime
+  courseId       String?
+  itemType       CartItemType    @default(PRODUCT)
+  Cart           Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  Course         Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  Product        Product?        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ProductVariant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, courseId])
+  @@unique([cartId, productId, variantId])
+  @@index([cartId])
+  @@index([courseId])
+  @@index([productId])
+}
+
+model Certificate {
+  id                String    @id
+  certificateNumber String    @unique
+  courseId          String
+  userId            String
+  issuedAt          DateTime  @default(now())
+  pdfPath           String?
+  pdfUrl            String?
+  verificationHash  String    @unique
+  metadata          Json?
+  revokedAt         DateTime?
+  revokedReason     String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  Course            Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  User              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([certificateNumber])
+  @@index([courseId])
+  @@index([userId])
+  @@index([verificationHash])
+}
+
+model ContentType {
+  id          String   @id
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  fields      Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model Conversation {
+  id                                     String          @id
+  participant1Id                         String
+  participant2Id                         String
+  lastMessageAt                          DateTime?
+  createdAt                              DateTime        @default(now())
+  updatedAt                              DateTime
+  User_Conversation_participant1IdToUser User            @relation("Conversation_participant1IdToUser", fields: [participant1Id], references: [id], onDelete: Cascade)
+  User_Conversation_participant2IdToUser User            @relation("Conversation_participant2IdToUser", fields: [participant2Id], references: [id], onDelete: Cascade)
+  DirectMessage                          DirectMessage[]
+
+  @@unique([participant1Id, participant2Id])
+  @@index([lastMessageAt])
+  @@index([participant1Id])
+  @@index([participant2Id])
+}
+
+model Coupon {
+  id             String     @id
+  code           String     @unique
+  description    String?
+  type           CouponType @default(PERCENTAGE)
+  value          Decimal    @db.Decimal(10, 2)
+  minOrderAmount Decimal?   @db.Decimal(10, 2)
+  maxDiscount    Decimal?   @db.Decimal(10, 2)
+  usageLimit     Int?
+  usageCount     Int        @default(0)
+  perUserLimit   Int?
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime
+
+  @@index([code])
   @@index([isActive])
 }
 
-// SEO Redirect - manage URL redirects
-model SeoRedirect {
-  id          String   @id @default(uuid())
-  fromPath    String   @unique // Source path (e.g., /old-page)
-  toPath      String   // Destination path or URL
-  type        Int      @default(301) // 301 (permanent) or 302 (temporary)
-  isActive    Boolean  @default(true)
-  hitCount    Int      @default(0) // Number of times redirect was triggered
-  lastHitAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Course {
+  id                  String           @id
+  slug                String           @unique
+  title               String
+  description         String?
+  shortDescription    String?
+  category            String?
+  level               CourseLevel      @default(BEGINNER)
+  featuredImage       String?
+  instructorId        String
+  priceType           CoursePriceType  @default(FREE)
+  priceAmount         Decimal?         @db.Decimal(10, 2)
+  status              CourseStatus     @default(DRAFT)
+  passingScorePercent Int              @default(80)
+  certificateEnabled  Boolean          @default(true)
+  estimatedHours      Int?
+  whatYouLearn        Json?
+  requirements        Json?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime
+  CartItem            CartItem[]
+  Certificate         Certificate[]
+  User                User             @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  CourseModule        CourseModule[]
+  Enrollment          Enrollment[]
+  Lesson              Lesson[]
+  LessonProgress      LessonProgress[]
+  Quiz                Quiz[]
+  QuizAttempt         QuizAttempt[]
 
-  @@index([fromPath])
+  @@index([category])
+  @@index([instructorId])
+  @@index([priceType])
+  @@index([slug])
+  @@index([status])
+}
+
+model CourseModule {
+  id          String   @id
+  courseId    String
+  title       String
+  description String?
+  orderIndex  Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  Lesson      Lesson[]
+
+  @@index([courseId])
+  @@index([orderIndex])
+}
+
+model CustomTheme {
+  id          String   @id
+  name        String   @unique
+  description String?
+  settings    Json
+  customCSS   String?
+  pages       Json?
+  isActive    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  previewUrl  String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  User        User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
   @@index([isActive])
 }
 
-// SEO Sitemap Entry - custom sitemap entries
-model SeoSitemapEntry {
-  id          String   @id @default(uuid())
-  url         String   @unique // Full URL or path
-  priority    Float    @default(0.5) // 0.0 to 1.0
-  changefreq  String   @default("weekly") // always, hourly, daily, weekly, monthly, yearly, never
-  lastmod     DateTime @default(now())
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-}
-
-// SEO Schema Markup - JSON-LD structured data
-model SeoSchemaMarkup {
-  id          String   @id @default(uuid())
-  name        String   // Friendly name for the schema
-  type        String   // Schema type: Organization, LocalBusiness, Article, Product, etc.
-  content     Json     // The actual JSON-LD content
-  scope       String   @default("global") // global, post, page, product, etc.
-  scopeId     String?  // Optional: specific content ID to attach to
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model CustomerAddress {
+  id         String      @id
+  userId     String
+  type       AddressType @default(SHIPPING)
+  isDefault  Boolean     @default(false)
+  firstName  String
+  lastName   String
+  company    String?
+  address1   String
+  address2   String?
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  phone      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime
 
   @@index([type])
-  @@index([scope])
+  @@index([userId])
+}
+
+model Developer {
+  id                  String            @id
+  userId              String            @unique
+  displayName         String
+  slug                String            @unique
+  headline            String?
+  bio                 String?
+  profileImage        String?
+  coverImage          String?
+  category            DeveloperCategory @default(FULLSTACK)
+  skills              String[]
+  languages           String[]
+  frameworks          String[]
+  tools               String[]
+  spokenLanguages     String[]
+  yearsOfExperience   Int               @default(0)
+  education           Json?
+  certifications      Json?
+  portfolio           Json?
+  hourlyRate          Decimal           @db.Decimal(10, 2)
+  minimumBudget       Decimal?          @db.Decimal(10, 2)
+  currency            String            @default("USD")
+  availability        String            @default("available")
+  availableHours      Int               @default(40)
+  timezone            String?
+  status              DeveloperStatus   @default(PENDING)
+  isVerified          Boolean           @default(false)
+  verifiedAt          DateTime?
+  isFeatured          Boolean           @default(false)
+  featuredUntil       DateTime?
+  rating              Float             @default(0)
+  reviewCount         Int               @default(0)
+  projectsCompleted   Int               @default(0)
+  totalEarnings       Decimal           @default(0) @db.Decimal(10, 2)
+  responseTime        Int?
+  completionRate      Float             @default(100)
+  websiteUrl          String?
+  githubUrl           String?
+  linkedinUrl         String?
+  twitterUrl          String?
+  applicationNote     String?
+  rejectionReason     String?
+  suspensionReason    String?
+  stripeConnectId     String?           @unique
+  stripeAccountStatus String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime
+  User                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  DeveloperPayout     DeveloperPayout[]
+  DeveloperReview     DeveloperReview[]
+  HiringRequest       HiringRequest[]
+  Project             Project[]
+
+  @@index([availability])
+  @@index([category])
+  @@index([isFeatured])
+  @@index([rating])
+  @@index([slug])
+  @@index([status])
+}
+
+model DeveloperPayout {
+  id               String       @id
+  developerId      String
+  amount           Decimal      @db.Decimal(10, 2)
+  currency         String       @default("USD")
+  status           PayoutStatus @default(PENDING)
+  stripePayoutId   String?
+  stripeTransferId String?
+  payoutMethod     String       @default("stripe")
+  accountLast4     String?
+  requestedAt      DateTime     @default(now())
+  processedAt      DateTime?
+  failureReason    String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime
+  Developer        Developer    @relation(fields: [developerId], references: [id], onDelete: Cascade)
+
+  @@index([developerId])
+  @@index([requestedAt])
+  @@index([status])
+}
+
+model DeveloperReview {
+  id                  String    @id
+  developerId         String
+  reviewerId          String
+  projectId           String?
+  overallRating       Int
+  communicationRating Int?
+  qualityRating       Int?
+  timelinessRating    Int?
+  valueRating         Int?
+  title               String?
+  content             String?
+  isVerified          Boolean   @default(false)
+  isApproved          Boolean   @default(true)
+  response            String?
+  respondedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime
+  Developer           Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  User                User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([developerId, reviewerId, projectId])
+  @@index([developerId])
+  @@index([isApproved])
+  @@index([overallRating])
+  @@index([reviewerId])
+}
+
+model DirectMessage {
+  id             String       @id
+  conversationId String
+  senderId       String
+  content        String
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  media          Json?        @default("[]")
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([senderId])
+}
+
+model EmailLog {
+  id                String         @id
+  templateId        String?
+  recipientId       String?
+  toEmail           String
+  toName            String?
+  fromEmail         String
+  fromName          String?
+  subject           String
+  htmlContent       String?
+  textContent       String?
+  status            EmailStatus    @default(PENDING)
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  failedAt          DateTime?
+  errorMessage      String?
+  providerMessageId String?
+  providerResponse  Json?
+  metadata          Json?
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime
+  User              User?          @relation(fields: [recipientId], references: [id])
+  EmailTemplate     EmailTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([createdAt])
+  @@index([recipientId])
+  @@index([sentAt])
+  @@index([status])
+  @@index([templateId])
+  @@index([toEmail])
+}
+
+model EmailTemplate {
+  id          String            @id
+  name        String
+  slug        String            @unique
+  type        EmailTemplateType @default(CUSTOM)
+  subject     String
+  htmlContent String
+  textContent String?
+  variables   Json?
+  isActive    Boolean           @default(true)
+  isSystem    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime
+  createdById String?
+  EmailLog    EmailLog[]
+  User        User?             @relation(fields: [createdById], references: [id])
+
+  @@index([isActive])
+  @@index([slug])
+  @@index([type])
+}
+
+model Enrollment {
+  id          String           @id
+  courseId    String
+  userId      String
+  status      EnrollmentStatus @default(ACTIVE)
+  enrolledAt  DateTime         @default(now())
+  completedAt DateTime?
+  expiresAt   DateTime?
+  paymentId   String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime
+  pricePaid   Float?           @default(0)
+  Course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  User        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@index([courseId])
+  @@index([status])
+  @@index([userId])
+}
+
+model Group {
+  id           String          @id
+  name         String
+  slug         String          @unique
+  description  String?
+  visibility   GroupVisibility @default(PUBLIC)
+  ownerId      String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime
+  User         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  GroupMember  GroupMember[]
+  GroupMessage GroupMessage[]
+
+  @@index([createdAt])
+  @@index([ownerId])
+  @@index([slug])
+  @@index([visibility])
+}
+
+model GroupMember {
+  id       String          @id
+  groupId  String
+  userId   String
+  role     GroupMemberRole @default(MEMBER)
+  isBanned Boolean         @default(false)
+  joinedAt DateTime        @default(now())
+  Group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  User     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([joinedAt])
+  @@index([userId])
+}
+
+model GroupMessage {
+  id        String   @id
+  groupId   String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+  media     Json?    @default("[]")
+  Group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([groupId])
+  @@index([senderId])
+}
+
+model HiringRequest {
+  id              String              @id
+  clientId        String
+  developerId     String
+  title           String
+  description     String
+  requirements    String?
+  attachments     Json?
+  budgetType      String              @default("fixed")
+  budgetAmount    Decimal             @db.Decimal(10, 2)
+  estimatedHours  Int?
+  deadline        DateTime?
+  status          HiringRequestStatus @default(PENDING)
+  responseMessage String?
+  respondedAt     DateTime?
+  projectId       String?             @unique
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime
+  User            User                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Developer       Developer           @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  Project         Project?
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([developerId])
+  @@index([status])
+}
+
+model Lesson {
+  id               String           @id
+  courseId         String
+  title            String
+  content          String?
+  orderIndex       Int              @default(0)
+  type             LessonType       @default(VIDEO)
+  videoAssetId     String?
+  estimatedMinutes Int?
+  isPreview        Boolean          @default(false)
+  isRequired       Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  moduleId         String?
+  Course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  CourseModule     CourseModule?    @relation(fields: [moduleId], references: [id])
+  VideoAsset       VideoAsset?      @relation(fields: [videoAssetId], references: [id])
+  LessonProgress   LessonProgress[]
+  Quiz             Quiz?
+
+  @@index([courseId])
+  @@index([moduleId])
+  @@index([orderIndex])
+}
+
+model LessonProgress {
+  id                  String    @id
+  courseId            String
+  lessonId            String
+  userId              String
+  videoWatchedSeconds Int       @default(0)
+  lessonCompleted     Boolean   @default(false)
+  completedAt         DateTime?
+  lastAccessedAt      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime
+  Course              Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  Lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  User                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, lessonId, userId])
+  @@index([courseId])
+  @@index([lessonId])
+  @@index([userId])
+}
+
+model ManualRecommendation {
+  id                 String             @id
+  ruleId             String
+  contentType        String
+  contentId          String
+  position           Int                @default(0)
+  createdAt          DateTime           @default(now())
+  RecommendationRule RecommendationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([contentType, contentId])
+  @@index([ruleId])
+}
+
+model MarketplacePlugin {
+  id                                         String                    @id
+  name                                       String
+  slug                                       String                    @unique
+  description                                String?
+  longDescription                            String?
+  version                                    String
+  author                                     String
+  authorEmail                                String?
+  authorUrl                                  String?
+  iconUrl                                    String?
+  screenshotUrls                             Json?
+  downloadUrl                                String?
+  repositoryUrl                              String?
+  fileSize                                   Int?
+  category                                   String                    @default("utility")
+  tags                                       Json?
+  features                                   Json?
+  price                                      Float                     @default(0)
+  isPremium                                  Boolean                   @default(false)
+  downloads                                  Int                       @default(0)
+  activeInstalls                             Int                       @default(0)
+  rating                                     Float                     @default(0)
+  ratingCount                                Int                       @default(0)
+  status                                     String                    @default("pending")
+  submittedById                              String?
+  approvedById                               String?
+  approvedAt                                 DateTime?
+  rejectionReason                            String?
+  isFeatured                                 Boolean                   @default(false)
+  featuredOrder                              Int?
+  minVersion                                 String?
+  maxVersion                                 String?
+  testedUpTo                                 String?
+  changelog                                  String?
+  documentation                              String?
+  supportUrl                                 String?
+  licenseType                                String?                   @default("MIT")
+  createdAt                                  DateTime                  @default(now())
+  updatedAt                                  DateTime
+  User_MarketplacePlugin_approvedByIdToUser  User?                     @relation("MarketplacePlugin_approvedByIdToUser", fields: [approvedById], references: [id])
+  User_MarketplacePlugin_submittedByIdToUser User?                     @relation("MarketplacePlugin_submittedByIdToUser", fields: [submittedById], references: [id])
+  MarketplacePluginRating                    MarketplacePluginRating[]
+
+  @@index([category])
+  @@index([downloads])
+  @@index([isFeatured])
+  @@index([rating])
+  @@index([status])
+  @@index([submittedById])
+}
+
+model MarketplacePluginRating {
+  id                String            @id
+  pluginId          String
+  userId            String
+  rating            Int
+  review            String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime
+  MarketplacePlugin MarketplacePlugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  User              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pluginId, userId])
+  @@index([pluginId])
+  @@index([userId])
+}
+
+model MarketplaceSettings {
+  id          String   @id
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model MarketplaceTheme {
+  id                                        String                   @id
+  name                                      String
+  slug                                      String                   @unique
+  description                               String?
+  longDescription                           String?
+  version                                   String
+  author                                    String
+  authorEmail                               String?
+  authorUrl                                 String?
+  thumbnailUrl                              String?
+  screenshotUrls                            Json?
+  downloadUrl                               String?
+  demoUrl                                   String?
+  repositoryUrl                             String?
+  fileSize                                  Int?
+  category                                  String                   @default("blog")
+  tags                                      Json?
+  features                                  Json?
+  price                                     Float                    @default(0)
+  isPremium                                 Boolean                  @default(false)
+  downloads                                 Int                      @default(0)
+  rating                                    Float                    @default(0)
+  ratingCount                               Int                      @default(0)
+  status                                    String                   @default("pending")
+  submittedById                             String?
+  approvedById                              String?
+  approvedAt                                DateTime?
+  rejectionReason                           String?
+  isFeatured                                Boolean                  @default(false)
+  featuredOrder                             Int?
+  minVersion                                String?
+  maxVersion                                String?
+  changelog                                 String?
+  documentation                             String?
+  supportUrl                                String?
+  licenseType                               String?                  @default("GPL-2.0")
+  createdAt                                 DateTime                 @default(now())
+  updatedAt                                 DateTime
+  User_MarketplaceTheme_approvedByIdToUser  User?                    @relation("MarketplaceTheme_approvedByIdToUser", fields: [approvedById], references: [id])
+  User_MarketplaceTheme_submittedByIdToUser User?                    @relation("MarketplaceTheme_submittedByIdToUser", fields: [submittedById], references: [id])
+  MarketplaceThemeRating                    MarketplaceThemeRating[]
+
+  @@index([category])
+  @@index([downloads])
+  @@index([isFeatured])
+  @@index([rating])
+  @@index([status])
+  @@index([submittedById])
+}
+
+model MarketplaceThemeRating {
+  id               String           @id
+  themeId          String
+  userId           String
+  rating           Int
+  review           String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  MarketplaceTheme MarketplaceTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  User             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([themeId, userId])
+  @@index([themeId])
+  @@index([userId])
+}
+
+model MarketplaceTransaction {
+  id                    String                       @id
+  projectId             String
+  type                  MarketplaceTransactionType
+  amount                Decimal                      @db.Decimal(10, 2)
+  currency              String                       @default("USD")
+  description           String?
+  status                MarketplaceTransactionStatus @default(PENDING)
+  stripePaymentIntentId String?
+  stripeTransferId      String?
+  stripeChargeId        String?
+  fromUserId            String?
+  toUserId              String?
+  metadata              Json?
+  processedAt           DateTime?
+  failureReason         String?
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime
+  Project               Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([projectId])
+  @@index([status])
+  @@index([type])
+}
+
+model Media {
+  id           String   @id
+  filename     String
+  originalName String
+  path         String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  alt          String?
+  caption      String?
+  uploadedById String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  User         User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([mimeType])
+  @@index([uploadedById])
+}
+
+model Menu {
+  id        String     @id
+  name      String     @unique
+  location  String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  MenuItem  MenuItem[]
+}
+
+model MenuItem {
+  id             String       @id
+  menuId         String
+  parentId       String?
+  label          String
+  url            String?
+  target         String       @default("_self")
+  type           MenuItemType @default(CUSTOM)
+  pageId         String?
+  postId         String?
+  order          Int          @default(0)
+  cssClass       String?
+  icon           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  Menu           Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  Page           Page?        @relation(fields: [pageId], references: [id])
+  MenuItem       MenuItem?    @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
+  other_MenuItem MenuItem[]   @relation("MenuItemToMenuItem")
+  Post           Post?        @relation(fields: [postId], references: [id])
+
+  @@index([menuId])
+  @@index([order])
+  @@index([parentId])
+}
+
+model Notification {
+  id        String           @id
+  userId    String
+  type      NotificationType @default(INFO)
+  title     String
+  message   String
+  link      String?
+  icon      String?
+  iconColor String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  User      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([type])
+  @@index([userId])
+}
+
+model Order {
+  id              String        @id
+  orderNumber     String        @unique
+  userId          String?
+  email           String
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax             Decimal       @default(0) @db.Decimal(10, 2)
+  shipping        Decimal       @default(0) @db.Decimal(10, 2)
+  discount        Decimal       @default(0) @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  currency        String        @default("USD")
+  couponCode      String?
+  couponDiscount  Decimal?      @db.Decimal(10, 2)
+  billingAddress  Json
+  shippingAddress Json?
+  shippingMethod  String?
+  trackingNumber  String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  customerNote    String?
+  adminNote       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  OrderItem       OrderItem[]
+  Payment         Payment[]
+
+  @@index([createdAt])
+  @@index([email])
+  @@index([orderNumber])
+  @@index([paymentStatus])
+  @@index([status])
+  @@index([userId])
+}
+
+model OrderItem {
+  id             String          @id
+  orderId        String
+  productId      String
+  variantId      String?
+  name           String
+  sku            String?
+  price          Decimal         @db.Decimal(10, 2)
+  quantity       Int
+  total          Decimal         @db.Decimal(10, 2)
+  options        Json?
+  createdAt      DateTime        @default(now())
+  Order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product        Product         @relation(fields: [productId], references: [id])
+  ProductVariant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Page {
+  id                String             @id
+  title             String
+  slug              String             @unique
+  content           String
+  template          String?
+  featuredImage     String?
+  status            PostStatus         @default(DRAFT)
+  publishedAt       DateTime?
+  authorId          String
+  metaTitle         String?
+  metaDescription   String?
+  customFields      Json?
+  parentId          String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime
+  MenuItem          MenuItem[]
+  User              User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  Page              Page?              @relation("PageToPage", fields: [parentId], references: [id])
+  other_Page        Page[]             @relation("PageToPage")
+  PageCustomization PageCustomization?
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+}
+
+model PageCustomization {
+  id                    String   @id
+  pageId                String   @unique
+  layout                String?
+  showHeader            Boolean  @default(true)
+  showFooter            Boolean  @default(true)
+  showSidebar           Boolean  @default(false)
+  customCSS             String?
+  backgroundColor       String?
+  textColor             String?
+  headerStyle           String?
+  footerStyle           String?
+  featuredImagePosition String?
+  customFields          Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime
+  Page                  Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+}
+
+model PageView {
+  id          String   @id
+  path        String
+  userId      String?
+  ipAddress   String?
+  userAgent   String?
+  referer     String?
+  createdAt   DateTime @default(now())
+  browser     String?
+  city        String?
+  country     String?
+  device      String?
+  duration    Int?
+  os          String?
+  scrollDepth Int?
+  sessionId   String?
+  User        User?    @relation(fields: [userId], references: [id])
+
+  @@index([country])
+  @@index([createdAt])
+  @@index([device])
+  @@index([path])
+  @@index([sessionId])
+}
+
+model PasswordHistory {
+  id        String   @id
+  userId    String
+  password  String
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model PasswordPolicy {
+  id                     String   @id
+  minLength              Int      @default(8)
+  requireUppercase       Boolean  @default(true)
+  requireLowercase       Boolean  @default(true)
+  requireNumbers         Boolean  @default(true)
+  requireSpecialChars    Boolean  @default(true)
+  expirationDays         Int?
+  preventReuse           Int      @default(5)
+  checkBreachedPasswords Boolean  @default(false)
+  enabled                Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime
+}
+
+model Payment {
+  id                    String        @id
+  orderId               String
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("USD")
+  status                PaymentStatus @default(UNPAID)
+  method                String        @default("stripe")
+  stripePaymentIntentId String?       @unique
+  stripeChargeId        String?
+  stripeCustomerId      String?
+  stripeReceiptUrl      String?
+  refundedAmount        Decimal?      @db.Decimal(10, 2)
+  refundReason          String?
+  refundedAt            DateTime?
+  metadata              Json?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime
+  Order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@index([stripePaymentIntentId])
+}
+
+model Plugin {
+  id          String   @id
+  name        String   @unique
+  slug        String   @unique
+  version     String
+  author      String?
+  description String?
+  path        String
+  config      Json
+  isActive    Boolean  @default(false)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
   @@index([isActive])
 }
 
-// SEO Audit Log - track SEO score changes
+model Post {
+  id                String             @id
+  title             String
+  slug              String             @unique
+  content           String
+  excerpt           String?
+  featuredImage     String?
+  status            PostStatus         @default(DRAFT)
+  publishedAt       DateTime?
+  authorId          String
+  metaTitle         String?
+  metaDescription   String?
+  customFields      Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime
+  MenuItem          MenuItem[]
+  User              User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  PostCustomization PostCustomization?
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+}
+
+model PostCustomization {
+  id                    String   @id
+  postId                String   @unique
+  layout                String?
+  showHeader            Boolean  @default(true)
+  showFooter            Boolean  @default(true)
+  showSidebar           Boolean  @default(false)
+  showAuthor            Boolean  @default(true)
+  showDate              Boolean  @default(true)
+  showCategory          Boolean  @default(true)
+  showTags              Boolean  @default(true)
+  showRelatedPosts      Boolean  @default(true)
+  relatedPostsCount     Int      @default(3)
+  customCSS             String?
+  backgroundColor       String?
+  textColor             String?
+  featuredImagePosition String?
+  customFields          Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime
+  Post                  Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model Product {
+  id                String           @id
+  name              String
+  slug              String           @unique
+  description       String?
+  shortDescription  String?
+  sku               String?          @unique
+  price             Decimal          @db.Decimal(10, 2)
+  salePrice         Decimal?         @db.Decimal(10, 2)
+  costPrice         Decimal?         @db.Decimal(10, 2)
+  stock             Int              @default(0)
+  lowStockThreshold Int              @default(5)
+  trackStock        Boolean          @default(true)
+  status            ProductStatus    @default(DRAFT)
+  type              ProductType      @default(PHYSICAL)
+  featuredImage     String?
+  images            Json?
+  weight            Decimal?         @db.Decimal(10, 3)
+  dimensions        Json?
+  downloadUrl       String?
+  downloadLimit     Int?
+  downloadExpiry    Int?
+  metaTitle         String?
+  metaDescription   String?
+  categoryId        String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime
+  hasVariants       Boolean          @default(false)
+  variantOptions    Json?
+  CartItem          CartItem[]
+  OrderItem         OrderItem[]
+  ProductCategory   ProductCategory? @relation(fields: [categoryId], references: [id])
+  ProductReview     ProductReview[]
+  ProductVariant    ProductVariant[]
+  ProductTag        ProductTag[]
+
+  @@index([categoryId])
+  @@index([hasVariants])
+  @@index([sku])
+  @@index([slug])
+  @@index([status])
+}
+
+model ProductCategory {
+  id                    String            @id
+  name                  String
+  slug                  String            @unique
+  description           String?
+  image                 String?
+  parentId              String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime
+  Product               Product[]
+  ProductCategory       ProductCategory?  @relation("ProductCategoryToProductCategory", fields: [parentId], references: [id])
+  other_ProductCategory ProductCategory[] @relation("ProductCategoryToProductCategory")
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+model ProductOption {
+  id           String            @id
+  type         ProductOptionType
+  name         String
+  value        String
+  displayValue String?
+  metadata     Json?
+  sortOrder    Int               @default(0)
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime
+
+  @@unique([type, value])
+  @@index([isActive])
+  @@index([type])
+}
+
+model ProductReview {
+  id         String   @id
+  productId  String
+  userId     String?
+  name       String
+  email      String
+  rating     Int
+  title      String?
+  content    String?
+  isVerified Boolean  @default(false)
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([isApproved])
+  @@index([productId])
+  @@index([rating])
+}
+
+model ProductTag {
+  id        String    @id
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  Product   Product[]
+
+  @@index([slug])
+}
+
+model ProductVariant {
+  id                String      @id
+  productId         String
+  name              String
+  sku               String?     @unique
+  price             Decimal?    @db.Decimal(10, 2)
+  salePrice         Decimal?    @db.Decimal(10, 2)
+  stock             Int         @default(0)
+  image             String?
+  options           Json
+  isDefault         Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime
+  color             String?
+  colorCode         String?
+  costPrice         Decimal?    @db.Decimal(10, 2)
+  images            Json?
+  isActive          Boolean     @default(true)
+  lowStockThreshold Int         @default(5)
+  size              String?
+  sortOrder         Int         @default(0)
+  weight            Decimal?    @db.Decimal(10, 3)
+  CartItem          CartItem[]
+  OrderItem         OrderItem[]
+  Product           Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([color])
+  @@index([isActive])
+  @@index([productId])
+  @@index([size])
+  @@index([sku])
+}
+
+model Project {
+  id                     String                   @id
+  clientId               String
+  developerId            String
+  title                  String
+  description            String
+  requirements           String?
+  deliverables           Json?
+  budgetType             String                   @default("fixed")
+  totalBudget            Decimal                  @db.Decimal(10, 2)
+  hourlyRate             Decimal?                 @db.Decimal(10, 2)
+  hoursLogged            Decimal                  @default(0) @db.Decimal(10, 2)
+  amountPaid             Decimal                  @default(0) @db.Decimal(10, 2)
+  amountInEscrow         Decimal                  @default(0) @db.Decimal(10, 2)
+  platformFee            Decimal                  @default(0) @db.Decimal(10, 2)
+  platformFeePercent     Float                    @default(10)
+  startDate              DateTime?
+  deadline               DateTime?
+  completedAt            DateTime?
+  status                 ProjectStatus            @default(DRAFT)
+  progress               Int                      @default(0)
+  milestones             Json?
+  files                  Json?
+  clientRating           Int?
+  clientReview           String?
+  developerRating        Int?
+  developerReview        String?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime
+  MarketplaceTransaction MarketplaceTransaction[]
+  User                   User                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Developer              Developer                @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  HiringRequest          HiringRequest            @relation(fields: [id], references: [projectId])
+  ProjectDispute         ProjectDispute[]
+  ProjectMessage         ProjectMessage[]
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([developerId])
+  @@index([status])
+}
+
+model ProjectDispute {
+  id            String        @id
+  projectId     String
+  initiatorId   String
+  initiatorType String
+  reason        String
+  description   String
+  evidence      Json?
+  status        DisputeStatus @default(OPEN)
+  resolution    String?
+  resolvedById  String?
+  resolvedAt    DateTime?
+  refundAmount  Decimal?      @db.Decimal(10, 2)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  Project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([projectId])
+  @@index([status])
+}
+
+model ProjectMessage {
+  id          String    @id
+  projectId   String
+  senderId    String
+  content     String
+  attachments Json?
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+  Project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([projectId])
+  @@index([senderId])
+}
+
+model Question {
+  id                String       @id
+  quizId            String
+  type              QuestionType @default(MCQ)
+  prompt            String
+  optionsJson       Json?
+  correctAnswerJson Json
+  explanation       String?
+  points            Int          @default(1)
+  orderIndex        Int          @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime
+  Quiz              Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([orderIndex])
+  @@index([quizId])
+}
+
+model Quiz {
+  id                  String        @id
+  courseId            String
+  lessonId            String?       @unique
+  title               String
+  description         String?
+  timeLimitSeconds    Int?
+  attemptsAllowed     Int?
+  shuffleQuestions    Boolean       @default(false)
+  passingScorePercent Int?
+  isRequired          Boolean       @default(true)
+  orderIndex          Int           @default(0)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime
+  Question            Question[]
+  Course              Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  Lesson              Lesson?       @relation(fields: [lessonId], references: [id])
+  QuizAttempt         QuizAttempt[]
+
+  @@index([courseId])
+  @@index([lessonId])
+}
+
+model QuizAttempt {
+  id               String    @id
+  quizId           String
+  courseId         String
+  userId           String
+  startedAt        DateTime  @default(now())
+  submittedAt      DateTime?
+  scorePercent     Int?
+  scorePoints      Int?
+  maxPoints        Int?
+  passed           Boolean   @default(false)
+  answersJson      Json?
+  attemptNumber    Int       @default(1)
+  timeSpentSeconds Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime
+  Course           Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  Quiz             Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  User             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([attemptNumber])
+  @@index([courseId])
+  @@index([quizId])
+  @@index([userId])
+}
+
+model RateLimitConfig {
+  id            String   @id
+  endpoint      String   @unique
+  windowMs      Int      @default(60000)
+  maxRequests   Int      @default(100)
+  enabled       Boolean  @default(true)
+  blockDuration Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+}
+
+model RateLimitViolation {
+  id        String    @id
+  ip        String
+  endpoint  String
+  requests  Int
+  limit     Int
+  blockedAt DateTime  @default(now())
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([endpoint])
+  @@index([ip])
+}
+
+model RecommendationCache {
+  id              String   @id
+  sourceType      String
+  sourceId        String
+  targetType      String
+  algorithm       String
+  recommendations Json
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+
+  @@unique([sourceType, sourceId, targetType, algorithm])
+  @@index([expiresAt])
+}
+
+model RecommendationClick {
+  id                 String   @id
+  userId             String?
+  sessionId          String?
+  sourceType         String
+  sourceId           String
+  recommendationType String
+  clickedType        String
+  clickedId          String
+  position           Int?
+  createdAt          DateTime @default(now())
+  User               User?    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([recommendationType])
+  @@index([sourceType, sourceId])
+  @@index([userId])
+}
+
+model RecommendationRule {
+  id                   String                 @id
+  name                 String
+  description          String?
+  sourceType           String
+  sourceId             String?
+  targetType           String
+  algorithm            String
+  settings             Json?
+  priority             Int                    @default(0)
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  ManualRecommendation ManualRecommendation[]
+
+  @@index([algorithm])
+  @@index([isActive])
+  @@index([priority])
+  @@index([sourceType, sourceId])
+  @@index([targetType])
+}
+
+model RecommendationSettings {
+  id          String   @id
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model SecurityEvent {
+  id        String            @id
+  userId    String?
+  type      SecurityEventType
+  ip        String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime          @default(now())
+  User      User?             @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([ip])
+  @@index([type])
+  @@index([userId])
+}
+
 model SeoAuditLog {
-  id          String   @id @default(uuid())
-  contentType String   // post, page, product, course
+  id          String   @id
+  contentType String
   contentId   String
-  score       Int      // 0-100 SEO score
-  issues      Json     // Array of issues found
-  suggestions Json     // Array of improvement suggestions
+  score       Int
+  issues      Json
+  suggestions Json
   createdAt   DateTime @default(now())
 
   @@index([contentType, contentId])
   @@index([createdAt])
 }
 
-// SecurityEvent model - tracks all security-related events
-model SecurityEvent {
-  id        String            @id @default(uuid())
-  userId    String?
-  user      User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  type      SecurityEventType
-  ip        String?
-  userAgent String?
-  metadata  Json?             // Additional event-specific data
-  createdAt DateTime          @default(now())
+model SeoRedirect {
+  id        String    @id
+  fromPath  String    @unique
+  toPath    String
+  type      Int       @default(301)
+  isActive  Boolean   @default(true)
+  hitCount  Int       @default(0)
+  lastHitAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+
+  @@index([fromPath])
+  @@index([isActive])
+}
+
+model SeoSchemaMarkup {
+  id        String   @id
+  name      String
+  type      String
+  content   Json
+  scope     String   @default("global")
+  scopeId   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  @@index([isActive])
+  @@index([scope])
+  @@index([type])
+}
+
+model SeoSitemapEntry {
+  id         String   @id
+  url        String   @unique
+  priority   Float    @default(0.5)
+  changefreq String   @default("weekly")
+  lastmod    DateTime @default(now())
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+
+  @@index([isActive])
+}
+
+model Session {
+  id           String   @id
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  ip           String?
+  lastActivity DateTime @default(now())
+  updatedAt    DateTime
+  userAgent    String?
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model Setting {
+  id        String   @id
+  key       String   @unique
+  value     Json
+  type      String
+  group     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  @@index([group])
+  @@index([key])
+}
+
+model SetupStatus {
+  id               String    @id
+  setupComplete    Boolean   @default(false)
+  adminCreated     Boolean   @default(false)
+  smtpConfigured   Boolean   @default(false)
+  domainConfigured Boolean   @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime
+}
+
+model ShippingMethod {
+  id          String   @id
+  name        String
+  description String?
+  cost        Decimal  @db.Decimal(10, 2)
+  freeAbove   Decimal? @db.Decimal(10, 2)
+  minDays     Int?
+  maxDays     Int?
+  countries   String?
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([isActive])
+}
+
+model Subscription {
+  id                   String             @id
+  userId               String             @unique
+  planId               String
+  status               SubscriptionStatus @default(ACTIVE)
+  billingCycle         BillingCycle       @default(MONTHLY)
+  stripeSubscriptionId String?            @unique
+  stripeCustomerId     String?
+  currentPeriodStart   DateTime           @default(now())
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+  cancelReason         String?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  metadata             Json?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime
+  SubscriptionPlan     SubscriptionPlan   @relation(fields: [planId], references: [id])
+  User                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([userId])
+}
+
+model SubscriptionPlan {
+  id                   String         @id
+  name                 String
+  slug                 String         @unique
+  description          String?
+  monthlyPrice         Decimal        @default(0) @db.Decimal(10, 2)
+  yearlyPrice          Decimal        @default(0) @db.Decimal(10, 2)
+  stripePriceIdMonthly String?
+  stripePriceIdYearly  String?
+  stripeProductId      String?
+  maxUsers             Int?
+  maxStorageMb         Int?
+  maxProjects          Int?
+  maxCourses           Int?
+  maxProducts          Int?
+  features             Json           @default("[]")
+  isActive             Boolean        @default(true)
+  isFeatured           Boolean        @default(false)
+  displayOrder         Int            @default(0)
+  badgeText            String?
+  trialDays            Int            @default(0)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime
+  Subscription         Subscription[]
+
+  @@index([isActive])
+  @@index([slug])
+}
+
+model SystemConfig {
+  id          String   @id
+  key         String   @unique
+  value       String
+  isEncrypted Boolean  @default(false)
+  group       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([group])
+  @@index([key])
+}
+
+model SystemVersion {
+  id                     String    @id
+  version                String    @unique
+  isCurrentVersion       Boolean   @default(false)
+  installedAt            DateTime?
+  releaseDate            DateTime?
+  changelog              String?
+  releaseNotes           String?
+  minNodeVersion         String?
+  minNpmVersion          String?
+  breakingChanges        Boolean   @default(false)
+  requiresManualSteps    Boolean   @default(false)
+  manualStepsDescription String?
+  downloadUrl            String?
+  checksum               String?
+  fileSize               BigInt?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime
+
+  @@index([isCurrentVersion])
+  @@index([version])
+}
+
+model TaxRate {
+  id          String   @id
+  name        String
+  rate        Decimal  @db.Decimal(5, 4)
+  country     String
+  state       String?
+  postalCodes String?
+  isDefault   Boolean  @default(false)
+  priority    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([country])
+  @@index([isActive])
+}
+
+model Theme {
+  id                      String                    @id
+  name                    String                    @unique
+  slug                    String                    @unique
+  version                 String
+  author                  String?
+  description             String?
+  thumbnail               String?
+  path                    String
+  config                  Json
+  isActive                Boolean                   @default(false)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime
+  ThemeCustomizationBlock ThemeCustomizationBlock[]
+  ThemeCustomizationImage ThemeCustomizationImage[]
+  ThemeCustomizationLink  ThemeCustomizationLink[]
+
+  @@index([isActive])
+}
+
+model ThemeCustomizationBlock {
+  id              String   @id
+  themeId         String
+  name            String
+  type            String
+  title           String?
+  description     String?
+  content         String?
+  richContent     Json?
+  backgroundColor String?
+  textColor       String?
+  customCSS       String?
+  layout          String?
+  columns         Int      @default(1)
+  padding         String?
+  margin          String?
+  backgroundImage String?
+  featuredImage   String?
+  isVisible       Boolean  @default(true)
+  position        Int      @default(0)
+  customData      Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  Theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@index([position])
+  @@index([themeId])
+  @@index([type])
+}
+
+model ThemeCustomizationImage {
+  id          String   @id
+  themeId     String
+  name        String
+  type        String
+  url         String
+  altText     String?
+  title       String?
+  description String?
+  width       Int?
+  height      Int?
+  mimeType    String?
+  fileSize    Int?
+  section     String?
+  position    Int      @default(0)
+  customData  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Theme       Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@index([section])
+  @@index([themeId])
+  @@index([type])
+}
+
+model ThemeCustomizationLink {
+  id         String   @id
+  themeId    String
+  name       String
+  type       String
+  label      String
+  url        String
+  icon       String?
+  target     String   @default("_self")
+  rel        String?
+  title      String?
+  className  String?
+  customCSS  String?
+  group      String?
+  position   Int      @default(0)
+  isVisible  Boolean  @default(true)
+  isActive   Boolean  @default(true)
+  customData Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  Theme      Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@index([group])
+  @@index([position])
+  @@index([themeId])
+  @@index([type])
+}
+
+model UpdateHistory {
+  id             String       @id
+  fromVersion    String
+  toVersion      String
+  status         UpdateStatus @default(PENDING)
+  startedAt      DateTime     @default(now())
+  completedAt    DateTime?
+  changelog      String?
+  releaseNotes   String?
+  downloadUrl    String?
+  checksum       String?
+  fileSize       BigInt?
+  backupId       String?
+  migrationsRun  String[]
+  migrationLogs  String?
+  errorMessage   String?
+  errorStack     String?
+  initiatedBy    String?
+  rolledBack     Boolean      @default(false)
+  rollbackAt     DateTime?
+  rollbackReason String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  Backup         Backup?      @relation(fields: [backupId], references: [id])
+  User           User?        @relation(fields: [initiatedBy], references: [id])
+
+  @@index([fromVersion, toVersion])
+  @@index([startedAt])
+  @@index([status])
+}
+
+model User {
+  id                                                      String                    @id
+  email                                                   String                    @unique
+  name                                                    String
+  password                                                String
+  role                                                    UserRole                  @default(AUTHOR)
+  avatar                                                  String?
+  bio                                                     String?
+  createdAt                                               DateTime                  @default(now())
+  updatedAt                                               DateTime
+  accountLockedUntil                                      DateTime?
+  failedLoginAttempts                                     Int                       @default(0)
+  lastFailedLogin                                         DateTime?
+  lastLoginAt                                             DateTime?
+  lastLoginIp                                             String?
+  recoveryCodes                                           Json?
+  twoFactorEnabled                                        Boolean                   @default(false)
+  twoFactorSecret                                         String?
+  about                                                   String?
+  company                                                 String?
+  coursesCount                                            Int                       @default(0)
+  coverImage                                              String?
+  followersCount                                          Int                       @default(0)
+  followingCount                                          Int                       @default(0)
+  headline                                                String?
+  interests                                               String[]
+  isPublic                                                Boolean                   @default(true)
+  jobTitle                                                String?
+  location                                                String?
+  postsCount                                              Int                       @default(0)
+  skills                                                  String[]
+  socialLinks                                             Json?
+  username                                                String?                   @unique
+  website                                                 String?
+  passwordResetExpires                                    DateTime?
+  passwordResetToken                                      String?                   @unique
+  Backup                                                  Backup[]
+  Certificate                                             Certificate[]
+  Conversation_Conversation_participant1IdToUser          Conversation[]            @relation("Conversation_participant1IdToUser")
+  Conversation_Conversation_participant2IdToUser          Conversation[]            @relation("Conversation_participant2IdToUser")
+  Course                                                  Course[]
+  CustomTheme                                             CustomTheme[]
+  Developer                                               Developer?
+  DeveloperReview                                         DeveloperReview[]
+  DirectMessage                                           DirectMessage[]
+  EmailLog                                                EmailLog[]
+  EmailTemplate                                           EmailTemplate[]
+  Enrollment                                              Enrollment[]
+  Group                                                   Group[]
+  GroupMember                                             GroupMember[]
+  GroupMessage                                            GroupMessage[]
+  HiringRequest                                           HiringRequest[]
+  LessonProgress                                          LessonProgress[]
+  MarketplacePlugin_MarketplacePlugin_approvedByIdToUser  MarketplacePlugin[]       @relation("MarketplacePlugin_approvedByIdToUser")
+  MarketplacePlugin_MarketplacePlugin_submittedByIdToUser MarketplacePlugin[]       @relation("MarketplacePlugin_submittedByIdToUser")
+  MarketplacePluginRating                                 MarketplacePluginRating[]
+  MarketplaceTheme_MarketplaceTheme_approvedByIdToUser    MarketplaceTheme[]        @relation("MarketplaceTheme_approvedByIdToUser")
+  MarketplaceTheme_MarketplaceTheme_submittedByIdToUser   MarketplaceTheme[]        @relation("MarketplaceTheme_submittedByIdToUser")
+  MarketplaceThemeRating                                  MarketplaceThemeRating[]
+  Media                                                   Media[]
+  Notification                                            Notification[]
+  Page                                                    Page[]
+  PageView                                                PageView[]
+  PasswordHistory                                         PasswordHistory[]
+  Post                                                    Post[]
+  Project                                                 Project[]
+  QuizAttempt                                             QuizAttempt[]
+  RecommendationClick                                     RecommendationClick[]
+  SecurityEvent                                           SecurityEvent[]
+  Session                                                 Session[]
+  Subscription                                            Subscription?
+  UpdateHistory                                           UpdateHistory[]
+  UserBadge                                               UserBadge[]
+  UserFollow_UserFollow_followerIdToUser                  UserFollow[]              @relation("UserFollow_followerIdToUser")
+  UserFollow_UserFollow_followingIdToUser                 UserFollow[]              @relation("UserFollow_followingIdToUser")
+  UserInteraction                                         UserInteraction[]
+  Activity                                                Activity[]
+}
+
+model UserBadge {
+  id       String   @id
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  metadata Json?
+  Badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  User     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([badgeId])
+  @@index([userId])
+}
+
+model UserFollow {
+  id                                String   @id
+  followerId                        String
+  followingId                       String
+  createdAt                         DateTime @default(now())
+  User_UserFollow_followerIdToUser  User     @relation("UserFollow_followerIdToUser", fields: [followerId], references: [id], onDelete: Cascade)
+  User_UserFollow_followingIdToUser User     @relation("UserFollow_followingIdToUser", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model UserInteraction {
+  id              String   @id
+  userId          String?
+  sessionId       String?
+  contentType     String
+  contentId       String
+  interactionType String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  User            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([contentType, contentId])
+  @@index([createdAt])
+  @@index([interactionType])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  userId      String
+  type        ActivityType
+  targetType  String?      // post, course, user, etc.
+  targetId    String?      // ID of the related content
+  title       String
+  description String?
+  link        String?
+  imageUrl    String?
+  metadata    Json?
+  isPublic    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  User        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([type])
-  @@index([ip])
   @@index([createdAt])
+  @@index([targetType, targetId])
+  @@index([isPublic])
 }
 
-enum SecurityEventType {
-  SUCCESS_LOGIN
-  FAILED_LOGIN
-  LOGOUT
-  FAILED_2FA
-  LOCKOUT_TRIGGERED
-  LOCKOUT_RELEASED
-  PASSWORD_CHANGE
-  PASSWORD_RESET_REQUESTED
-  EMAIL_CHANGE
-  TWO_FA_ENABLED
-  TWO_FA_DISABLED
-  BLOCKED_REQUEST
-  INTEGRITY_SCAN
-  IP_BLOCKED
-  IP_UNBLOCKED
-  SECURITY_CHECK
+enum ActivityType {
+  POST_PUBLISHED
+  POST_LIKED
+  POST_COMMENTED
+  COURSE_ENROLLED
+  COURSE_COMPLETED
+  CERTIFICATE_EARNED
+  BADGE_EARNED
+  PROFILE_UPDATED
+  NEW_FOLLOWER
+  STARTED_FOLLOWING
 }
 
-// BlockedIP model - manages IP-based access control
-model BlockedIP {
-  id        String    @id @default(uuid())
-  ip        String    @unique
-  reason    String
-  expiresAt DateTime? // Null for permanent blocks
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@index([ip])
-  @@index([expiresAt])
+model VideoAsset {
+  id              String        @id
+  provider        VideoProvider @default(UPLOAD)
+  url             String?
+  playbackId      String?
+  filePath        String?
+  durationSeconds Int?
+  isProtected     Boolean       @default(true)
+  thumbnailUrl    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  Lesson          Lesson[]
 }
 
-// Rate Limiting Configuration
-model RateLimitConfig {
-  id            String   @id @default(uuid())
-  endpoint      String   @unique // e.g., "/api/auth/login", "global"
-  windowMs      Int      @default(60000) // Time window in milliseconds
-  maxRequests   Int      @default(100) // Max requests per window
-  enabled       Boolean  @default(true)
-  blockDuration Int?     // Duration to block IP in minutes if exceeded
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+enum AddressType {
+  SHIPPING
+  BILLING
 }
 
-// Rate Limit Violations - tracks IPs that exceeded limits
-model RateLimitViolation {
-  id         String   @id @default(uuid())
-  ip         String
-  endpoint   String
-  requests   Int      // Number of requests made
-  limit      Int      // Limit that was exceeded
-  blockedAt  DateTime @default(now())
-  expiresAt  DateTime?
-  createdAt  DateTime @default(now())
-
-  @@index([ip])
-  @@index([endpoint])
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
 }
 
-// Password Policy Configuration
-model PasswordPolicy {
-  id                      String   @id @default(uuid())
-  minLength               Int      @default(8)
-  requireUppercase        Boolean  @default(true)
-  requireLowercase        Boolean  @default(true)
-  requireNumbers          Boolean  @default(true)
-  requireSpecialChars     Boolean  @default(true)
-  expirationDays          Int?     // null = no expiration
-  preventReuse            Int      @default(5) // number of previous passwords to check
-  checkBreachedPasswords  Boolean  @default(false)
-  enabled                 Boolean  @default(true)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+enum BackupType {
+  FULL
+  DATABASE
+  MEDIA
+  THEMES
+  PLUGINS
+  SCHEDULED
 }
 
-// Password History for preventing reuse
-model PasswordHistory {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  password  String   // hashed password
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
+enum BillingCycle {
+  MONTHLY
+  YEARLY
 }
 
-// ============================================
-// DIRECT MESSAGING MODELS
-// ============================================
-
-// Conversation model - represents a DM conversation between two users
-model Conversation {
-  id           String    @id @default(uuid())
-  participant1Id String
-  participant2Id String
-  lastMessageAt DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  // Relations
-  participant1 User   @relation("ConversationParticipant1", fields: [participant1Id], references: [id], onDelete: Cascade)
-  participant2 User   @relation("ConversationParticipant2", fields: [participant2Id], references: [id], onDelete: Cascade)
-  messages     DirectMessage[]
-
-  @@unique([participant1Id, participant2Id])
-  @@index([participant1Id])
-  @@index([participant2Id])
-  @@index([lastMessageAt])
+enum CartItemType {
+  PRODUCT
+  COURSE
 }
 
-// DirectMessage model - individual messages in a conversation
-model DirectMessage {
-  id             String    @id @default(uuid())
-  conversationId String
-  senderId       String
-  content        String    @db.Text
-  isRead         Boolean   @default(false)
-  readAt         DateTime?
-  createdAt      DateTime  @default(now())
-
-  // Media attachments (JSON array of media objects)
-  // Each object: { url: string, type: 'image' | 'video', filename: string, size: number, mimeType: string }
-  media          Json?     @default("[]")
-
-  // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation("DirectMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId])
-  @@index([senderId])
-  @@index([createdAt])
-  @@index([isRead])
+enum CouponType {
+  PERCENTAGE
+  FIXED
+  FREE_SHIPPING
 }
 
-// ============================================
-// GROUPS & LIVE CHAT MODELS
-// ============================================
-
-// Group model for community groups with live chat
-model Group {
-  id          String          @id @default(uuid())
-  name        String
-  slug        String          @unique
-  description String?
-  visibility  GroupVisibility @default(PUBLIC)
-  ownerId     String
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  // Relations
-  owner    User           @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members  GroupMember[]
-  messages GroupMessage[]
-
-  @@index([slug])
-  @@index([ownerId])
-  @@index([visibility])
-  @@index([createdAt])
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
 }
 
-enum GroupVisibility {
-  PUBLIC
-  PRIVATE
+enum CoursePriceType {
+  FREE
+  PAID
 }
 
-// Group membership with roles and moderation
-model GroupMember {
-  id       String          @id @default(uuid())
-  groupId  String
-  userId   String
-  role     GroupMemberRole @default(MEMBER)
-  isBanned Boolean         @default(false)
-  joinedAt DateTime        @default(now())
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
 
-  // Relations
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum DeveloperCategory {
+  FRONTEND
+  BACKEND
+  FULLSTACK
+  WORDPRESS
+  MOBILE
+  DEVOPS
+  DESIGN
+  DATABASE
+  SECURITY
+  OTHER
+}
 
-  @@unique([groupId, userId])
-  @@index([groupId])
-  @@index([userId])
-  @@index([joinedAt])
+enum DeveloperStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_CLIENT
+  RESOLVED_DEVELOPER
+  CLOSED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
+
+enum EmailTemplateType {
+  WELCOME
+  PASSWORD_RESET
+  ORDER_CONFIRMATION
+  COURSE_ENROLLMENT
+  NEWSLETTER
+  PROMOTIONAL
+  CUSTOM
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
 }
 
 enum GroupMemberRole {
@@ -1038,363 +2203,65 @@ enum GroupMemberRole {
   MEMBER
 }
 
-// Group chat messages
-model GroupMessage {
-  id        String   @id @default(uuid())
-  groupId   String
-  senderId  String
-  content   String   @db.Text
-  createdAt DateTime @default(now())
-
-  // Media attachments (JSON array of media objects)
-  // Each object: { url: string, type: 'image' | 'video', filename: string, size: number, mimeType: string }
-  media     Json?    @default("[]")
-
-  // Relations
-  group  Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  sender User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@index([groupId])
-  @@index([senderId])
-  @@index([createdAt])
+enum GroupVisibility {
+  PUBLIC
+  PRIVATE
 }
 
-// Navigation Menu model
-model Menu {
-  id        String     @id @default(uuid())
-  name      String     @unique // e.g., "main", "footer", "sidebar"
-  location  String     @unique // e.g., "header", "footer"
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  items MenuItem[]
+enum HiringRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  IN_PROGRESS
+  COMPLETED
+  DISPUTED
 }
 
-// Menu Item model
-model MenuItem {
-  id         String     @id @default(uuid())
-  menuId     String
-  parentId   String?    // For nested/dropdown menus
-  label      String     // Display text
-  url        String?    // Custom URL
-  target     String     @default("_self") // _self, _blank
-  type       MenuItemType @default(CUSTOM)
-  pageId     String?    // Link to Page
-  postId     String?    // Link to Post
-  order      Int        @default(0)
-  cssClass   String?    // Optional custom CSS class
-  icon       String?    // Optional icon class
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+enum LessonType {
+  VIDEO
+  ARTICLE
+  QUIZ
+  ASSIGNMENT
+}
 
-  // Relations
-  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  parent   MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id])
-  children MenuItem[] @relation("MenuItemChildren")
-  page     Page?      @relation(fields: [pageId], references: [id], onDelete: SetNull)
-  post     Post?      @relation(fields: [postId], references: [id], onDelete: SetNull)
+enum MarketplaceTransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
 
-  @@index([menuId])
-  @@index([parentId])
-  @@index([order])
+enum MarketplaceTransactionType {
+  ESCROW_DEPOSIT
+  ESCROW_RELEASE
+  ESCROW_REFUND
+  PLATFORM_FEE
+  DEVELOPER_PAYOUT
+  DISPUTE_RESOLUTION
 }
 
 enum MenuItemType {
-  CUSTOM    // Custom URL
-  PAGE      // Link to a page
-  POST      // Link to a post
-  HOME      // Home page link
-  CATEGORY  // Category archive (future)
-  LOGIN     // Login/Logout link
-}
-
-// ============================================
-// E-COMMERCE / SHOP MODELS
-// ============================================
-
-// Product Category
-model ProductCategory {
-  id          String    @id @default(uuid())
-  name        String
-  slug        String    @unique
-  description String?
-  image       String?
-  parentId    String?
-  parent      ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    ProductCategory[] @relation("CategoryHierarchy")
-  products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([slug])
-  @@index([parentId])
-}
-
-// Product model
-model Product {
-  id              String          @id @default(uuid())
-  name            String
-  slug            String          @unique
-  description     String?         @db.Text
-  shortDescription String?
-  sku             String?         @unique
-  price           Decimal         @db.Decimal(10, 2)
-  salePrice       Decimal?        @db.Decimal(10, 2)
-  costPrice       Decimal?        @db.Decimal(10, 2)
-  stock           Int             @default(0)
-  lowStockThreshold Int           @default(5)
-  trackStock      Boolean         @default(true)
-  status          ProductStatus   @default(DRAFT)
-  type            ProductType     @default(PHYSICAL)
-  featuredImage   String?
-  images          Json?           // Array of image URLs
-  weight          Decimal?        @db.Decimal(10, 3)
-  dimensions      Json?           // {length, width, height}
-
-  // Variant configuration for clothing/apparel
-  hasVariants     Boolean         @default(false) // Enable variant mode
-  variantOptions  Json?           // Available options: {sizes: ["S","M","L"], colors: [{name:"Red",code:"#FF0000"}]}
-
-  // Digital product fields
-  downloadUrl     String?
-  downloadLimit   Int?
-  downloadExpiry  Int?            // Days after purchase
-
-  // SEO
-  metaTitle       String?
-  metaDescription String?
-
-  // Relations
-  categoryId      String?
-  category        ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  variants        ProductVariant[]
-  tags            ProductTag[]
-  cartItems       CartItem[]
-  orderItems      OrderItem[]
-  reviews         ProductReview[]
-
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  @@index([slug])
-  @@index([status])
-  @@index([categoryId])
-  @@index([sku])
-  @@index([hasVariants])
-}
-
-enum ProductStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
-}
-
-enum ProductType {
-  PHYSICAL
-  DIGITAL
-  SERVICE
-}
-
-// Product Variant (size, color, etc.)
-model ProductVariant {
-  id          String    @id @default(uuid())
-  productId   String
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name        String    // e.g., "Large / Red"
-  sku         String?   @unique
-  price       Decimal?  @db.Decimal(10, 2)  // Override product price
-  salePrice   Decimal?  @db.Decimal(10, 2)
-  costPrice   Decimal?  @db.Decimal(10, 2)  // Cost price per variant
-  stock       Int       @default(0)
-  lowStockThreshold Int @default(5)
-  image       String?
-  images      Json?     // Array of variant-specific image URLs
-  options     Json      // {size: "Large", color: "Red", colorCode: "#FF0000"}
-
-  // Explicit clothing variant fields for easier querying
-  size        String?   // XS, S, M, L, XL, XXL, etc.
-  color       String?   // Color name
-  colorCode   String?   // Hex color code for display
-
-  weight      Decimal?  @db.Decimal(10, 3) // Variant-specific weight
-  isDefault   Boolean   @default(false)
-  isActive    Boolean   @default(true) // Enable/disable specific variant
-  sortOrder   Int       @default(0)    // Display order
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-
-  @@index([productId])
-  @@index([sku])
-  @@index([size])
-  @@index([color])
-  @@index([isActive])
-}
-
-// Product Option Definition - reusable size/color options
-model ProductOption {
-  id          String    @id @default(uuid())
-  type        ProductOptionType
-  name        String    // e.g., "Red", "Large"
-  value       String    // The actual value
-  displayValue String?  // Display text (optional override)
-  metadata    Json?     // Additional data like colorCode, measurements
-  sortOrder   Int       @default(0)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@unique([type, value])
-  @@index([type])
-  @@index([isActive])
-}
-
-enum ProductOptionType {
-  SIZE
-  COLOR
-  MATERIAL
-  STYLE
   CUSTOM
+  PAGE
+  POST
+  HOME
+  CATEGORY
+  LOGIN
 }
 
-// Product Tags
-model ProductTag {
-  id        String    @id @default(uuid())
-  name      String    @unique
-  slug      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-
-  @@index([slug])
-}
-
-
-// Shopping Cart
-model Cart {
-  id          String     @id @default(uuid())
-  userId      String?    @unique // Null for guest carts
-  sessionId   String?    @unique // For guest carts
-  items       CartItem[]
-  couponCode  String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([userId])
-  @@index([sessionId])
-}
-
-// Cart Item
-model CartItem {
-  id          String          @id @default(uuid())
-  cartId      String
-  cart        Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-
-  // Product-based items
-  productId   String?
-  product     Product?        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantId   String?
-  variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
-
-  // Course-based items
-  courseId    String?
-  course      Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  quantity    Int             @default(1)
-  itemType    CartItemType    @default(PRODUCT)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  @@unique([cartId, productId, variantId])
-  @@unique([cartId, courseId])
-  @@index([cartId])
-  @@index([productId])
-  @@index([courseId])
-}
-
-enum CartItemType {
-  PRODUCT
-  COURSE
-}
-
-// Customer addresses
-model CustomerAddress {
-  id          String    @id @default(uuid())
-  userId      String
-  type        AddressType @default(SHIPPING)
-  isDefault   Boolean   @default(false)
-  firstName   String
-  lastName    String
-  company     String?
-  address1    String
-  address2    String?
-  city        String
-  state       String?
-  postalCode  String
-  country     String
-  phone       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([userId])
-  @@index([type])
-}
-
-enum AddressType {
-  SHIPPING
-  BILLING
-}
-
-// Order
-model Order {
-  id              String        @id @default(uuid())
-  orderNumber     String        @unique
-  userId          String?
-  email           String
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(UNPAID)
-
-  // Pricing
-  subtotal        Decimal       @db.Decimal(10, 2)
-  tax             Decimal       @db.Decimal(10, 2) @default(0)
-  shipping        Decimal       @db.Decimal(10, 2) @default(0)
-  discount        Decimal       @db.Decimal(10, 2) @default(0)
-  total           Decimal       @db.Decimal(10, 2)
-  currency        String        @default("USD")
-
-  // Coupon
-  couponCode      String?
-  couponDiscount  Decimal?      @db.Decimal(10, 2)
-
-  // Addresses
-  billingAddress  Json
-  shippingAddress Json?
-
-  // Shipping
-  shippingMethod  String?
-  trackingNumber  String?
-  shippedAt       DateTime?
-  deliveredAt     DateTime?
-
-  // Notes
-  customerNote    String?
-  adminNote       String?
-
-  // Relations
-  items           OrderItem[]
-  payments        Payment[]
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  @@index([orderNumber])
-  @@index([userId])
-  @@index([email])
-  @@index([status])
-  @@index([paymentStatus])
-  @@index([createdAt])
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  SYSTEM
+  USER_ACTION
+  CONTENT
+  SECURITY
+  MARKETPLACE
 }
 
 enum OrderStatus {
@@ -1416,908 +2283,39 @@ enum PaymentStatus {
   FAILED
 }
 
-// Order Item
-model OrderItem {
-  id          String          @id @default(uuid())
-  orderId     String
-  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product         @relation(fields: [productId], references: [id])
-  variantId   String?
-  variant     ProductVariant? @relation(fields: [variantId], references: [id])
-  name        String          // Snapshot of product name
-  sku         String?         // Snapshot of SKU
-  price       Decimal         @db.Decimal(10, 2)
-  quantity    Int
-  total       Decimal         @db.Decimal(10, 2)
-  options     Json?           // Snapshot of variant options
-
-  createdAt   DateTime        @default(now())
-
-  @@index([orderId])
-  @@index([productId])
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
-// Payment
-model Payment {
-  id                  String        @id @default(uuid())
-  orderId             String
-  order               Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  amount              Decimal       @db.Decimal(10, 2)
-  currency            String        @default("USD")
-  status              PaymentStatus @default(UNPAID)
-  method              String        @default("stripe")
-
-  // Stripe fields
-  stripePaymentIntentId String?     @unique
-  stripeChargeId      String?
-  stripeCustomerId    String?
-  stripeReceiptUrl    String?
-
-  // Refund info
-  refundedAmount      Decimal?      @db.Decimal(10, 2)
-  refundReason        String?
-  refundedAt          DateTime?
-
-  metadata            Json?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-
-  @@index([orderId])
-  @@index([stripePaymentIntentId])
-  @@index([status])
-}
-
-// Coupon/Discount
-model Coupon {
-  id              String      @id @default(uuid())
-  code            String      @unique
-  description     String?
-  type            CouponType  @default(PERCENTAGE)
-  value           Decimal     @db.Decimal(10, 2)
-  minOrderAmount  Decimal?    @db.Decimal(10, 2)
-  maxDiscount     Decimal?    @db.Decimal(10, 2)
-  usageLimit      Int?
-  usageCount      Int         @default(0)
-  perUserLimit    Int?
-  startsAt        DateTime?
-  expiresAt       DateTime?
-  isActive        Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  @@index([code])
-  @@index([isActive])
-}
-
-enum CouponType {
-  PERCENTAGE
-  FIXED
-  FREE_SHIPPING
-}
-
-// Product Review
-model ProductReview {
-  id          String    @id @default(uuid())
-  productId   String
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId      String?
-  name        String
-  email       String
-  rating      Int       // 1-5
-  title       String?
-  content     String?   @db.Text
-  isVerified  Boolean   @default(false) // Verified purchase
-  isApproved  Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([productId])
-  @@index([rating])
-  @@index([isApproved])
-}
-
-// Tax Rate
-model TaxRate {
-  id          String    @id @default(uuid())
-  name        String
-  rate        Decimal   @db.Decimal(5, 4) // e.g., 0.0825 for 8.25%
-  country     String
-  state       String?
-  postalCodes String?   // Comma-separated postal codes or ranges
-  isDefault   Boolean   @default(false)
-  priority    Int       @default(0)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([country])
-  @@index([isActive])
-}
-
-// Shipping Method
-model ShippingMethod {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  cost        Decimal   @db.Decimal(10, 2)
-  freeAbove   Decimal?  @db.Decimal(10, 2) // Free shipping above this amount
-  minDays     Int?
-  maxDays     Int?
-  countries   String?   // Comma-separated country codes, null = all
-  isActive    Boolean   @default(true)
-  priority    Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([isActive])
-}
-
-// ============================================
-// LMS (LEARNING MANAGEMENT SYSTEM) MODELS
-// ============================================
-
-// Course model - the main container for learning content
-model Course {
-  id                  String        @id @default(uuid())
-  slug                String        @unique
-  title               String
-  description         String?       @db.Text
-  shortDescription    String?
-  category            String?
-  level               CourseLevel   @default(BEGINNER)
-  featuredImage       String?
-  instructorId        String
-  instructor          User          @relation("CourseInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
-  priceType           CoursePriceType @default(FREE)
-  priceAmount         Decimal?      @db.Decimal(10, 2)
-  status              CourseStatus  @default(DRAFT)
-  passingScorePercent Int           @default(80)
-  certificateEnabled  Boolean       @default(true)
-  estimatedHours      Int?
-  whatYouLearn        Json?         // Array of learning objectives
-  requirements        Json?         // Array of prerequisites
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-
-  // Relations
-  modules             CourseModule[]
-  lessons             Lesson[]
-  quizzes             Quiz[]
-  enrollments         Enrollment[]
-  progress            LessonProgress[]
-  quizAttempts        QuizAttempt[]
-  certificates        Certificate[]
-  cartItems           CartItem[]
-
-  @@index([slug])
-  @@index([status])
-  @@index([instructorId])
-  @@index([category])
-  @@index([priceType])
-}
-
-enum CourseLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  ALL_LEVELS
-}
-
-enum CoursePriceType {
-  FREE
-  PAID
-}
-
-enum CourseStatus {
+enum PostStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
 }
 
-// CourseModule model - sections/modules to group lessons
-model CourseModule {
-  id           String   @id @default(uuid())
-  courseId     String
-  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title        String
-  description  String?  @db.Text
-  orderIndex   Int      @default(0)
-  isPublished  Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  lessons      Lesson[]
-
-  @@index([courseId])
-  @@index([orderIndex])
-}
-
-// Lesson model - individual lessons within a course
-model Lesson {
-  id               String        @id @default(uuid())
-  courseId         String
-  course           Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  moduleId         String?
-  module           CourseModule? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
-  title            String
-  content          String?       @db.Text
-  orderIndex       Int           @default(0)
-  type             LessonType    @default(VIDEO)
-  videoAssetId     String?
-  videoAsset       VideoAsset?   @relation(fields: [videoAssetId], references: [id], onDelete: SetNull)
-  estimatedMinutes Int?
-  isPreview        Boolean       @default(false)
-  isRequired       Boolean       @default(true)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-
-  // Relations
-  progress         LessonProgress[]
-  quiz             Quiz?         @relation("LessonQuiz")
-
-  @@index([courseId])
-  @@index([moduleId])
-  @@index([orderIndex])
-}
-
-enum LessonType {
-  VIDEO
-  ARTICLE
-  QUIZ
-  ASSIGNMENT
-}
-
-// VideoAsset model - video content storage
-model VideoAsset {
-  id              String          @id @default(uuid())
-  provider        VideoProvider   @default(UPLOAD)
-  url             String?
-  playbackId      String?
-  filePath        String?
-  durationSeconds Int?
-  isProtected     Boolean         @default(true)
-  thumbnailUrl    String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  // Relations
-  lessons         Lesson[]
-}
-
-enum VideoProvider {
-  UPLOAD
-  HLS
-  YOUTUBE
-  VIMEO
-}
-
-// Quiz model - assessments for courses/lessons
-model Quiz {
-  id                  String    @id @default(uuid())
-  courseId            String
-  course              Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessonId            String?   @unique
-  lesson              Lesson?   @relation("LessonQuiz", fields: [lessonId], references: [id], onDelete: SetNull)
-  title               String
-  description         String?
-  timeLimitSeconds    Int?
-  attemptsAllowed     Int?      // null = unlimited
-  shuffleQuestions    Boolean   @default(false)
-  passingScorePercent Int?      // null = use course default
-  isRequired          Boolean   @default(true)
-  orderIndex          Int       @default(0)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  // Relations
-  questions           Question[]
-  attempts            QuizAttempt[]
-
-  @@index([courseId])
-  @@index([lessonId])
-}
-
-// Question model - individual quiz questions
-model Question {
-  id               String        @id @default(uuid())
-  quizId           String
-  quiz             Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  type             QuestionType  @default(MCQ)
-  prompt           String        @db.Text
-  optionsJson      Json?         // Array of options for MCQ/true-false
-  correctAnswerJson Json         // Correct answer(s)
-  explanation      String?       @db.Text
-  points           Int           @default(1)
-  orderIndex       Int           @default(0)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-
-  @@index([quizId])
-  @@index([orderIndex])
-}
-
-enum QuestionType {
-  MCQ              // Multiple choice single answer
-  MCQ_MULTI        // Multiple choice multiple answers
-  TRUE_FALSE
-  SHORT_ANSWER
-  ESSAY
-}
-
-// Enrollment model - tracks user enrollments in courses
-model Enrollment {
-  id          String           @id @default(uuid())
-  courseId    String
-  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User             @relation("UserEnrollments", fields: [userId], references: [id], onDelete: Cascade)
-  status      EnrollmentStatus @default(ACTIVE)
-  enrolledAt  DateTime         @default(now())
-  completedAt DateTime?
-  expiresAt   DateTime?        // For subscription-based access
-  paymentId   String?          // Reference to payment if paid course
-  pricePaid   Float?           @default(0) // Amount paid for the course
-
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  @@unique([courseId, userId])
-  @@index([courseId])
-  @@index([userId])
-  @@index([status])
-}
-
-enum EnrollmentStatus {
-  ACTIVE
-  COMPLETED
-  CANCELLED
-  EXPIRED
-}
-
-// LessonProgress model - tracks user progress on lessons
-model LessonProgress {
-  id                  String    @id @default(uuid())
-  courseId            String
-  course              Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessonId            String
-  lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  userId              String
-  user                User      @relation("UserLessonProgress", fields: [userId], references: [id], onDelete: Cascade)
-  videoWatchedSeconds Int       @default(0)
-  lessonCompleted     Boolean   @default(false)
-  completedAt         DateTime?
-  lastAccessedAt      DateTime  @default(now())
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  @@unique([courseId, lessonId, userId])
-  @@index([courseId])
-  @@index([lessonId])
-  @@index([userId])
-}
-
-// QuizAttempt model - tracks quiz attempts and scores
-model QuizAttempt {
-  id             String    @id @default(uuid())
-  quizId         String
-  quiz           Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  courseId       String
-  course         Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User      @relation("UserQuizAttempts", fields: [userId], references: [id], onDelete: Cascade)
-  startedAt      DateTime  @default(now())
-  submittedAt    DateTime?
-  scorePercent   Int?
-  scorePoints    Int?
-  maxPoints      Int?
-  passed         Boolean   @default(false)
-  answersJson    Json?     // User's answers for review
-  attemptNumber  Int       @default(1)
-  timeSpentSeconds Int?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  @@index([quizId])
-  @@index([courseId])
-  @@index([userId])
-  @@index([attemptNumber])
-}
-
-// Certificate model - issued upon course completion
-model Certificate {
-  id                String    @id @default(uuid())
-  certificateNumber String    @unique
-  courseId          String
-  course            Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  userId            String
-  user              User      @relation("UserCertificates", fields: [userId], references: [id], onDelete: Cascade)
-  issuedAt          DateTime  @default(now())
-  pdfPath           String?
-  pdfUrl            String?
-  verificationHash  String    @unique
-  metadata          Json?     // Additional info like course title at time of issue
-  revokedAt         DateTime?
-  revokedReason     String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  @@index([courseId])
-  @@index([userId])
-  @@index([verificationHash])
-  @@index([certificateNumber])
-}
-
-// ==================== EMAIL SYSTEM ====================
-
-// Email template types
-enum EmailTemplateType {
-  WELCOME
-  PASSWORD_RESET
-  ORDER_CONFIRMATION
-  COURSE_ENROLLMENT
-  NEWSLETTER
-  PROMOTIONAL
+enum ProductOptionType {
+  SIZE
+  COLOR
+  MATERIAL
+  STYLE
   CUSTOM
 }
 
-// Email delivery status
-enum EmailStatus {
-  PENDING
-  SENT
-  DELIVERED
-  FAILED
-  BOUNCED
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
 }
 
-// Email Template model - stores reusable email templates
-model EmailTemplate {
-  id          String            @id @default(uuid())
-  name        String            // Template name (e.g., "Welcome Email")
-  slug        String            @unique // Unique identifier (e.g., "welcome-email")
-  type        EmailTemplateType @default(CUSTOM)
-  subject     String            // Email subject with variable support
-  htmlContent String            @db.Text // HTML content with Handlebars variables
-  textContent String?           @db.Text // Plain text fallback
-  variables   Json?             // Available variables: [{name: "user.name", description: "User's full name"}]
-  isActive    Boolean           @default(true)
-  isSystem    Boolean           @default(false) // System templates can't be deleted
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  createdById String?
-  createdBy   User?             @relation("EmailTemplateCreator", fields: [createdById], references: [id], onDelete: SetNull)
-
-  // Email logs using this template
-  emailLogs   EmailLog[]
-
-  @@index([type])
-  @@index([slug])
-  @@index([isActive])
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+  SERVICE
 }
 
-// Email Log model - tracks all sent emails
-model EmailLog {
-  id          String      @id @default(uuid())
-  templateId  String?
-  template    EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  recipientId String?
-  recipient   User?       @relation("EmailRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
-
-  // Email details
-  toEmail     String      // Recipient email address
-  toName      String?     // Recipient name
-  fromEmail   String      // Sender email
-  fromName    String?     // Sender name
-  subject     String      // Email subject
-  htmlContent String?     @db.Text // Rendered HTML content
-  textContent String?     @db.Text // Rendered plain text
-
-  // Delivery tracking
-  status      EmailStatus @default(PENDING)
-  sentAt      DateTime?
-  deliveredAt DateTime?
-  failedAt    DateTime?
-  errorMessage String?    @db.Text
-
-  // Provider tracking
-  providerMessageId String? // ID from email provider (SendGrid, AWS SES, etc.)
-  providerResponse  Json?   // Full response from provider
-
-  // Metadata
-  metadata    Json?       // Additional data (order ID, course ID, etc.)
-  ipAddress   String?     // IP address of sender (for bulk emails)
-  userAgent   String?     // User agent (for admin-sent emails)
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@index([templateId])
-  @@index([recipientId])
-  @@index([toEmail])
-  @@index([status])
-  @@index([sentAt])
-  @@index([createdAt])
-}
-
-// =====================================================
-// NOTIFICATIONS
-// =====================================================
-
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-  SYSTEM
-  USER_ACTION
-  CONTENT
-  SECURITY
-  MARKETPLACE
-}
-
-model Notification {
-  id          String           @id @default(uuid())
-  userId      String
-  user        User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-
-  type        NotificationType @default(INFO)
-  title       String
-  message     String
-  link        String?          // Optional link to navigate to
-  icon        String?          // Icon name (e.g., 'FiFileText', 'FiUser')
-  iconColor   String?          // Icon color class (e.g., 'text-blue-400')
-
-  isRead      Boolean          @default(false)
-  readAt      DateTime?
-
-  // Metadata for additional context
-  metadata    Json?            // { postId, userId, themeId, etc. }
-
-  createdAt   DateTime         @default(now())
-
-  @@index([userId])
-  @@index([isRead])
-  @@index([type])
-  @@index([createdAt])
-}
-
-// =====================================================
-// BACKUP SYSTEM
-// =====================================================
-
-enum BackupStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-}
-
-enum BackupType {
-  FULL           // Full database + files
-  DATABASE       // Database only
-  MEDIA          // Media files only
-  THEMES         // Themes only
-  PLUGINS        // Plugins only
-  SCHEDULED      // Scheduled automatic backup
-}
-
-model Backup {
-  id          String       @id @default(uuid())
-  name        String
-  description String?
-  type        BackupType   @default(FULL)
-  status      BackupStatus @default(PENDING)
-
-  // File info
-  filePath    String?      // Path to backup file
-  fileSize    BigInt?      // Size in bytes
-  checksum    String?      // MD5/SHA256 for integrity
-
-  // What's included
-  includesDatabase Boolean  @default(true)
-  includesMedia    Boolean  @default(true)
-  includesThemes   Boolean  @default(true)
-  includesPlugins  Boolean  @default(true)
-
-  // Stats
-  tablesCount      Int?
-  recordsCount     Int?
-  filesCount       Int?
-
-  // Error handling
-  errorMessage String?
-
-  // Scheduling
-  isScheduled  Boolean   @default(false)
-  scheduleId   String?   // Reference to schedule config
-
-  // Who created it
-  createdById  String?
-  createdBy    User?     @relation("UserBackups", fields: [createdById], references: [id], onDelete: SetNull)
-
-  startedAt    DateTime?
-  completedAt  DateTime?
-  createdAt    DateTime  @default(now())
-
-  // Relation to update history
-  updateHistories UpdateHistory[]
-
-  @@index([status])
-  @@index([type])
-  @@index([createdAt])
-  @@index([createdById])
-}
-
-model BackupSchedule {
-  id          String   @id @default(uuid())
-  name        String
-  isActive    Boolean  @default(true)
-
-  // Schedule config (cron-like)
-  frequency   String   // 'daily', 'weekly', 'monthly', 'custom'
-  cronExpression String? // For custom schedules
-  hour        Int      @default(3)  // Hour of day (0-23)
-  dayOfWeek   Int?     // 0-6 for weekly
-  dayOfMonth  Int?     // 1-31 for monthly
-
-  // What to backup
-  backupType  BackupType @default(FULL)
-
-  // Retention
-  retentionDays Int    @default(30)
-  maxBackups    Int    @default(10)
-
-  lastRunAt   DateTime?
-  nextRunAt   DateTime?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([nextRunAt])
-}
-
-// =====================================================
-// PLUGIN MARKETPLACE
-// =====================================================
-
-// MarketplacePlugin model - plugins submitted to the marketplace
-model MarketplacePlugin {
-  id              String   @id @default(uuid())
-  name            String
-  slug            String   @unique
-  description     String?  @db.Text
-  longDescription String?  @db.Text
-  version         String
-  author          String
-  authorEmail     String?
-  authorUrl       String?
-
-  // Plugin package
-  iconUrl         String?  // Plugin icon URL
-  screenshotUrls  Json?    // Array of screenshot URLs
-  downloadUrl     String?  // URL to download the plugin ZIP
-  repositoryUrl   String?  // GitHub/GitLab repository URL
-  fileSize        Int?     // Size in bytes
-
-  // Categorization
-  category        String   @default("utility") // utility, seo, security, social, analytics, backup, ecommerce, etc.
-  tags            Json?    // Array of tags
-  features        Json?    // Array of feature strings
-
-  // Pricing
-  price           Float    @default(0)
-  isPremium       Boolean  @default(false)
-
-  // Stats & Ratings
-  downloads       Int      @default(0)
-  activeInstalls  Int      @default(0)
-  rating          Float    @default(0)
-  ratingCount     Int      @default(0)
-
-  // Approval workflow
-  status          String   @default("pending") // pending, approved, rejected, suspended
-  submittedById   String?
-  submittedBy     User?    @relation("MarketplacePluginSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
-  approvedById    String?
-  approvedBy      User?    @relation("MarketplacePluginApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  approvedAt      DateTime?
-  rejectionReason String?
-
-  // Featured/Promoted
-  isFeatured      Boolean  @default(false)
-  featuredOrder   Int?
-
-  // Compatibility
-  minVersion      String?  // Minimum CMS version required
-  maxVersion      String?  // Maximum CMS version supported
-  testedUpTo      String?  // Last tested CMS version
-
-  // Metadata
-  changelog       String?  @db.Text
-  documentation   String?  @db.Text
-  supportUrl      String?
-  licenseType     String?  @default("MIT")
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  ratings         MarketplacePluginRating[]
-
-  @@index([status])
-  @@index([category])
-  @@index([isFeatured])
-  @@index([downloads])
-  @@index([rating])
-  @@index([submittedById])
-}
-
-// MarketplacePluginRating model - user ratings for marketplace plugins
-model MarketplacePluginRating {
-  id        String   @id @default(uuid())
-  pluginId  String
-  plugin    MarketplacePlugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5 stars
-  review    String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([pluginId, userId])
-  @@index([pluginId])
-  @@index([userId])
-}
-
-// ============================================
-// RECOMMENDATIONS SYSTEM
-// ============================================
-
-// UserInteraction - tracks user interactions for personalized recommendations
-model UserInteraction {
-  id              String   @id @default(uuid())
-  userId          String?  // nullable for anonymous users
-  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessionId       String?  // for anonymous user tracking
-  contentType     String   // 'post', 'page', 'product', 'course'
-  contentId       String   // ID of the content item
-  interactionType String   // 'view', 'click', 'purchase', 'enroll', 'like', 'share', 'bookmark'
-  metadata        Json?    // additional data (time spent, scroll depth, referrer, etc.)
-  createdAt       DateTime @default(now())
-
-  @@index([userId])
-  @@index([sessionId])
-  @@index([contentType, contentId])
-  @@index([interactionType])
-  @@index([createdAt])
-}
-
-// RecommendationRule - admin-configured recommendation rules
-model RecommendationRule {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  sourceType  String   // 'post', 'page', 'product', 'course', 'category', 'tag', 'global'
-  sourceId    String?  // specific item ID, or null for all items of sourceType
-  targetType  String   // what type of content to recommend: 'post', 'page', 'product', 'course'
-  algorithm   String   // 'related', 'trending', 'personalized', 'manual', 'popular', 'recent'
-  settings    Json?    // algorithm-specific settings (limit, timeframe, weights, etc.)
-  priority    Int      @default(0) // higher priority rules take precedence
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Manual recommendation items
-  manualItems ManualRecommendation[]
-
-  @@index([sourceType, sourceId])
-  @@index([targetType])
-  @@index([algorithm])
-  @@index([isActive])
-  @@index([priority])
-}
-
-// ManualRecommendation - manually curated recommendation items
-model ManualRecommendation {
-  id          String   @id @default(uuid())
-  ruleId      String
-  rule        RecommendationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  contentType String   // type of recommended content
-  contentId   String   // ID of the recommended content
-  position    Int      @default(0) // display order
-  createdAt   DateTime @default(now())
-
-  @@index([ruleId])
-  @@index([contentType, contentId])
-}
-
-// RecommendationCache - cached recommendations for performance
-model RecommendationCache {
-  id              String   @id @default(uuid())
-  sourceType      String   // source content type
-  sourceId        String   // source content ID
-  targetType      String   // recommended content type
-  algorithm       String   // algorithm used
-  recommendations Json     // array of recommended item IDs with scores
-  expiresAt       DateTime // cache expiration time
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@unique([sourceType, sourceId, targetType, algorithm])
-  @@index([expiresAt])
-}
-
-// RecommendationClick - tracks clicks on recommendations for analytics
-model RecommendationClick {
-  id                 String   @id @default(uuid())
-  userId             String?
-  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  sessionId          String?
-  sourceType         String   // what type of page they were on
-  sourceId           String   // which specific content they were viewing
-  recommendationType String   // 'related', 'trending', 'personalized', etc.
-  clickedType        String   // type of content clicked
-  clickedId          String   // ID of content clicked
-  position           Int?     // position in the recommendation list (1-based)
-  createdAt          DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-  @@index([recommendationType])
-  @@index([sourceType, sourceId])
-}
-
-// RecommendationSettings - global recommendation settings
-model RecommendationSettings {
-  id                    String   @id @default(uuid())
-  key                   String   @unique
-  value                 Json     // setting value
-  description           String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-// ============================================
-// DEVELOPER MARKETPLACE
-// ============================================
-
-// Developer status enum
-enum DeveloperStatus {
-  PENDING         // Application pending review
-  ACTIVE          // Approved and active
-  INACTIVE        // Developer chose to pause
-  SUSPENDED       // Suspended by admin
-  REJECTED        // Application rejected
-}
-
-// Developer specialty/category
-enum DeveloperCategory {
-  FRONTEND
-  BACKEND
-  FULLSTACK
-  WORDPRESS
-  MOBILE
-  DEVOPS
-  DESIGN
-  DATABASE
-  SECURITY
-  OTHER
-}
-
-// Hiring request status
-enum HiringRequestStatus {
-  PENDING         // Initial request
-  ACCEPTED        // Developer accepted
-  REJECTED        // Developer rejected
-  CANCELLED       // Client cancelled
-  IN_PROGRESS     // Work in progress
-  COMPLETED       // Work completed
-  DISPUTED        // Payment/work dispute
-}
-
-// Project status
 enum ProjectStatus {
   DRAFT
   ACTIVE
@@ -2326,445 +2324,41 @@ enum ProjectStatus {
   CANCELLED
 }
 
-// Transaction type
-enum MarketplaceTransactionType {
-  ESCROW_DEPOSIT      // Client deposits funds
-  ESCROW_RELEASE      // Funds released to developer
-  ESCROW_REFUND       // Funds refunded to client
-  PLATFORM_FEE        // Platform commission
-  DEVELOPER_PAYOUT    // Developer withdrawal
-  DISPUTE_RESOLUTION  // Dispute settlement
+enum QuestionType {
+  MCQ
+  MCQ_MULTI
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
 }
 
-// Transaction status
-enum MarketplaceTransactionStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  REFUNDED
-  CANCELLED
+enum SecurityEventType {
+  SUCCESS_LOGIN
+  FAILED_LOGIN
+  FAILED_2FA
+  LOCKOUT_TRIGGERED
+  LOCKOUT_RELEASED
+  PASSWORD_CHANGE
+  EMAIL_CHANGE
+  TWO_FA_ENABLED
+  TWO_FA_DISABLED
+  BLOCKED_REQUEST
+  INTEGRITY_SCAN
+  IP_BLOCKED
+  IP_UNBLOCKED
+  SECURITY_CHECK
+  LOGOUT
+  PASSWORD_RESET_REQUESTED
 }
 
-// Payout status
-enum PayoutStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-// Dispute status
-enum DisputeStatus {
-  OPEN
-  UNDER_REVIEW
-  RESOLVED_CLIENT
-  RESOLVED_DEVELOPER
-  CLOSED
-}
-
-// Developer model - freelance developer profiles
-model Developer {
-  id                String            @id @default(uuid())
-  userId            String            @unique
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Profile information
-  displayName       String
-  slug              String            @unique
-  headline          String?           // Short professional headline
-  bio               String?           @db.Text
-  profileImage      String?
-  coverImage        String?
-
-  // Professional details
-  category          DeveloperCategory @default(FULLSTACK)
-  skills            String[]          // Array of skills
-  languages         String[]          // Programming languages
-  frameworks        String[]          // Frameworks/libraries
-  tools             String[]          // Development tools
-  spokenLanguages   String[]          // Human languages for communication
-
-  // Experience and credentials
-  yearsOfExperience Int               @default(0)
-  education         Json?             // Array of education items
-  certifications    Json?             // Array of certifications
-  portfolio         Json?             // Array of portfolio items with title, description, url, images
-
-  // Pricing
-  hourlyRate        Decimal           @db.Decimal(10, 2)
-  minimumBudget     Decimal?          @db.Decimal(10, 2) // Minimum project budget
-  currency          String            @default("USD")
-
-  // Availability
-  availability      String            @default("available") // available, busy, unavailable
-  availableHours    Int               @default(40) // Weekly available hours
-  timezone          String?
-
-  // Status and verification
-  status            DeveloperStatus   @default(PENDING)
-  isVerified        Boolean           @default(false)
-  verifiedAt        DateTime?
-  isFeatured        Boolean           @default(false)
-  featuredUntil     DateTime?
-
-  // Stats (denormalized for performance)
-  rating            Float             @default(0)
-  reviewCount       Int               @default(0)
-  projectsCompleted Int               @default(0)
-  totalEarnings     Decimal           @default(0) @db.Decimal(10, 2)
-  responseTime      Int?              // Average response time in hours
-  completionRate    Float             @default(100) // Percentage
-
-  // Social/contact
-  websiteUrl        String?
-  githubUrl         String?
-  linkedinUrl       String?
-  twitterUrl        String?
-
-  // Platform data
-  applicationNote   String?           @db.Text // Developer's application message
-  rejectionReason   String?
-  suspensionReason  String?
-
-  // Stripe Connect for payouts
-  stripeConnectId   String?           @unique
-  stripeAccountStatus String?         // pending, active, restricted
-
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  // Relations
-  hiringRequests    HiringRequest[]   @relation("DeveloperHiringRequests")
-  projects          Project[]         @relation("DeveloperProjects")
-  reviews           DeveloperReview[] @relation("DeveloperReviews")
-  payouts           DeveloperPayout[]
-
-  @@index([status])
-  @@index([category])
-  @@index([rating])
-  @@index([isFeatured])
-  @@index([availability])
-  @@index([slug])
-}
-
-// HiringRequest model - initial hiring requests from clients
-model HiringRequest {
-  id                String              @id @default(uuid())
-
-  // Parties involved
-  clientId          String
-  client            User                @relation("ClientHiringRequests", fields: [clientId], references: [id], onDelete: Cascade)
-  developerId       String
-  developer         Developer           @relation("DeveloperHiringRequests", fields: [developerId], references: [id], onDelete: Cascade)
-
-  // Request details
-  title             String
-  description       String              @db.Text
-  requirements      String?             @db.Text
-  attachments       Json?               // Array of file URLs
-
-  // Budget and timeline
-  budgetType        String              @default("fixed") // fixed, hourly
-  budgetAmount      Decimal             @db.Decimal(10, 2)
-  estimatedHours    Int?
-  deadline          DateTime?
-
-  // Status tracking
-  status            HiringRequestStatus @default(PENDING)
-  responseMessage   String?             @db.Text // Developer's response
-  respondedAt       DateTime?
-
-  // Conversion to project
-  projectId         String?             @unique
-  project           Project?            @relation("HiringRequestProject")
-
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  @@index([clientId])
-  @@index([developerId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// Project model - active work between client and developer
-model Project {
-  id                String        @id @default(uuid())
-
-  // Parties involved
-  clientId          String
-  client            User          @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Cascade)
-  developerId       String
-  developer         Developer     @relation("DeveloperProjects", fields: [developerId], references: [id], onDelete: Cascade)
-
-  // Project details
-  title             String
-  description       String        @db.Text
-  requirements      String?       @db.Text
-  deliverables      Json?         // Array of deliverable items
-
-  // Budget and payment
-  budgetType        String        @default("fixed") // fixed, hourly
-  totalBudget       Decimal       @db.Decimal(10, 2)
-  hourlyRate        Decimal?      @db.Decimal(10, 2)
-  hoursLogged       Decimal       @default(0) @db.Decimal(10, 2)
-  amountPaid        Decimal       @default(0) @db.Decimal(10, 2)
-  amountInEscrow    Decimal       @default(0) @db.Decimal(10, 2)
-  platformFee       Decimal       @default(0) @db.Decimal(10, 2) // Platform commission
-  platformFeePercent Float        @default(10) // Default 10%
-
-  // Timeline
-  startDate         DateTime?
-  deadline          DateTime?
-  completedAt       DateTime?
-
-  // Status
-  status            ProjectStatus @default(DRAFT)
-  progress          Int           @default(0) // Percentage 0-100
-
-  // Milestones
-  milestones        Json?         // Array of milestone objects
-
-  // Files and communication
-  files             Json?         // Array of shared file URLs
-
-  // Rating (after completion)
-  clientRating      Int?          // 1-5 stars
-  clientReview      String?       @db.Text
-  developerRating   Int?          // 1-5 stars
-  developerReview   String?       @db.Text
-
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  // Relations
-  hiringRequest     HiringRequest? @relation("HiringRequestProject", fields: [id], references: [projectId])
-  transactions      MarketplaceTransaction[]
-  messages          ProjectMessage[]
-  disputes          ProjectDispute[]
-
-  @@index([clientId])
-  @@index([developerId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// ProjectMessage model - communication within a project
-model ProjectMessage {
-  id          String   @id @default(uuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  senderId    String
-  content     String   @db.Text
-  attachments Json?    // Array of file URLs
-  isRead      Boolean  @default(false)
-  readAt      DateTime?
-  createdAt   DateTime @default(now())
-
-  @@index([projectId])
-  @@index([senderId])
-  @@index([createdAt])
-}
-
-// MarketplaceTransaction model - all financial transactions
-model MarketplaceTransaction {
-  id                String                       @id @default(uuid())
-
-  // Project reference
-  projectId         String
-  project           Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // Transaction details
-  type              MarketplaceTransactionType
-  amount            Decimal                      @db.Decimal(10, 2)
-  currency          String                       @default("USD")
-  description       String?
-
-  // Status
-  status            MarketplaceTransactionStatus @default(PENDING)
-
-  // Payment processor details (Stripe)
-  stripePaymentIntentId String?
-  stripeTransferId      String?
-  stripeChargeId        String?
-
-  // Parties
-  fromUserId        String?                      // Client for deposits
-  toUserId          String?                      // Developer for payouts
-
-  // Metadata
-  metadata          Json?
-  processedAt       DateTime?
-  failureReason     String?
-
-  createdAt         DateTime                     @default(now())
-  updatedAt         DateTime                     @updatedAt
-
-  @@index([projectId])
-  @@index([type])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// DeveloperReview model - reviews for developers
-model DeveloperReview {
-  id          String    @id @default(uuid())
-  developerId String
-  developer   Developer @relation("DeveloperReviews", fields: [developerId], references: [id], onDelete: Cascade)
-  reviewerId  String
-  reviewer    User      @relation("ReviewerDeveloperReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
-  projectId   String?   // Optional link to specific project
-
-  // Rating breakdown
-  overallRating       Int    // 1-5 stars
-  communicationRating Int?   // 1-5 stars
-  qualityRating       Int?   // 1-5 stars
-  timelinessRating    Int?   // 1-5 stars
-  valueRating         Int?   // 1-5 stars
-
-  // Review content
-  title       String?
-  content     String?   @db.Text
-  isVerified  Boolean   @default(false) // Verified purchase/project
-  isApproved  Boolean   @default(true)  // Moderated
-
-  // Response from developer
-  response    String?   @db.Text
-  respondedAt DateTime?
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@unique([developerId, reviewerId, projectId])
-  @@index([developerId])
-  @@index([reviewerId])
-  @@index([overallRating])
-  @@index([isApproved])
-}
-
-// DeveloperPayout model - payouts to developers
-model DeveloperPayout {
-  id              String       @id @default(uuid())
-  developerId     String
-  developer       Developer    @relation(fields: [developerId], references: [id], onDelete: Cascade)
-
-  amount          Decimal      @db.Decimal(10, 2)
-  currency        String       @default("USD")
-
-  // Status
-  status          PayoutStatus @default(PENDING)
-
-  // Stripe payout details
-  stripePayoutId  String?
-  stripeTransferId String?
-
-  // Bank/account details (encrypted/masked)
-  payoutMethod    String       @default("stripe") // stripe, paypal, bank
-  accountLast4    String?      // Last 4 digits for display
-
-  // Processing
-  requestedAt     DateTime     @default(now())
-  processedAt     DateTime?
-  failureReason   String?
-
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  @@index([developerId])
-  @@index([status])
-  @@index([requestedAt])
-}
-
-// ProjectDispute model - handle payment/work disputes
-model ProjectDispute {
-  id              String        @id @default(uuid())
-  projectId       String
-  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // Who initiated
-  initiatorId     String
-  initiatorType   String        // 'client' or 'developer'
-
-  // Dispute details
-  reason          String
-  description     String        @db.Text
-  evidence        Json?         // Array of file URLs
-
-  // Resolution
-  status          DisputeStatus @default(OPEN)
-  resolution      String?       @db.Text
-  resolvedById    String?       // Admin who resolved
-  resolvedAt      DateTime?
-
-  // Financial impact
-  refundAmount    Decimal?      @db.Decimal(10, 2)
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  @@index([projectId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// MarketplaceSettings model - platform configuration
-model MarketplaceSettings {
-  id                    String   @id @default(uuid())
-  key                   String   @unique
-  value                 Json
-  description           String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-// =============================================
-// SYSTEM UPDATE MODELS
-// =============================================
-
-// UpdateHistory - tracks all system updates
-model UpdateHistory {
-  id              String       @id @default(uuid())
-  fromVersion     String       // Version before update
-  toVersion       String       // Version after update
-  status          UpdateStatus @default(PENDING)
-  startedAt       DateTime     @default(now())
-  completedAt     DateTime?
-
-  // Update details
-  changelog       String?      @db.Text
-  releaseNotes    String?      @db.Text
-  downloadUrl     String?
-  checksum        String?      // SHA256 checksum for verification
-  fileSize        BigInt?
-
-  // Backup reference
-  backupId        String?      // Pre-update backup ID
-  backup          Backup?      @relation(fields: [backupId], references: [id])
-
-  // Migration tracking
-  migrationsRun   String[]     // List of migrations applied
-  migrationLogs   String?      @db.Text
-
-  // Error tracking
-  errorMessage    String?      @db.Text
-  errorStack      String?      @db.Text
-
-  // Who initiated the update
-  initiatedBy     String?
-  initiatedByUser User?        @relation(fields: [initiatedBy], references: [id])
-
-  // Rollback info
-  rolledBack      Boolean      @default(false)
-  rollbackAt      DateTime?
-  rollbackReason  String?
-
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  @@index([status])
-  @@index([startedAt])
-  @@index([fromVersion, toVersion])
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  PAUSED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
 }
 
 enum UpdateStatus {
@@ -2780,141 +2374,16 @@ enum UpdateStatus {
   ROLLED_BACK
 }
 
-// SystemVersion - tracks current and available versions
-model SystemVersion {
-  id              String   @id @default(uuid())
-  version         String   @unique
-  isCurrentVersion Boolean @default(false)
-  installedAt     DateTime?
-
-  // Version metadata
-  releaseDate     DateTime?
-  changelog       String?  @db.Text
-  releaseNotes    String?  @db.Text
-  minNodeVersion  String?  // Minimum Node.js version required
-  minNpmVersion   String?  // Minimum npm version required
-
-  // Compatibility
-  breakingChanges Boolean  @default(false)
-  requiresManualSteps Boolean @default(false)
-  manualStepsDescription String? @db.Text
-
-  // Download info (for available versions)
-  downloadUrl     String?
-  checksum        String?
-  fileSize        BigInt?
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([isCurrentVersion])
-  @@index([version])
+enum UserRole {
+  ADMIN
+  EDITOR
+  AUTHOR
+  VIEWER
 }
 
-// ============================================
-// SUBSCRIPTION & BILLING MODELS
-// ============================================
-
-// Subscription Plans (what you sell)
-model SubscriptionPlan {
-  id              String   @id @default(uuid())
-  name            String   // "Free", "Pro", "Business", "Enterprise"
-  slug            String   @unique
-  description     String?  @db.Text
-
-  // Pricing
-  monthlyPrice    Decimal  @db.Decimal(10, 2) @default(0)
-  yearlyPrice     Decimal  @db.Decimal(10, 2) @default(0)
-
-  // Stripe Price IDs (created in Stripe Dashboard)
-  stripePriceIdMonthly String?
-  stripePriceIdYearly  String?
-  stripeProductId      String?
-
-  // Plan Limits
-  maxUsers        Int?     // null = unlimited
-  maxStorageMb    Int?     // Storage in MB, null = unlimited
-  maxProjects     Int?     // null = unlimited
-  maxCourses      Int?     // LMS courses, null = unlimited
-  maxProducts     Int?     // Shop products, null = unlimited
-
-  // Feature Flags (what's included)
-  features        Json     @default("[]") // ["video_calls", "lms", "ecommerce", "api", "priority_support"]
-
-  // Display
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false) // Highlight this plan
-  displayOrder    Int      @default(0)
-  badgeText       String?  // "Most Popular", "Best Value"
-
-  // Trial
-  trialDays       Int      @default(0)
-
-  subscriptions   Subscription[]
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([slug])
-  @@index([isActive])
-}
-
-// User Subscriptions
-model Subscription {
-  id              String   @id @default(uuid())
-
-  // User relationship
-  userId          String   @unique // One subscription per user
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Plan relationship
-  planId          String
-  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
-
-  // Status
-  status          SubscriptionStatus @default(ACTIVE)
-  billingCycle    BillingCycle @default(MONTHLY)
-
-  // Stripe fields
-  stripeSubscriptionId String? @unique
-  stripeCustomerId     String?
-
-  // Billing period
-  currentPeriodStart DateTime @default(now())
-  currentPeriodEnd   DateTime
-
-  // Cancellation
-  cancelAtPeriodEnd  Boolean   @default(false)
-  canceledAt         DateTime?
-  cancelReason       String?
-
-  // Trial
-  trialStart         DateTime?
-  trialEnd           DateTime?
-
-  // Metadata
-  metadata           Json?
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@index([userId])
-  @@index([planId])
-  @@index([status])
-  @@index([stripeSubscriptionId])
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  PAST_DUE
-  CANCELED
-  TRIALING
-  PAUSED
-  INCOMPLETE
-  INCOMPLETE_EXPIRED
-}
-
-enum BillingCycle {
-  MONTHLY
-  YEARLY
+enum VideoProvider {
+  UPLOAD
+  HLS
+  YOUTUBE
+  VIMEO
 }

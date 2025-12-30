@@ -255,7 +255,7 @@ export default function Projects() {
 
                 {/* View Button */}
                 <Link
-                  to={`/marketplace/projects/${project.id}`}
+                  to={`/dev-marketplace/projects/${project.id}`}
                   className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg shadow-blue-500/20"
                 >
                   <FiEye size={16} />

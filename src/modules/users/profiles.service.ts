@@ -8,8 +8,11 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface UpdateProfileDto {
   username?: string;
@@ -39,7 +42,11 @@ export interface UpdateProfileDto {
 
 @Injectable()
 export class ProfilesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+  ) {}
 
   // Fields to select for public profile
   private publicProfileSelect = {
@@ -204,7 +211,13 @@ export class ProfilesService {
       throw new ConflictException('Already following this user');
     }
 
-    // Create follow relationship and update counts
+    // Get both users for notification/activity
+    const [follower, following] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: followerId }, select: { name: true, username: true, avatar: true } }),
+      this.prisma.user.findUnique({ where: { id: followingId }, select: { name: true, username: true } }),
+    ]);
+
+    // Create follow relationship, update counts, and create activity
     await this.prisma.$transaction([
       this.prisma.userFollow.create({
         data: { followerId, followingId },
@@ -217,7 +230,31 @@ export class ProfilesService {
         where: { id: followerId },
         data: { followingCount: { increment: 1 } },
       }),
+      // Create activity for the follower
+      this.prisma.activity.create({
+        data: {
+          userId: followerId,
+          type: 'STARTED_FOLLOWING',
+          targetType: 'user',
+          targetId: followingId,
+          title: `Started following ${following?.name || 'a user'}`,
+          link: `/profile/${following?.username || followingId}`,
+          metadata: { followingId, followingName: following?.name },
+        },
+      }),
     ]);
+
+    // Create notification for the followed user
+    await this.notificationsService.create({
+      userId: followingId,
+      type: 'INFO',
+      title: 'New Follower',
+      message: `${follower?.name || 'Someone'} started following you`,
+      link: `/profile/${follower?.username || followerId}`,
+      icon: 'user-plus',
+      iconColor: 'blue',
+      metadata: { followerId, followerName: follower?.name, followerAvatar: follower?.avatar },
+    });
 
     return { message: 'Successfully followed user' };
   }
@@ -467,6 +504,204 @@ export class ProfilesService {
     return {
       users,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    };
+  }
+
+  /**
+   * Get suggested users to follow based on interests, skills, and popular users
+   */
+  async getSuggestedUsers(userId: string, limit = 10) {
+    // Get current user's interests and skills
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { interests: true, skills: true },
+    });
+
+    // Get users the current user already follows
+    const following = await this.prisma.userFollow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const followingIds = following.map((f) => f.followingId);
+    followingIds.push(userId); // Exclude self
+
+    // Find users with similar interests/skills
+    const suggestedUsers = await this.prisma.user.findMany({
+      where: {
+        id: { notIn: followingIds },
+        isPublic: true,
+        OR: [
+          { interests: { hasSome: currentUser?.interests || [] } },
+          { skills: { hasSome: currentUser?.skills || [] } },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatar: true,
+        headline: true,
+        followersCount: true,
+        interests: true,
+        skills: true,
+      },
+      orderBy: { followersCount: 'desc' },
+      take: limit,
+    });
+
+    // If not enough suggestions, fill with popular users
+    if (suggestedUsers.length < limit) {
+      const additionalUsers = await this.prisma.user.findMany({
+        where: {
+          id: { notIn: [...followingIds, ...suggestedUsers.map((u) => u.id)] },
+          isPublic: true,
+        },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          avatar: true,
+          headline: true,
+          followersCount: true,
+          interests: true,
+          skills: true,
+        },
+        orderBy: { followersCount: 'desc' },
+        take: limit - suggestedUsers.length,
+      });
+      suggestedUsers.push(...additionalUsers);
+    }
+
+    // Calculate match score for each user
+    return suggestedUsers.map((user) => {
+      const sharedInterests = user.interests.filter((i) =>
+        currentUser?.interests?.includes(i)
+      ).length;
+      const sharedSkills = user.skills.filter((s) =>
+        currentUser?.skills?.includes(s)
+      ).length;
+      return {
+        ...user,
+        matchScore: sharedInterests + sharedSkills,
+        sharedInterests,
+        sharedSkills,
+      };
+    }).sort((a, b) => b.matchScore - a.matchScore);
+  }
+
+  /**
+   * Get mutual connections (users who follow both users)
+   */
+  async getMutualConnections(userId: string, targetUserId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    // Get followers of the current user
+    const userFollowers = await this.prisma.userFollow.findMany({
+      where: { followingId: userId },
+      select: { followerId: true },
+    });
+    const userFollowerIds = userFollowers.map((f) => f.followerId);
+
+    // Get followers of the target user that are also followers of current user
+    const [mutualFollows, total] = await Promise.all([
+      this.prisma.userFollow.findMany({
+        where: {
+          followingId: targetUserId,
+          followerId: { in: userFollowerIds },
+        },
+        skip,
+        take: limit,
+        select: {
+          follower: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              avatar: true,
+              headline: true,
+            },
+          },
+        },
+      }),
+      this.prisma.userFollow.count({
+        where: {
+          followingId: targetUserId,
+          followerId: { in: userFollowerIds },
+        },
+      }),
+    ]);
+
+    return {
+      data: mutualFollows.map((f) => f.follower),
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    };
+  }
+
+  /**
+   * Get mutual following (users that both users follow)
+   */
+  async getMutualFollowing(userId: string, targetUserId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    // Get users the current user follows
+    const userFollowing = await this.prisma.userFollow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const userFollowingIds = userFollowing.map((f) => f.followingId);
+
+    // Get users the target follows that current user also follows
+    const [mutualFollows, total] = await Promise.all([
+      this.prisma.userFollow.findMany({
+        where: {
+          followerId: targetUserId,
+          followingId: { in: userFollowingIds },
+        },
+        skip,
+        take: limit,
+        select: {
+          following: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              avatar: true,
+              headline: true,
+            },
+          },
+        },
+      }),
+      this.prisma.userFollow.count({
+        where: {
+          followerId: targetUserId,
+          followingId: { in: userFollowingIds },
+        },
+      }),
+    ]);
+
+    return {
+      data: mutualFollows.map((f) => f.following),
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    };
+  }
+
+  /**
+   * Check if users follow each other (mutual follow)
+   */
+  async checkMutualFollow(userId: string, targetUserId: string) {
+    const [userFollowsTarget, targetFollowsUser] = await Promise.all([
+      this.prisma.userFollow.findUnique({
+        where: { followerId_followingId: { followerId: userId, followingId: targetUserId } },
+      }),
+      this.prisma.userFollow.findUnique({
+        where: { followerId_followingId: { followerId: targetUserId, followingId: userId } },
+      }),
+    ]);
+
+    return {
+      userFollowsTarget: !!userFollowsTarget,
+      targetFollowsUser: !!targetFollowsUser,
+      isMutual: !!userFollowsTarget && !!targetFollowsUser,
     };
   }
 }

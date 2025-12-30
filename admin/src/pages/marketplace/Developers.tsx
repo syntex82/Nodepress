@@ -9,9 +9,10 @@ import {
   FiUsers, FiSearch, FiX, FiEye, FiCheckCircle,
   FiXCircle, FiSlash, FiRefreshCw, FiStar, FiBarChart2,
   FiChevronLeft, FiChevronRight, FiUser, FiShield, FiCalendar,
-  FiLock, FiExternalLink
+  FiLock, FiExternalLink, FiPlus
 } from 'react-icons/fi';
 import api from '../../services/api';
+import { developerMarketplaceApi } from '../../services/api';
 import Tooltip from '../../components/Tooltip';
 import { MARKETPLACE_TOOLTIPS } from '../../config/tooltips';
 import toast from 'react-hot-toast';
@@ -76,6 +77,19 @@ export default function Developers() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ status: '', category: '', search: '' });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [addForm, setAddForm] = useState({
+    displayName: '',
+    headline: '',
+    category: 'FULLSTACK',
+    hourlyRate: 50,
+    status: 'ACTIVE',
+    isVerified: true,
+  });
+  const [addingDeveloper, setAddingDeveloper] = useState(false);
 
   useEffect(() => {
     fetchDevelopers();
@@ -124,6 +138,43 @@ export default function Developers() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
+  const searchAvailableUsers = async (search: string) => {
+    try {
+      const { data } = await developerMarketplaceApi.adminGetAvailableUsers(search, 10);
+      setAvailableUsers(data || []);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    }
+  };
+
+  const handleAddDeveloper = async () => {
+    if (!selectedUser) {
+      toast.error('Please select a user');
+      return;
+    }
+    setAddingDeveloper(true);
+    try {
+      await developerMarketplaceApi.adminCreateDeveloper({
+        userId: selectedUser.id,
+        displayName: addForm.displayName || selectedUser.name,
+        headline: addForm.headline,
+        category: addForm.category,
+        hourlyRate: addForm.hourlyRate,
+        status: addForm.status,
+        isVerified: addForm.isVerified,
+      });
+      toast.success('Developer created successfully!');
+      setShowAddModal(false);
+      setSelectedUser(null);
+      setAddForm({ displayName: '', headline: '', category: 'FULLSTACK', hourlyRate: 50, status: 'ACTIVE', isVerified: true });
+      fetchDevelopers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to create developer');
+    } finally {
+      setAddingDeveloper(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -134,15 +185,24 @@ export default function Developers() {
           </h1>
           <p className="text-slate-400 mt-1">Manage developer profiles and applications</p>
         </div>
-        <Tooltip title={MARKETPLACE_TOOLTIPS.viewStatistics.title} content={MARKETPLACE_TOOLTIPS.viewStatistics.content} position="left">
-          <Link
-            to="/marketplace"
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all"
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all"
           >
-            <FiBarChart2 size={18} />
-            Dashboard
-          </Link>
-        </Tooltip>
+            <FiPlus size={18} />
+            Add Developer
+          </button>
+          <Tooltip title={MARKETPLACE_TOOLTIPS.viewStatistics.title} content={MARKETPLACE_TOOLTIPS.viewStatistics.content} position="left">
+            <Link
+              to="/dev-marketplace"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/20 transition-all"
+            >
+              <FiBarChart2 size={18} />
+              Dashboard
+            </Link>
+          </Tooltip>
+        </div>
       </div>
 
       {/* Filters */}
@@ -407,6 +467,101 @@ export default function Developers() {
             Next
             <FiChevronRight size={16} />
           </button>
+        </div>
+      )}
+
+      {/* Add Developer Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-700">
+              <h2 className="text-xl font-bold text-white">Add Developer</h2>
+              <p className="text-slate-400 text-sm mt-1">Create a developer profile for an existing user</p>
+            </div>
+            <div className="p-6 space-y-4">
+              {/* User Search */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Select User</label>
+                <input
+                  type="text"
+                  placeholder="Search users by name or email..."
+                  value={userSearch}
+                  onChange={(e) => { setUserSearch(e.target.value); searchAvailableUsers(e.target.value); }}
+                  className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                />
+                {availableUsers.length > 0 && !selectedUser && (
+                  <div className="mt-2 bg-slate-700/50 rounded-xl border border-slate-600/50 max-h-40 overflow-y-auto">
+                    {availableUsers.map(user => (
+                      <button
+                        key={user.id}
+                        onClick={() => { setSelectedUser(user); setAddForm(f => ({ ...f, displayName: user.name })); setAvailableUsers([]); }}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-600/50 transition-colors text-left"
+                      >
+                        <img src={user.avatar || '/images/default-avatar.png'} alt="" className="w-8 h-8 rounded-full" />
+                        <div>
+                          <p className="text-white text-sm font-medium">{user.name}</p>
+                          <p className="text-slate-400 text-xs">{user.email}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {selectedUser && (
+                  <div className="mt-2 flex items-center gap-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                    <img src={selectedUser.avatar || '/images/default-avatar.png'} alt="" className="w-10 h-10 rounded-full" />
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{selectedUser.name}</p>
+                      <p className="text-slate-400 text-sm">{selectedUser.email}</p>
+                    </div>
+                    <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-white"><FiX size={18} /></button>
+                  </div>
+                )}
+              </div>
+              {/* Form Fields */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Display Name</label>
+                <input type="text" value={addForm.displayName} onChange={e => setAddForm(f => ({ ...f, displayName: e.target.value }))} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Headline</label>
+                <input type="text" value={addForm.headline} onChange={e => setAddForm(f => ({ ...f, headline: e.target.value }))} placeholder="e.g., Senior Full-Stack Developer" className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white placeholder-slate-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Category</label>
+                  <select value={addForm.category} onChange={e => setAddForm(f => ({ ...f, category: e.target.value }))} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white">
+                    {Object.entries(categoryLabels).map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Hourly Rate ($)</label>
+                  <input type="number" min={1} value={addForm.hourlyRate} onChange={e => setAddForm(f => ({ ...f, hourlyRate: parseInt(e.target.value) || 0 }))} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
+                  <select value={addForm.status} onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white">
+                    <option value="ACTIVE">Active</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+                <div className="flex items-center pt-7">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={addForm.isVerified} onChange={e => setAddForm(f => ({ ...f, isVerified: e.target.checked }))} className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-500 focus:ring-blue-500/50" />
+                    <span className="text-slate-300 text-sm">Verified Developer</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-700 flex gap-3">
+              <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 border border-slate-600 text-slate-300 rounded-xl hover:bg-slate-700/50 transition-colors">Cancel</button>
+              <button onClick={handleAddDeveloper} disabled={!selectedUser || addingDeveloper} className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+                {addingDeveloper ? 'Creating...' : 'Create Developer'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -148,6 +148,52 @@ export class DevelopersController {
   }
 
   /**
+   * Admin: Get users who don't have developer profiles
+   */
+  @Get('admin/available-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async getAvailableUsers(@Query('search') search?: string, @Query('limit') limit?: string) {
+    return this.developersService.getAvailableUsersForDeveloper(
+      search,
+      limit ? parseInt(limit) : 20,
+    );
+  }
+
+  /**
+   * Admin: Create developer profile directly for a user
+   */
+  @Post('admin/create')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async adminCreateDeveloper(
+    @Body()
+    dto: {
+      userId: string;
+      displayName: string;
+      headline?: string;
+      bio?: string;
+      category?: string;
+      skills?: string[];
+      languages?: string[];
+      frameworks?: string[];
+      hourlyRate: number;
+      minimumBudget?: number;
+      yearsOfExperience?: number;
+      websiteUrl?: string;
+      githubUrl?: string;
+      linkedinUrl?: string;
+      status?: string;
+      isVerified?: boolean;
+    },
+  ) {
+    return this.developersService.adminCreateDeveloper(dto as any);
+  }
+
+  // ============ PARAMETERIZED ROUTES ============
+  // NOTE: These MUST come after all static routes to avoid matching issues
+
+  /**
    * Approve developer (admin)
    */
   @Patch(':id/approve')

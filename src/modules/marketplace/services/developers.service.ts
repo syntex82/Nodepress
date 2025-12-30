@@ -12,6 +12,7 @@ import {
 import { PrismaService } from '../../../database/prisma.service';
 import { CreateDeveloperDto, UpdateDeveloperDto, DeveloperStatus, DeveloperCategory } from '../dto';
 import { Prisma } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
 // User selection for developer queries - includes comprehensive user data
 const USER_SELECT = {
@@ -56,6 +57,7 @@ export class DevelopersService {
 
     return this.prisma.developer.create({
       data: {
+        id: uuidv4(),
         userId,
         displayName: dto.displayName,
         slug,
@@ -73,6 +75,7 @@ export class DevelopersService {
         githubUrl: dto.githubUrl,
         linkedinUrl: dto.linkedinUrl,
         status: 'PENDING',
+        updatedAt: new Date(),
       },
       include: { user: { select: USER_SELECT } },
     });
@@ -275,6 +278,110 @@ export class DevelopersService {
         isFeatured: featured,
         featuredUntil: featured ? new Date(Date.now() + daysUntil * 24 * 60 * 60 * 1000) : null,
       },
+    });
+  }
+
+  /**
+   * Admin: Create developer profile directly for a user (bypasses application)
+   */
+  async adminCreateDeveloper(dto: {
+    userId: string;
+    displayName: string;
+    headline?: string;
+    bio?: string;
+    category?: DeveloperCategory;
+    skills?: string[];
+    languages?: string[];
+    frameworks?: string[];
+    hourlyRate: number;
+    minimumBudget?: number;
+    yearsOfExperience?: number;
+    websiteUrl?: string;
+    githubUrl?: string;
+    linkedinUrl?: string;
+    status?: DeveloperStatus;
+    isVerified?: boolean;
+  }) {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Check if user already has a developer profile
+    const existing = await this.prisma.developer.findUnique({
+      where: { userId: dto.userId },
+    });
+    if (existing) {
+      throw new BadRequestException('User already has a developer profile');
+    }
+
+    // Generate slug from display name
+    const baseSlug = dto.displayName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    let slug = baseSlug;
+    let counter = 1;
+    while (await this.prisma.developer.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    const status = dto.status || DeveloperStatus.ACTIVE;
+    const isVerified = dto.isVerified !== undefined ? dto.isVerified : status === DeveloperStatus.ACTIVE;
+
+    return this.prisma.developer.create({
+      data: {
+        id: uuidv4(),
+        userId: dto.userId,
+        displayName: dto.displayName,
+        slug,
+        headline: dto.headline,
+        bio: dto.bio,
+        category: dto.category || DeveloperCategory.FULLSTACK,
+        skills: dto.skills || [],
+        languages: dto.languages || [],
+        frameworks: dto.frameworks || [],
+        hourlyRate: dto.hourlyRate,
+        minimumBudget: dto.minimumBudget,
+        yearsOfExperience: dto.yearsOfExperience || 0,
+        websiteUrl: dto.websiteUrl,
+        githubUrl: dto.githubUrl,
+        linkedinUrl: dto.linkedinUrl,
+        status,
+        isVerified,
+        verifiedAt: isVerified ? new Date() : null,
+        updatedAt: new Date(),
+      },
+      include: { user: { select: USER_SELECT } },
+    });
+  }
+
+  /**
+   * Get all users who are not yet developers (for admin selection)
+   */
+  async getAvailableUsersForDeveloper(search?: string, limit = 20) {
+    const developerUserIds = await this.prisma.developer.findMany({
+      select: { userId: true },
+    });
+    const excludeIds = developerUserIds.map(d => d.userId);
+
+    const where: Prisma.UserWhereInput = {
+      id: { notIn: excludeIds },
+    };
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { username: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return this.prisma.user.findMany({
+      where,
+      select: USER_SELECT,
+      take: limit,
+      orderBy: { name: 'asc' },
     });
   }
 

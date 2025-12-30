@@ -117,7 +117,7 @@ export default function MarketplaceDashboard() {
       icon: FiUsers,
       color: 'from-blue-500 to-cyan-400',
       bgGlow: 'shadow-blue-500/20',
-      link: '/marketplace/developers',
+      link: '/dev-marketplace/developers',
       subtext: `${stats?.developers.pending || 0} pending approval`,
       subtextColor: 'text-amber-400',
       tooltip: MARKETPLACE_TOOLTIPS.totalDevelopers
@@ -128,7 +128,7 @@ export default function MarketplaceDashboard() {
       icon: FiBriefcase,
       color: 'from-emerald-500 to-green-400',
       bgGlow: 'shadow-emerald-500/20',
-      link: '/marketplace/projects',
+      link: '/dev-marketplace/projects',
       subtext: `${stats?.projects.completed || 0} completed`,
       subtextColor: 'text-emerald-400',
       tooltip: MARKETPLACE_TOOLTIPS.activeProjects
@@ -139,7 +139,7 @@ export default function MarketplaceDashboard() {
       icon: FiDollarSign,
       color: 'from-purple-500 to-pink-400',
       bgGlow: 'shadow-purple-500/20',
-      link: '/marketplace/projects',
+      link: '/dev-marketplace/projects',
       subtext: 'Held in escrow',
       subtextColor: 'text-slate-400',
       tooltip: MARKETPLACE_TOOLTIPS.totalEscrow
@@ -150,7 +150,7 @@ export default function MarketplaceDashboard() {
       icon: FiTrendingUp,
       color: 'from-amber-500 to-orange-400',
       bgGlow: 'shadow-amber-500/20',
-      link: '/marketplace/developers',
+      link: '/dev-marketplace/developers',
       subtext: 'Total earned',
       subtextColor: 'text-slate-400',
       tooltip: MARKETPLACE_TOOLTIPS.platformFees
@@ -161,7 +161,7 @@ export default function MarketplaceDashboard() {
     {
       name: 'Manage Developers',
       icon: FiUserCheck,
-      link: '/marketplace/developers',
+      link: '/dev-marketplace/developers',
       color: 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20',
       desc: 'Review applications & profiles',
       badge: stats?.developers.pending ? { count: stats.developers.pending, color: 'bg-amber-500' } : null
@@ -169,21 +169,21 @@ export default function MarketplaceDashboard() {
     {
       name: 'View Projects',
       icon: FiBriefcase,
-      link: '/marketplace/projects',
+      link: '/dev-marketplace/projects',
       color: 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20',
       desc: 'Monitor active projects'
     },
     {
       name: 'Hiring Requests',
       icon: FiClock,
-      link: '/marketplace/requests',
+      link: '/dev-marketplace/requests',
       color: 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20',
       desc: 'Pending hiring requests'
     },
     {
       name: 'Analytics',
       icon: FiBarChart2,
-      link: '/marketplace/developers',
+      link: '/dev-marketplace/developers',
       color: 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20',
       desc: 'Marketplace performance'
     },
@@ -510,7 +510,7 @@ export default function MarketplaceDashboard() {
           </div>
         </div>
         <Link
-          to="/marketplace/developers"
+          to="/dev-marketplace/developers"
           className="px-4 py-2.5 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600/30 transition-colors text-sm font-medium text-center sm:text-left touch-manipulation min-h-[44px] flex items-center justify-center sm:w-auto w-full active:scale-95"
         >
           View Developers

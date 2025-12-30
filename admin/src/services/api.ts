@@ -1449,6 +1449,73 @@ export interface ActivityItem {
   date: string;
 }
 
+// Feed Activity Types
+export type FeedActivityType =
+  | 'POST_PUBLISHED'
+  | 'POST_LIKED'
+  | 'POST_COMMENTED'
+  | 'COURSE_ENROLLED'
+  | 'COURSE_COMPLETED'
+  | 'CERTIFICATE_EARNED'
+  | 'BADGE_EARNED'
+  | 'PROFILE_UPDATED'
+  | 'NEW_FOLLOWER'
+  | 'STARTED_FOLLOWING';
+
+export interface FeedActivity {
+  id: string;
+  userId: string;
+  type: FeedActivityType;
+  targetType?: string;
+  targetId?: string;
+  title: string;
+  description?: string;
+  link?: string;
+  imageUrl?: string;
+  metadata?: Record<string, unknown>;
+  isPublic: boolean;
+  createdAt: string;
+  User: {
+    id: string;
+    name: string;
+    username?: string;
+    avatar?: string;
+    headline?: string;
+    followersCount?: number;
+  };
+}
+
+export interface FeedResponse {
+  data: FeedActivity[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
+export interface SuggestedUser {
+  id: string;
+  username?: string;
+  name: string;
+  avatar?: string;
+  headline?: string;
+  followersCount: number;
+  interests: string[];
+  skills: string[];
+  matchScore: number;
+  sharedInterests: number;
+  sharedSkills: number;
+}
+
+export interface MutualStatus {
+  userFollowsTarget: boolean;
+  targetFollowsUser: boolean;
+  isMutual: boolean;
+}
+
 // Profile API
 export const profileApi = {
   // My profile
@@ -1461,6 +1528,8 @@ export const profileApi = {
     api.get('/profiles/me/followers', { params: { page, limit } }),
   getMyFollowing: (page?: number, limit?: number) =>
     api.get('/profiles/me/following', { params: { page, limit } }),
+  getSuggestedUsers: (limit?: number) =>
+    api.get<SuggestedUser[]>('/profiles/me/suggested', { params: { limit } }),
 
   // Public profiles
   getProfile: (identifier: string) => api.get<UserProfile>(`/profiles/${identifier}`),
@@ -1471,6 +1540,12 @@ export const profileApi = {
     api.get(`/profiles/${identifier}/followers`, { params: { page, limit } }),
   getProfileFollowing: (identifier: string, page?: number, limit?: number) =>
     api.get(`/profiles/${identifier}/following`, { params: { page, limit } }),
+  getMutualConnections: (identifier: string, page?: number, limit?: number) =>
+    api.get(`/profiles/${identifier}/mutual-connections`, { params: { page, limit } }),
+  getMutualFollowing: (identifier: string, page?: number, limit?: number) =>
+    api.get(`/profiles/${identifier}/mutual-following`, { params: { page, limit } }),
+  getMutualStatus: (identifier: string) =>
+    api.get<MutualStatus>(`/profiles/${identifier}/mutual-status`),
 
   // Follow actions
   getFollowingStatus: (identifier: string) =>
@@ -1481,6 +1556,28 @@ export const profileApi = {
   // Search
   searchUsers: (query: string, page?: number, limit?: number) =>
     api.get('/profiles/search', { params: { q: query, page, limit } }),
+};
+
+// Feed API
+export const feedApi = {
+  // Get following feed (activities from users you follow)
+  getFollowingFeed: (page?: number, limit?: number, type?: FeedActivityType) =>
+    api.get<FeedResponse>('/feed/following', { params: { page, limit, type } }),
+
+  // Get discover feed (trending/recommended content)
+  getDiscoverFeed: (page?: number, limit?: number, type?: FeedActivityType) =>
+    api.get<FeedResponse>('/feed/discover', { params: { page, limit, type } }),
+
+  // Get trending users
+  getTrendingUsers: (limit?: number) =>
+    api.get<SuggestedUser[]>('/feed/trending-users', { params: { limit } }),
+
+  // Get my activities
+  getMyActivities: (page?: number, limit?: number, type?: FeedActivityType) =>
+    api.get<FeedResponse>('/feed/my-activities', { params: { page, limit, type } }),
+
+  // Delete an activity
+  deleteActivity: (id: string) => api.delete(`/feed/activities/${id}`),
 };
 
 // Developer Marketplace types
@@ -1527,32 +1624,98 @@ export interface DeveloperMarketplaceQuery {
 
 // Developer Marketplace API
 export const developerMarketplaceApi = {
-  // Browse developers
+  // Browse developers (public - only active)
   getDevelopers: (query?: DeveloperMarketplaceQuery) =>
     api.get<{ developers: DeveloperProfile[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
-      '/developers',
+      '/marketplace/developers',
       { params: query }
     ),
 
   // Get featured developers
   getFeatured: (limit = 6) =>
-    api.get<DeveloperProfile[]>('/developers/featured', { params: { limit } }),
+    api.get<DeveloperProfile[]>('/marketplace/developers/featured', { params: { limit } }),
 
   // Get developer by ID or username
   getDeveloper: (identifier: string) =>
-    api.get<DeveloperProfile>(`/developers/${identifier}`),
+    api.get<DeveloperProfile>(`/marketplace/developers/${identifier}`),
+
+  // Get developer by slug (public profile)
+  getDeveloperBySlug: (slug: string) =>
+    api.get<DeveloperProfile>(`/marketplace/developers/profile/${slug}`),
 
   // Get available skills for filtering
   getSkills: () =>
-    api.get<{ skill: string; count: number }[]>('/developers/skills'),
+    api.get<{ skill: string; count: number }[]>('/marketplace/developers/skills'),
 
   // Get marketplace stats
   getStats: () =>
-    api.get<{ totalDevelopers: number; availableDevelopers: number; avgRating: number; topSkills: string[] }>('/developers/stats'),
+    api.get<{ totalDevelopers: number; availableDevelopers: number; avgRating: number; topSkills: string[] }>('/marketplace/developers/stats'),
 
   // Contact developer (send inquiry)
   contactDeveloper: (developerId: string, data: { subject: string; message: string; projectDetails?: string }) =>
-    api.post(`/developers/${developerId}/contact`, data),
+    api.post(`/marketplace/developers/${developerId}/contact`, data),
+
+  // Get my developer profile
+  getMyProfile: () =>
+    api.get<DeveloperProfile>('/marketplace/developers/me'),
+
+  // Update my developer profile
+  updateMyProfile: (data: Partial<DeveloperProfile>) =>
+    api.put<DeveloperProfile>('/marketplace/developers/me', data),
+
+  // Admin: Get all developers (all statuses)
+  adminGetDevelopers: (query?: DeveloperMarketplaceQuery & { status?: string }) =>
+    api.get<{ developers: DeveloperProfile[]; pagination: { page: number; limit: number; total: number; pages: number } }>(
+      '/marketplace/developers/admin/all',
+      { params: query }
+    ),
+
+  // Admin: Get users available to become developers
+  adminGetAvailableUsers: (search?: string, limit?: number) =>
+    api.get<{ id: string; name: string; email: string; avatar?: string; username?: string }[]>(
+      '/marketplace/developers/admin/available-users',
+      { params: { search, limit } }
+    ),
+
+  // Admin: Create developer profile directly
+  adminCreateDeveloper: (data: {
+    userId: string;
+    displayName: string;
+    headline?: string;
+    bio?: string;
+    category?: string;
+    skills?: string[];
+    languages?: string[];
+    frameworks?: string[];
+    hourlyRate: number;
+    minimumBudget?: number;
+    yearsOfExperience?: number;
+    websiteUrl?: string;
+    githubUrl?: string;
+    linkedinUrl?: string;
+    status?: string;
+    isVerified?: boolean;
+  }) => api.post<DeveloperProfile>('/marketplace/developers/admin/create', data),
+
+  // Admin: Approve developer
+  adminApprove: (id: string) =>
+    api.patch(`/marketplace/developers/${id}/approve`),
+
+  // Admin: Reject developer
+  adminReject: (id: string, reason: string) =>
+    api.patch(`/marketplace/developers/${id}/reject`, { reason }),
+
+  // Admin: Suspend developer
+  adminSuspend: (id: string, reason: string) =>
+    api.patch(`/marketplace/developers/${id}/suspend`, { reason }),
+
+  // Admin: Reactivate developer
+  adminReactivate: (id: string) =>
+    api.patch(`/marketplace/developers/${id}/reactivate`),
+
+  // Admin: Set featured status
+  adminSetFeatured: (id: string, featured: boolean, days?: number) =>
+    api.patch(`/marketplace/developers/${id}/featured`, { featured, days }),
 };
 
 // Direct Messages API

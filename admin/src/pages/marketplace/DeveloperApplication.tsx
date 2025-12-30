@@ -90,7 +90,7 @@ export default function DeveloperApplication() {
         frameworks: form.frameworks.split(',').map(s => s.trim()).filter(Boolean),
       });
       toast.success('Application submitted successfully!');
-      navigate('/marketplace/my-profile');
+      navigate('/dev-marketplace/my-profile');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit application');
       toast.error('Failed to submit application');
@@ -141,7 +141,7 @@ export default function DeveloperApplication() {
               </p>
               <button
                 type="button"
-                onClick={() => navigate('/marketplace/my-profile')}
+                onClick={() => navigate('/dev-marketplace/my-profile')}
                 className="mt-4 bg-amber-500/20 text-amber-400 px-4 py-2 rounded-lg hover:bg-amber-500/30 transition-colors"
               >
                 View My Developer Profile

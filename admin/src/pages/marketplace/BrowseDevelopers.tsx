@@ -4,11 +4,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FiSearch, FiFilter, FiX, FiMapPin, FiStar,
   FiChevronLeft, FiChevronRight, FiUsers, FiAward,
-  FiGrid, FiList, FiBriefcase
+  FiGrid, FiList, FiBriefcase, FiSend
 } from 'react-icons/fi';
 import { developerMarketplaceApi, DeveloperProfile, DeveloperMarketplaceQuery } from '../../services/api';
 import toast from 'react-hot-toast';

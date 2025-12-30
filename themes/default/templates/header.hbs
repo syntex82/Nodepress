@@ -411,6 +411,8 @@
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .mobile-nav.open {
       opacity: 1;
@@ -422,6 +424,7 @@
       flex-direction: column;
       gap: 0.5rem;
       margin-bottom: 2rem;
+      padding-bottom: 100px;
     }
     .mobile-nav-links a {
       display: block;

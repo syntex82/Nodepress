@@ -9,4 +9,5 @@ export { default as HiringRequests } from './HiringRequests';
 export { default as Projects } from './Projects';
 export { default as DeveloperApplication } from './DeveloperApplication';
 export { default as HireForm } from './HireForm';
+export { default as MyDeveloperProfile } from './MyDeveloperProfile';
 

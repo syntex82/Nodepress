@@ -108,6 +108,22 @@ export class ProfilesController {
   }
 
   /**
+   * Get suggested users to follow
+   * GET /api/profiles/me/suggested
+   */
+  @Get('me/suggested')
+  @UseGuards(JwtAuthGuard)
+  async getSuggestedUsers(
+    @Request() req,
+    @Query('limit') limit?: string,
+  ) {
+    return this.profilesService.getSuggestedUsers(
+      req.user.id,
+      parseInt(limit || '10'),
+    );
+  }
+
+  /**
    * Search users
    * GET /api/profiles/search
    */
@@ -241,5 +257,58 @@ export class ProfilesController {
       parseInt(page || '1'),
       parseInt(limit || '20'),
     );
+  }
+
+  /**
+   * Get mutual connections with a user
+   * GET /api/profiles/:identifier/mutual-connections
+   */
+  @Get(':identifier/mutual-connections')
+  @UseGuards(JwtAuthGuard)
+  async getMutualConnections(
+    @Request() req,
+    @Param('identifier') identifier: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const profile = await this.profilesService.getPublicProfile(identifier, req.user.id);
+    return this.profilesService.getMutualConnections(
+      req.user.id,
+      profile.id,
+      parseInt(page || '1'),
+      parseInt(limit || '20'),
+    );
+  }
+
+  /**
+   * Get mutual following with a user
+   * GET /api/profiles/:identifier/mutual-following
+   */
+  @Get(':identifier/mutual-following')
+  @UseGuards(JwtAuthGuard)
+  async getMutualFollowing(
+    @Request() req,
+    @Param('identifier') identifier: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const profile = await this.profilesService.getPublicProfile(identifier, req.user.id);
+    return this.profilesService.getMutualFollowing(
+      req.user.id,
+      profile.id,
+      parseInt(page || '1'),
+      parseInt(limit || '20'),
+    );
+  }
+
+  /**
+   * Check mutual follow status
+   * GET /api/profiles/:identifier/mutual-status
+   */
+  @Get(':identifier/mutual-status')
+  @UseGuards(JwtAuthGuard)
+  async getMutualStatus(@Request() req, @Param('identifier') identifier: string) {
+    const profile = await this.profilesService.getPublicProfile(identifier, req.user.id);
+    return this.profilesService.checkMutualFollow(req.user.id, profile.id);
   }
 }

@@ -175,7 +175,7 @@ export default function HiringRequests() {
           </p>
           {filter.role === 'client' && (
             <Link
-              to="/marketplace/developers"
+              to="/dev-marketplace/browse"
               className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
             >
               Browse Developers
@@ -227,7 +227,7 @@ export default function HiringRequests() {
               <div className="mt-4 pt-4 border-t border-slate-700/50 flex justify-end">
                 <Tooltip title={MARKETPLACE_TOOLTIPS.viewDetails.title} content={MARKETPLACE_TOOLTIPS.viewDetails.content} position="left">
                   <Link
-                    to={`/marketplace/requests/${req.id}`}
+                    to={`/dev-marketplace/requests/${req.id}`}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors"
                   >
                     <FiEye size={16} />

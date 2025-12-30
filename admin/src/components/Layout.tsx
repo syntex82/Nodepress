@@ -6,7 +6,7 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX, FiCommand, FiHardDrive, FiZap, FiArrowUp, FiVideo, FiPhone, FiPhoneOff, FiTruck } from 'react-icons/fi';
+import { FiHome, FiFileText, FiFile, FiImage, FiUsers, FiSettings, FiExternalLink, FiLogOut, FiUser, FiShield, FiMessageSquare, FiMenu, FiShoppingCart, FiPackage, FiTag, FiBook, FiAward, FiBarChart2, FiSearch, FiMail, FiLock, FiInfo, FiEdit3, FiLayout, FiChevronDown, FiChevronRight, FiX, FiCommand, FiHardDrive, FiZap, FiArrowUp, FiVideo, FiPhone, FiPhoneOff, FiTruck, FiActivity } from 'react-icons/fi';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { messagesApi, systemConfigApi } from '../services/api';
@@ -215,6 +215,7 @@ export default function Layout() {
 
   // Communication navigation group (available to all roles)
   const communicationNavigation: Array<{ name: string; path: string; icon: any; permission: keyof RolePermissions; badge?: number; tooltipKey: keyof typeof NAV_TOOLTIPS }> = [
+    { name: 'Activity Feed', path: '/feed', icon: FiActivity, permission: 'messages', tooltipKey: 'messages' },
     { name: 'Messages', path: '/messages', icon: FiMail, permission: 'messages', badge: unreadMessages, tooltipKey: 'messages' },
     { name: 'Groups', path: '/groups', icon: FiMessageSquare, permission: 'groups', tooltipKey: 'groups' },
   ];

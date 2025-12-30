@@ -70,7 +70,7 @@ export default function HireForm() {
         ...form,
       });
       toast.success('Hiring request sent successfully!');
-      navigate('/marketplace/requests');
+      navigate('/dev-marketplace/requests');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to send request');
       toast.error('Failed to send hiring request');
@@ -100,7 +100,7 @@ export default function HireForm() {
           <FiAlertCircle className="mx-auto text-red-400 mb-4" size={48} />
           <p className="text-red-400 mb-2">{error || 'Developer not found'}</p>
           <button
-            onClick={() => navigate('/marketplace/developers')}
+            onClick={() => navigate('/dev-marketplace/browse')}
             className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
           >
             Browse Developers
