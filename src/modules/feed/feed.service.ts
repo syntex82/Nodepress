@@ -83,7 +83,7 @@ export class FeedService {
         skip,
         take: limit,
         include: {
-          User: {
+          user: {
             select: {
               id: true,
               name: true,
@@ -137,7 +137,7 @@ export class FeedService {
         skip,
         take: limit,
         include: {
-          User: {
+          user: {
             select: {
               id: true,
               name: true,
@@ -181,7 +181,7 @@ export class FeedService {
         skip,
         take: limit,
         include: {
-          User: {
+          user: {
             select: {
               id: true,
               name: true,

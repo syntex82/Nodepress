@@ -8,7 +8,7 @@ datasource db {
 }
 
 model AnalyticsEvent {
-  id        String   @id
+  id String @id @default(cuid())
   sessionId String?
   userId    String?
   category  String
@@ -27,7 +27,7 @@ model AnalyticsEvent {
 }
 
 model AnalyticsSession {
-  id          String    @id
+  id String @id @default(cuid())
   userId      String?
   ipAddress   String?
   userAgent   String?
@@ -51,7 +51,7 @@ model AnalyticsSession {
 }
 
 model Backup {
-  id               String          @id
+  id String @id @default(cuid())
   name             String
   description      String?
   type             BackupType      @default(FULL)
@@ -73,7 +73,7 @@ model Backup {
   startedAt        DateTime?
   completedAt      DateTime?
   createdAt        DateTime        @default(now())
-  User             User?           @relation(fields: [createdById], references: [id])
+  createdBy        User?           @relation(fields: [createdById], references: [id])
   UpdateHistory    UpdateHistory[]
 
   @@index([createdAt])
@@ -83,7 +83,7 @@ model Backup {
 }
 
 model BackupSchedule {
-  id             String     @id
+  id String @id @default(cuid())
   name           String
   isActive       Boolean    @default(true)
   frequency      String
@@ -97,14 +97,14 @@ model BackupSchedule {
   lastRunAt      DateTime?
   nextRunAt      DateTime?
   createdAt      DateTime   @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
   @@index([nextRunAt])
 }
 
 model Badge {
-  id          String      @id
+  id String @id @default(cuid())
   name        String      @unique
   slug        String      @unique
   description String?
@@ -117,44 +117,44 @@ model Badge {
 }
 
 model BlockedIP {
-  id        String    @id
+  id String @id @default(cuid())
   ip        String    @unique
   reason    String
   expiresAt DateTime?
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([expiresAt])
   @@index([ip])
 }
 
 model Cart {
-  id         String     @id
+  id String @id @default(cuid())
   userId     String?    @unique
   sessionId  String?    @unique
   couponCode String?
   createdAt  DateTime   @default(now())
-  updatedAt  DateTime
-  CartItem   CartItem[]
+  updatedAt DateTime @updatedAt
+  items      CartItem[]
 
   @@index([sessionId])
   @@index([userId])
 }
 
 model CartItem {
-  id             String          @id
+  id String @id @default(cuid())
   cartId         String
   productId      String?
   variantId      String?
   quantity       Int             @default(1)
   createdAt      DateTime        @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   courseId       String?
   itemType       CartItemType    @default(PRODUCT)
-  Cart           Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  Course         Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  Product        Product?        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  ProductVariant ProductVariant? @relation(fields: [variantId], references: [id])
+  cart           Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  course         Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  product        Product?        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant        ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@unique([cartId, courseId])
   @@unique([cartId, productId, variantId])
@@ -164,7 +164,7 @@ model CartItem {
 }
 
 model Certificate {
-  id                String    @id
+  id String @id @default(cuid())
   certificateNumber String    @unique
   courseId          String
   userId            String
@@ -176,9 +176,9 @@ model Certificate {
   revokedAt         DateTime?
   revokedReason     String?
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime
-  Course            Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  User              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  course            Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([certificateNumber])
   @@index([courseId])
@@ -187,7 +187,7 @@ model Certificate {
 }
 
 model ContentType {
-  id          String   @id
+  id String @id @default(cuid())
   name        String   @unique
   slug        String   @unique
   description String?
@@ -195,19 +195,19 @@ model ContentType {
   fields      Json
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model Conversation {
-  id                                     String          @id
+  id String @id @default(cuid())
   participant1Id                         String
   participant2Id                         String
   lastMessageAt                          DateTime?
   createdAt                              DateTime        @default(now())
-  updatedAt                              DateTime
-  User_Conversation_participant1IdToUser User            @relation("Conversation_participant1IdToUser", fields: [participant1Id], references: [id], onDelete: Cascade)
-  User_Conversation_participant2IdToUser User            @relation("Conversation_participant2IdToUser", fields: [participant2Id], references: [id], onDelete: Cascade)
-  DirectMessage                          DirectMessage[]
+  updatedAt DateTime @updatedAt
+  participant1 User            @relation("Conversation_participant1IdToUser", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2 User            @relation("Conversation_participant2IdToUser", fields: [participant2Id], references: [id], onDelete: Cascade)
+  messages                          DirectMessage[]
 
   @@unique([participant1Id, participant2Id])
   @@index([lastMessageAt])
@@ -216,7 +216,7 @@ model Conversation {
 }
 
 model Coupon {
-  id             String     @id
+  id String @id @default(cuid())
   code           String     @unique
   description    String?
   type           CouponType @default(PERCENTAGE)
@@ -230,14 +230,14 @@ model Coupon {
   expiresAt      DateTime?
   isActive       Boolean    @default(true)
   createdAt      DateTime   @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([code])
   @@index([isActive])
 }
 
 model Course {
-  id                  String           @id
+  id String @id @default(cuid())
   slug                String           @unique
   title               String
   description         String?
@@ -255,15 +255,15 @@ model Course {
   whatYouLearn        Json?
   requirements        Json?
   createdAt           DateTime         @default(now())
-  updatedAt           DateTime
+  updatedAt DateTime @updatedAt
   CartItem            CartItem[]
   Certificate         Certificate[]
-  User                User             @relation(fields: [instructorId], references: [id], onDelete: Cascade)
-  CourseModule        CourseModule[]
-  Enrollment          Enrollment[]
-  Lesson              Lesson[]
+  instructor          User             @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  modules             CourseModule[]
+  enrollments         Enrollment[]
+  lessons             Lesson[]
   LessonProgress      LessonProgress[]
-  Quiz                Quiz[]
+  quizzes             Quiz[]
   QuizAttempt         QuizAttempt[]
 
   @@index([category])
@@ -274,23 +274,23 @@ model Course {
 }
 
 model CourseModule {
-  id          String   @id
+  id String @id @default(cuid())
   courseId    String
   title       String
   description String?
   orderIndex  Int      @default(0)
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  Course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  Lesson      Lesson[]
+  updatedAt DateTime @updatedAt
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
 
   @@index([courseId])
   @@index([orderIndex])
 }
 
 model CustomTheme {
-  id          String   @id
+  id String @id @default(cuid())
   name        String   @unique
   description String?
   settings    Json
@@ -301,15 +301,15 @@ model CustomTheme {
   previewUrl  String?
   createdById String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  User        User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([createdById])
   @@index([isActive])
 }
 
 model CustomerAddress {
-  id         String      @id
+  id String @id @default(cuid())
   userId     String
   type       AddressType @default(SHIPPING)
   isDefault  Boolean     @default(false)
@@ -324,14 +324,14 @@ model CustomerAddress {
   country    String
   phone      String?
   createdAt  DateTime    @default(now())
-  updatedAt  DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([type])
   @@index([userId])
 }
 
 model Developer {
-  id                  String            @id
+  id String @id @default(cuid())
   userId              String            @unique
   displayName         String
   slug                String            @unique
@@ -376,10 +376,10 @@ model Developer {
   stripeConnectId     String?           @unique
   stripeAccountStatus String?
   createdAt           DateTime          @default(now())
-  updatedAt           DateTime
-  User                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   DeveloperPayout     DeveloperPayout[]
-  DeveloperReview     DeveloperReview[]
+  reviews             DeveloperReview[]
   HiringRequest       HiringRequest[]
   Project             Project[]
 
@@ -392,7 +392,7 @@ model Developer {
 }
 
 model DeveloperPayout {
-  id               String       @id
+  id String @id @default(cuid())
   developerId      String
   amount           Decimal      @db.Decimal(10, 2)
   currency         String       @default("USD")
@@ -405,8 +405,8 @@ model DeveloperPayout {
   processedAt      DateTime?
   failureReason    String?
   createdAt        DateTime     @default(now())
-  updatedAt        DateTime
-  Developer        Developer    @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  developer        Developer    @relation(fields: [developerId], references: [id], onDelete: Cascade)
 
   @@index([developerId])
   @@index([requestedAt])
@@ -414,7 +414,7 @@ model DeveloperPayout {
 }
 
 model DeveloperReview {
-  id                  String    @id
+  id String @id @default(cuid())
   developerId         String
   reviewerId          String
   projectId           String?
@@ -430,9 +430,9 @@ model DeveloperReview {
   response            String?
   respondedAt         DateTime?
   createdAt           DateTime  @default(now())
-  updatedAt           DateTime
-  Developer           Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  User                User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  developer           Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  reviewer            User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([developerId, reviewerId, projectId])
   @@index([developerId])
@@ -442,7 +442,7 @@ model DeveloperReview {
 }
 
 model DirectMessage {
-  id             String       @id
+  id String @id @default(cuid())
   conversationId String
   senderId       String
   content        String
@@ -450,8 +450,8 @@ model DirectMessage {
   readAt         DateTime?
   createdAt      DateTime     @default(now())
   media          Json?        @default("[]")
-  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@index([createdAt])
@@ -460,7 +460,7 @@ model DirectMessage {
 }
 
 model EmailLog {
-  id                String         @id
+  id String @id @default(cuid())
   templateId        String?
   recipientId       String?
   toEmail           String
@@ -481,9 +481,9 @@ model EmailLog {
   ipAddress         String?
   userAgent         String?
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime
-  User              User?          @relation(fields: [recipientId], references: [id])
-  EmailTemplate     EmailTemplate? @relation(fields: [templateId], references: [id])
+  updatedAt DateTime @updatedAt
+  recipient         User?          @relation(fields: [recipientId], references: [id])
+  template          EmailTemplate? @relation(fields: [templateId], references: [id])
 
   @@index([createdAt])
   @@index([recipientId])
@@ -494,7 +494,7 @@ model EmailLog {
 }
 
 model EmailTemplate {
-  id          String            @id
+  id String @id @default(cuid())
   name        String
   slug        String            @unique
   type        EmailTemplateType @default(CUSTOM)
@@ -505,10 +505,10 @@ model EmailTemplate {
   isActive    Boolean           @default(true)
   isSystem    Boolean           @default(false)
   createdAt   DateTime          @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   createdById String?
-  EmailLog    EmailLog[]
-  User        User?             @relation(fields: [createdById], references: [id])
+  emailLogs   EmailLog[]
+  createdBy   User?             @relation(fields: [createdById], references: [id])
 
   @@index([isActive])
   @@index([slug])
@@ -516,7 +516,7 @@ model EmailTemplate {
 }
 
 model Enrollment {
-  id          String           @id
+  id String @id @default(cuid())
   courseId    String
   userId      String
   status      EnrollmentStatus @default(ACTIVE)
@@ -525,10 +525,10 @@ model Enrollment {
   expiresAt   DateTime?
   paymentId   String?
   createdAt   DateTime         @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   pricePaid   Float?           @default(0)
-  Course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  User        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, userId])
   @@index([courseId])
@@ -537,17 +537,17 @@ model Enrollment {
 }
 
 model Group {
-  id           String          @id
+  id String @id @default(cuid())
   name         String
   slug         String          @unique
   description  String?
   visibility   GroupVisibility @default(PUBLIC)
   ownerId      String
   createdAt    DateTime        @default(now())
-  updatedAt    DateTime
-  User         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  GroupMember  GroupMember[]
-  GroupMessage GroupMessage[]
+  updatedAt DateTime @updatedAt
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members      GroupMember[]
+  messages     GroupMessage[]
 
   @@index([createdAt])
   @@index([ownerId])
@@ -556,14 +556,14 @@ model Group {
 }
 
 model GroupMember {
-  id       String          @id
+  id String @id @default(cuid())
   groupId  String
   userId   String
   role     GroupMemberRole @default(MEMBER)
   isBanned Boolean         @default(false)
   joinedAt DateTime        @default(now())
-  Group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  User     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
   @@index([groupId])
@@ -572,14 +572,14 @@ model GroupMember {
 }
 
 model GroupMessage {
-  id        String   @id
+  id String @id @default(cuid())
   groupId   String
   senderId  String
   content   String
   createdAt DateTime @default(now())
   media     Json?    @default("[]")
-  Group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([groupId])
@@ -587,7 +587,7 @@ model GroupMessage {
 }
 
 model HiringRequest {
-  id              String              @id
+  id String @id @default(cuid())
   clientId        String
   developerId     String
   title           String
@@ -603,10 +603,10 @@ model HiringRequest {
   respondedAt     DateTime?
   projectId       String?             @unique
   createdAt       DateTime            @default(now())
-  updatedAt       DateTime
-  User            User                @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Developer       Developer           @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  Project         Project?
+  updatedAt DateTime @updatedAt
+  client          User                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  developer       Developer           @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project         Project?
 
   @@index([clientId])
   @@index([createdAt])
@@ -615,7 +615,7 @@ model HiringRequest {
 }
 
 model Lesson {
-  id               String           @id
+  id String @id @default(cuid())
   courseId         String
   title            String
   content          String?
@@ -626,13 +626,13 @@ model Lesson {
   isPreview        Boolean          @default(false)
   isRequired       Boolean          @default(true)
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime
+  updatedAt DateTime @updatedAt
   moduleId         String?
-  Course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  CourseModule     CourseModule?    @relation(fields: [moduleId], references: [id])
-  VideoAsset       VideoAsset?      @relation(fields: [videoAssetId], references: [id])
+  course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module           CourseModule?    @relation(fields: [moduleId], references: [id])
+  videoAsset       VideoAsset?      @relation(fields: [videoAssetId], references: [id])
   LessonProgress   LessonProgress[]
-  Quiz             Quiz?
+  quiz             Quiz?
 
   @@index([courseId])
   @@index([moduleId])
@@ -640,7 +640,7 @@ model Lesson {
 }
 
 model LessonProgress {
-  id                  String    @id
+  id String @id @default(cuid())
   courseId            String
   lessonId            String
   userId              String
@@ -649,10 +649,10 @@ model LessonProgress {
   completedAt         DateTime?
   lastAccessedAt      DateTime  @default(now())
   createdAt           DateTime  @default(now())
-  updatedAt           DateTime
-  Course              Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  Lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  User                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  course              Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, lessonId, userId])
   @@index([courseId])
@@ -661,7 +661,7 @@ model LessonProgress {
 }
 
 model ManualRecommendation {
-  id                 String             @id
+  id String @id @default(cuid())
   ruleId             String
   contentType        String
   contentId          String
@@ -674,7 +674,7 @@ model ManualRecommendation {
 }
 
 model MarketplacePlugin {
-  id                                         String                    @id
+  id String @id @default(cuid())
   name                                       String
   slug                                       String                    @unique
   description                                String?
@@ -712,10 +712,10 @@ model MarketplacePlugin {
   supportUrl                                 String?
   licenseType                                String?                   @default("MIT")
   createdAt                                  DateTime                  @default(now())
-  updatedAt                                  DateTime
-  User_MarketplacePlugin_approvedByIdToUser  User?                     @relation("MarketplacePlugin_approvedByIdToUser", fields: [approvedById], references: [id])
-  User_MarketplacePlugin_submittedByIdToUser User?                     @relation("MarketplacePlugin_submittedByIdToUser", fields: [submittedById], references: [id])
-  MarketplacePluginRating                    MarketplacePluginRating[]
+  updatedAt DateTime @updatedAt
+  approvedBy  User?                     @relation("MarketplacePlugin_approvedByIdToUser", fields: [approvedById], references: [id])
+  submittedBy User?                     @relation("MarketplacePlugin_submittedByIdToUser", fields: [submittedById], references: [id])
+  ratings                    MarketplacePluginRating[]
 
   @@index([category])
   @@index([downloads])
@@ -726,15 +726,15 @@ model MarketplacePlugin {
 }
 
 model MarketplacePluginRating {
-  id                String            @id
+  id String @id @default(cuid())
   pluginId          String
   userId            String
   rating            Int
   review            String?
   createdAt         DateTime          @default(now())
-  updatedAt         DateTime
+  updatedAt DateTime @updatedAt
   MarketplacePlugin MarketplacePlugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
-  User              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([pluginId, userId])
   @@index([pluginId])
@@ -742,16 +742,16 @@ model MarketplacePluginRating {
 }
 
 model MarketplaceSettings {
-  id          String   @id
+  id String @id @default(cuid())
   key         String   @unique
   value       Json
   description String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model MarketplaceTheme {
-  id                                        String                   @id
+  id String @id @default(cuid())
   name                                      String
   slug                                      String                   @unique
   description                               String?
@@ -788,10 +788,10 @@ model MarketplaceTheme {
   supportUrl                                String?
   licenseType                               String?                  @default("GPL-2.0")
   createdAt                                 DateTime                 @default(now())
-  updatedAt                                 DateTime
-  User_MarketplaceTheme_approvedByIdToUser  User?                    @relation("MarketplaceTheme_approvedByIdToUser", fields: [approvedById], references: [id])
-  User_MarketplaceTheme_submittedByIdToUser User?                    @relation("MarketplaceTheme_submittedByIdToUser", fields: [submittedById], references: [id])
-  MarketplaceThemeRating                    MarketplaceThemeRating[]
+  updatedAt DateTime @updatedAt
+  approvedBy  User?                    @relation("MarketplaceTheme_approvedByIdToUser", fields: [approvedById], references: [id])
+  submittedBy User?                    @relation("MarketplaceTheme_submittedByIdToUser", fields: [submittedById], references: [id])
+  ratings                    MarketplaceThemeRating[]
 
   @@index([category])
   @@index([downloads])
@@ -802,15 +802,15 @@ model MarketplaceTheme {
 }
 
 model MarketplaceThemeRating {
-  id               String           @id
+  id String @id @default(cuid())
   themeId          String
   userId           String
   rating           Int
   review           String?
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime
-  MarketplaceTheme MarketplaceTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  User             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  theme MarketplaceTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([themeId, userId])
   @@index([themeId])
@@ -818,7 +818,7 @@ model MarketplaceThemeRating {
 }
 
 model MarketplaceTransaction {
-  id                    String                       @id
+  id String @id @default(cuid())
   projectId             String
   type                  MarketplaceTransactionType
   amount                Decimal                      @db.Decimal(10, 2)
@@ -834,8 +834,8 @@ model MarketplaceTransaction {
   processedAt           DateTime?
   failureReason         String?
   createdAt             DateTime                     @default(now())
-  updatedAt             DateTime
-  Project               Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  project               Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([projectId])
@@ -844,7 +844,7 @@ model MarketplaceTransaction {
 }
 
 model Media {
-  id           String   @id
+  id String @id @default(cuid())
   filename     String
   originalName String
   path         String
@@ -856,24 +856,24 @@ model Media {
   caption      String?
   uploadedById String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
-  User         User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
   @@index([mimeType])
   @@index([uploadedById])
 }
 
 model Menu {
-  id        String     @id
+  id String @id @default(cuid())
   name      String     @unique
   location  String     @unique
   createdAt DateTime   @default(now())
-  updatedAt DateTime
-  MenuItem  MenuItem[]
+  updatedAt DateTime @updatedAt
+  items     MenuItem[]
 }
 
 model MenuItem {
-  id             String       @id
+  id String @id @default(cuid())
   menuId         String
   parentId       String?
   label          String
@@ -886,12 +886,12 @@ model MenuItem {
   cssClass       String?
   icon           String?
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
-  Menu           Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  Page           Page?        @relation(fields: [pageId], references: [id])
-  MenuItem       MenuItem?    @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
-  other_MenuItem MenuItem[]   @relation("MenuItemToMenuItem")
-  Post           Post?        @relation(fields: [postId], references: [id])
+  updatedAt DateTime @updatedAt
+  menu           Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  page           Page?        @relation(fields: [pageId], references: [id])
+  parent         MenuItem?    @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
+  children       MenuItem[]   @relation("MenuItemToMenuItem")
+  post           Post?        @relation(fields: [postId], references: [id])
 
   @@index([menuId])
   @@index([order])
@@ -899,7 +899,7 @@ model MenuItem {
 }
 
 model Notification {
-  id        String           @id
+  id String @id @default(cuid())
   userId    String
   type      NotificationType @default(INFO)
   title     String
@@ -911,7 +911,7 @@ model Notification {
   readAt    DateTime?
   metadata  Json?
   createdAt DateTime         @default(now())
-  User      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([isRead])
@@ -920,7 +920,7 @@ model Notification {
 }
 
 model Order {
-  id              String        @id
+  id String @id @default(cuid())
   orderNumber     String        @unique
   userId          String?
   email           String
@@ -943,9 +943,9 @@ model Order {
   customerNote    String?
   adminNote       String?
   createdAt       DateTime      @default(now())
-  updatedAt       DateTime
-  OrderItem       OrderItem[]
-  Payment         Payment[]
+  updatedAt DateTime @updatedAt
+  items           OrderItem[]
+  payments        Payment[]
 
   @@index([createdAt])
   @@index([email])
@@ -956,7 +956,7 @@ model Order {
 }
 
 model OrderItem {
-  id             String          @id
+  id String @id @default(cuid())
   orderId        String
   productId      String
   variantId      String?
@@ -967,8 +967,8 @@ model OrderItem {
   total          Decimal         @db.Decimal(10, 2)
   options        Json?
   createdAt      DateTime        @default(now())
-  Order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  Product        Product         @relation(fields: [productId], references: [id])
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product         @relation(fields: [productId], references: [id])
   ProductVariant ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@index([orderId])
@@ -976,7 +976,7 @@ model OrderItem {
 }
 
 model Page {
-  id                String             @id
+  id String @id @default(cuid())
   title             String
   slug              String             @unique
   content           String
@@ -990,11 +990,11 @@ model Page {
   customFields      Json?
   parentId          String?
   createdAt         DateTime           @default(now())
-  updatedAt         DateTime
+  updatedAt DateTime @updatedAt
   MenuItem          MenuItem[]
-  User              User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  Page              Page?              @relation("PageToPage", fields: [parentId], references: [id])
-  other_Page        Page[]             @relation("PageToPage")
+  author              User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent            Page?              @relation("PageToPage", fields: [parentId], references: [id])
+  children          Page[]             @relation("PageToPage")
   PageCustomization PageCustomization?
 
   @@index([authorId])
@@ -1003,7 +1003,7 @@ model Page {
 }
 
 model PageCustomization {
-  id                    String   @id
+  id String @id @default(cuid())
   pageId                String   @unique
   layout                String?
   showHeader            Boolean  @default(true)
@@ -1017,14 +1017,14 @@ model PageCustomization {
   featuredImagePosition String?
   customFields          Json?
   createdAt             DateTime @default(now())
-  updatedAt             DateTime
-  Page                  Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  page                  Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([pageId])
 }
 
 model PageView {
-  id          String   @id
+  id String @id @default(cuid())
   path        String
   userId      String?
   ipAddress   String?
@@ -1049,18 +1049,18 @@ model PageView {
 }
 
 model PasswordHistory {
-  id        String   @id
+  id String @id @default(cuid())
   userId    String
   password  String
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([userId])
 }
 
 model PasswordPolicy {
-  id                     String   @id
+  id String @id @default(cuid())
   minLength              Int      @default(8)
   requireUppercase       Boolean  @default(true)
   requireLowercase       Boolean  @default(true)
@@ -1071,11 +1071,11 @@ model PasswordPolicy {
   checkBreachedPasswords Boolean  @default(false)
   enabled                Boolean  @default(true)
   createdAt              DateTime @default(now())
-  updatedAt              DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model Payment {
-  id                    String        @id
+  id String @id @default(cuid())
   orderId               String
   amount                Decimal       @db.Decimal(10, 2)
   currency              String        @default("USD")
@@ -1090,8 +1090,8 @@ model Payment {
   refundedAt            DateTime?
   metadata              Json?
   createdAt             DateTime      @default(now())
-  updatedAt             DateTime
-  Order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([status])
@@ -1099,7 +1099,7 @@ model Payment {
 }
 
 model Plugin {
-  id          String   @id
+  id String @id @default(cuid())
   name        String   @unique
   slug        String   @unique
   version     String
@@ -1110,13 +1110,13 @@ model Plugin {
   isActive    Boolean  @default(false)
   settings    Json?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
 }
 
 model Post {
-  id                String             @id
+  id String @id @default(cuid())
   title             String
   slug              String             @unique
   content           String
@@ -1129,9 +1129,9 @@ model Post {
   metaDescription   String?
   customFields      Json?
   createdAt         DateTime           @default(now())
-  updatedAt         DateTime
+  updatedAt DateTime @updatedAt
   MenuItem          MenuItem[]
-  User              User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author              User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
   PostCustomization PostCustomization?
 
   @@index([authorId])
@@ -1140,7 +1140,7 @@ model Post {
 }
 
 model PostCustomization {
-  id                    String   @id
+  id String @id @default(cuid())
   postId                String   @unique
   layout                String?
   showHeader            Boolean  @default(true)
@@ -1158,14 +1158,14 @@ model PostCustomization {
   featuredImagePosition String?
   customFields          Json?
   createdAt             DateTime @default(now())
-  updatedAt             DateTime
-  Post                  Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  post                  Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId])
 }
 
 model Product {
-  id                String           @id
+  id String @id @default(cuid())
   name              String
   slug              String           @unique
   description       String?
@@ -1190,15 +1190,15 @@ model Product {
   metaDescription   String?
   categoryId        String?
   createdAt         DateTime         @default(now())
-  updatedAt         DateTime
+  updatedAt DateTime @updatedAt
   hasVariants       Boolean          @default(false)
   variantOptions    Json?
   CartItem          CartItem[]
   OrderItem         OrderItem[]
-  ProductCategory   ProductCategory? @relation(fields: [categoryId], references: [id])
-  ProductReview     ProductReview[]
-  ProductVariant    ProductVariant[]
-  ProductTag        ProductTag[]
+  category          ProductCategory? @relation(fields: [categoryId], references: [id])
+  reviews           ProductReview[]
+  variants          ProductVariant[]
+  tags              ProductTag[]
 
   @@index([categoryId])
   @@index([hasVariants])
@@ -1208,24 +1208,24 @@ model Product {
 }
 
 model ProductCategory {
-  id                    String            @id
+  id String @id @default(cuid())
   name                  String
   slug                  String            @unique
   description           String?
   image                 String?
   parentId              String?
   createdAt             DateTime          @default(now())
-  updatedAt             DateTime
-  Product               Product[]
-  ProductCategory       ProductCategory?  @relation("ProductCategoryToProductCategory", fields: [parentId], references: [id])
-  other_ProductCategory ProductCategory[] @relation("ProductCategoryToProductCategory")
+  updatedAt DateTime @updatedAt
+  products              Product[]
+  parent                ProductCategory?  @relation("ProductCategoryToProductCategory", fields: [parentId], references: [id])
+  children              ProductCategory[] @relation("ProductCategoryToProductCategory")
 
   @@index([parentId])
   @@index([slug])
 }
 
 model ProductOption {
-  id           String            @id
+  id String @id @default(cuid())
   type         ProductOptionType
   name         String
   value        String
@@ -1234,7 +1234,7 @@ model ProductOption {
   sortOrder    Int               @default(0)
   isActive     Boolean           @default(true)
   createdAt    DateTime          @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
 
   @@unique([type, value])
   @@index([isActive])
@@ -1242,7 +1242,7 @@ model ProductOption {
 }
 
 model ProductReview {
-  id         String   @id
+  id String @id @default(cuid())
   productId  String
   userId     String?
   name       String
@@ -1253,8 +1253,8 @@ model ProductReview {
   isVerified Boolean  @default(false)
   isApproved Boolean  @default(false)
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
-  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([isApproved])
   @@index([productId])
@@ -1262,7 +1262,7 @@ model ProductReview {
 }
 
 model ProductTag {
-  id        String    @id
+  id String @id @default(cuid())
   name      String    @unique
   slug      String    @unique
   createdAt DateTime  @default(now())
@@ -1272,7 +1272,7 @@ model ProductTag {
 }
 
 model ProductVariant {
-  id                String      @id
+  id String @id @default(cuid())
   productId         String
   name              String
   sku               String?     @unique
@@ -1283,7 +1283,7 @@ model ProductVariant {
   options           Json
   isDefault         Boolean     @default(false)
   createdAt         DateTime    @default(now())
-  updatedAt         DateTime
+  updatedAt DateTime @updatedAt
   color             String?
   colorCode         String?
   costPrice         Decimal?    @db.Decimal(10, 2)
@@ -1295,7 +1295,7 @@ model ProductVariant {
   weight            Decimal?    @db.Decimal(10, 3)
   CartItem          CartItem[]
   OrderItem         OrderItem[]
-  Product           Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product           Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([color])
   @@index([isActive])
@@ -1305,7 +1305,7 @@ model ProductVariant {
 }
 
 model Project {
-  id                     String                   @id
+  id String @id @default(cuid())
   clientId               String
   developerId            String
   title                  String
@@ -1332,13 +1332,13 @@ model Project {
   developerRating        Int?
   developerReview        String?
   createdAt              DateTime                 @default(now())
-  updatedAt              DateTime
-  MarketplaceTransaction MarketplaceTransaction[]
-  User                   User                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Developer              Developer                @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  HiringRequest          HiringRequest            @relation(fields: [id], references: [projectId])
-  ProjectDispute         ProjectDispute[]
-  ProjectMessage         ProjectMessage[]
+  updatedAt DateTime @updatedAt
+  transactions           MarketplaceTransaction[]
+  client                 User                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  developer              Developer                @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  hiringRequest          HiringRequest            @relation(fields: [id], references: [projectId])
+  disputes               ProjectDispute[]
+  messages               ProjectMessage[]
 
   @@index([clientId])
   @@index([createdAt])
@@ -1347,7 +1347,7 @@ model Project {
 }
 
 model ProjectDispute {
-  id            String        @id
+  id String @id @default(cuid())
   projectId     String
   initiatorId   String
   initiatorType String
@@ -1360,8 +1360,8 @@ model ProjectDispute {
   resolvedAt    DateTime?
   refundAmount  Decimal?      @db.Decimal(10, 2)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
-  Project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([projectId])
@@ -1369,7 +1369,7 @@ model ProjectDispute {
 }
 
 model ProjectMessage {
-  id          String    @id
+  id String @id @default(cuid())
   projectId   String
   senderId    String
   content     String
@@ -1377,7 +1377,7 @@ model ProjectMessage {
   isRead      Boolean   @default(false)
   readAt      DateTime?
   createdAt   DateTime  @default(now())
-  Project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([projectId])
@@ -1385,7 +1385,7 @@ model ProjectMessage {
 }
 
 model Question {
-  id                String       @id
+  id String @id @default(cuid())
   quizId            String
   type              QuestionType @default(MCQ)
   prompt            String
@@ -1395,15 +1395,15 @@ model Question {
   points            Int          @default(1)
   orderIndex        Int          @default(0)
   createdAt         DateTime     @default(now())
-  updatedAt         DateTime
-  Quiz              Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  quiz              Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
   @@index([orderIndex])
   @@index([quizId])
 }
 
 model Quiz {
-  id                  String        @id
+  id String @id @default(cuid())
   courseId            String
   lessonId            String?       @unique
   title               String
@@ -1415,18 +1415,18 @@ model Quiz {
   isRequired          Boolean       @default(true)
   orderIndex          Int           @default(0)
   createdAt           DateTime      @default(now())
-  updatedAt           DateTime
-  Question            Question[]
-  Course              Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  Lesson              Lesson?       @relation(fields: [lessonId], references: [id])
-  QuizAttempt         QuizAttempt[]
+  updatedAt DateTime @updatedAt
+  questions           Question[]
+  course              Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson              Lesson?       @relation(fields: [lessonId], references: [id])
+  attempts            QuizAttempt[]
 
   @@index([courseId])
   @@index([lessonId])
 }
 
 model QuizAttempt {
-  id               String    @id
+  id String @id @default(cuid())
   quizId           String
   courseId         String
   userId           String
@@ -1440,10 +1440,10 @@ model QuizAttempt {
   attemptNumber    Int       @default(1)
   timeSpentSeconds Int?
   createdAt        DateTime  @default(now())
-  updatedAt        DateTime
-  Course           Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  Quiz             Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  User             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  course           Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  quiz             Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([attemptNumber])
   @@index([courseId])
@@ -1452,18 +1452,18 @@ model QuizAttempt {
 }
 
 model RateLimitConfig {
-  id            String   @id
+  id String @id @default(cuid())
   endpoint      String   @unique
   windowMs      Int      @default(60000)
   maxRequests   Int      @default(100)
   enabled       Boolean  @default(true)
   blockDuration Int?
   createdAt     DateTime @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model RateLimitViolation {
-  id        String    @id
+  id String @id @default(cuid())
   ip        String
   endpoint  String
   requests  Int
@@ -1477,7 +1477,7 @@ model RateLimitViolation {
 }
 
 model RecommendationCache {
-  id              String   @id
+  id String @id @default(cuid())
   sourceType      String
   sourceId        String
   targetType      String
@@ -1485,14 +1485,14 @@ model RecommendationCache {
   recommendations Json
   expiresAt       DateTime
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
 
   @@unique([sourceType, sourceId, targetType, algorithm])
   @@index([expiresAt])
 }
 
 model RecommendationClick {
-  id                 String   @id
+  id String @id @default(cuid())
   userId             String?
   sessionId          String?
   sourceType         String
@@ -1511,7 +1511,7 @@ model RecommendationClick {
 }
 
 model RecommendationRule {
-  id                   String                 @id
+  id String @id @default(cuid())
   name                 String
   description          String?
   sourceType           String
@@ -1522,8 +1522,8 @@ model RecommendationRule {
   priority             Int                    @default(0)
   isActive             Boolean                @default(true)
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
-  ManualRecommendation ManualRecommendation[]
+  updatedAt DateTime @updatedAt
+  manualItems ManualRecommendation[]
 
   @@index([algorithm])
   @@index([isActive])
@@ -1533,23 +1533,23 @@ model RecommendationRule {
 }
 
 model RecommendationSettings {
-  id          String   @id
+  id String @id @default(cuid())
   key         String   @unique
   value       Json
   description String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model SecurityEvent {
-  id        String            @id
+  id String @id @default(cuid())
   userId    String?
   type      SecurityEventType
   ip        String?
   userAgent String?
   metadata  Json?
   createdAt DateTime          @default(now())
-  User      User?             @relation(fields: [userId], references: [id])
+  user      User?             @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([ip])
@@ -1558,7 +1558,7 @@ model SecurityEvent {
 }
 
 model SeoAuditLog {
-  id          String   @id
+  id String @id @default(cuid())
   contentType String
   contentId   String
   score       Int
@@ -1571,7 +1571,7 @@ model SeoAuditLog {
 }
 
 model SeoRedirect {
-  id        String    @id
+  id String @id @default(cuid())
   fromPath  String    @unique
   toPath    String
   type      Int       @default(301)
@@ -1579,14 +1579,14 @@ model SeoRedirect {
   hitCount  Int       @default(0)
   lastHitAt DateTime?
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([fromPath])
   @@index([isActive])
 }
 
 model SeoSchemaMarkup {
-  id        String   @id
+  id String @id @default(cuid())
   name      String
   type      String
   content   Json
@@ -1594,7 +1594,7 @@ model SeoSchemaMarkup {
   scopeId   String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
   @@index([scope])
@@ -1602,60 +1602,60 @@ model SeoSchemaMarkup {
 }
 
 model SeoSitemapEntry {
-  id         String   @id
+  id String @id @default(cuid())
   url        String   @unique
   priority   Float    @default(0.5)
   changefreq String   @default("weekly")
   lastmod    DateTime @default(now())
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
 }
 
 model Session {
-  id           String   @id
+  id String @id @default(cuid())
   userId       String
   token        String   @unique
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   ip           String?
   lastActivity DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
   userAgent    String?
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
 }
 
 model Setting {
-  id        String   @id
+  id String @id @default(cuid())
   key       String   @unique
   value     Json
   type      String
   group     String?
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([group])
   @@index([key])
 }
 
 model SetupStatus {
-  id               String    @id
+  id String @id @default(cuid())
   setupComplete    Boolean   @default(false)
   adminCreated     Boolean   @default(false)
   smtpConfigured   Boolean   @default(false)
   domainConfigured Boolean   @default(false)
   completedAt      DateTime?
   createdAt        DateTime  @default(now())
-  updatedAt        DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model ShippingMethod {
-  id          String   @id
+  id String @id @default(cuid())
   name        String
   description String?
   cost        Decimal  @db.Decimal(10, 2)
@@ -1666,13 +1666,13 @@ model ShippingMethod {
   isActive    Boolean  @default(true)
   priority    Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
 }
 
 model Subscription {
-  id                   String             @id
+  id String @id @default(cuid())
   userId               String             @unique
   planId               String
   status               SubscriptionStatus @default(ACTIVE)
@@ -1688,9 +1688,9 @@ model Subscription {
   trialEnd             DateTime?
   metadata             Json?
   createdAt            DateTime           @default(now())
-  updatedAt            DateTime
-  SubscriptionPlan     SubscriptionPlan   @relation(fields: [planId], references: [id])
-  User                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([planId])
   @@index([status])
@@ -1699,7 +1699,7 @@ model Subscription {
 }
 
 model SubscriptionPlan {
-  id                   String         @id
+  id String @id @default(cuid())
   name                 String
   slug                 String         @unique
   description          String?
@@ -1720,7 +1720,7 @@ model SubscriptionPlan {
   badgeText            String?
   trialDays            Int            @default(0)
   createdAt            DateTime       @default(now())
-  updatedAt            DateTime
+  updatedAt DateTime @updatedAt
   Subscription         Subscription[]
 
   @@index([isActive])
@@ -1728,21 +1728,21 @@ model SubscriptionPlan {
 }
 
 model SystemConfig {
-  id          String   @id
+  id String @id @default(cuid())
   key         String   @unique
   value       String
   isEncrypted Boolean  @default(false)
   group       String
   description String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([group])
   @@index([key])
 }
 
 model SystemVersion {
-  id                     String    @id
+  id String @id @default(cuid())
   version                String    @unique
   isCurrentVersion       Boolean   @default(false)
   installedAt            DateTime?
@@ -1758,14 +1758,14 @@ model SystemVersion {
   checksum               String?
   fileSize               BigInt?
   createdAt              DateTime  @default(now())
-  updatedAt              DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([isCurrentVersion])
   @@index([version])
 }
 
 model TaxRate {
-  id          String   @id
+  id String @id @default(cuid())
   name        String
   rate        Decimal  @db.Decimal(5, 4)
   country     String
@@ -1775,14 +1775,14 @@ model TaxRate {
   priority    Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 
   @@index([country])
   @@index([isActive])
 }
 
 model Theme {
-  id                      String                    @id
+  id String @id @default(cuid())
   name                    String                    @unique
   slug                    String                    @unique
   version                 String
@@ -1793,16 +1793,16 @@ model Theme {
   config                  Json
   isActive                Boolean                   @default(false)
   createdAt               DateTime                  @default(now())
-  updatedAt               DateTime
-  ThemeCustomizationBlock ThemeCustomizationBlock[]
-  ThemeCustomizationImage ThemeCustomizationImage[]
-  ThemeCustomizationLink  ThemeCustomizationLink[]
+  updatedAt DateTime @updatedAt
+  customizationBlocks     ThemeCustomizationBlock[]
+  customizationImages     ThemeCustomizationImage[]
+  customizationLinks      ThemeCustomizationLink[]
 
   @@index([isActive])
 }
 
 model ThemeCustomizationBlock {
-  id              String   @id
+  id String @id @default(cuid())
   themeId         String
   name            String
   type            String
@@ -1823,8 +1823,8 @@ model ThemeCustomizationBlock {
   position        Int      @default(0)
   customData      Json?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
-  Theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@index([position])
   @@index([themeId])
@@ -1832,7 +1832,7 @@ model ThemeCustomizationBlock {
 }
 
 model ThemeCustomizationImage {
-  id          String   @id
+  id String @id @default(cuid())
   themeId     String
   name        String
   type        String
@@ -1848,8 +1848,8 @@ model ThemeCustomizationImage {
   position    Int      @default(0)
   customData  Json?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  Theme       Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  theme       Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@index([section])
   @@index([themeId])
@@ -1857,7 +1857,7 @@ model ThemeCustomizationImage {
 }
 
 model ThemeCustomizationLink {
-  id         String   @id
+  id String @id @default(cuid())
   themeId    String
   name       String
   type       String
@@ -1875,8 +1875,8 @@ model ThemeCustomizationLink {
   isActive   Boolean  @default(true)
   customData Json?
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
-  Theme      Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  theme      Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@index([group])
   @@index([position])
@@ -1885,7 +1885,7 @@ model ThemeCustomizationLink {
 }
 
 model UpdateHistory {
-  id             String       @id
+  id String @id @default(cuid())
   fromVersion    String
   toVersion      String
   status         UpdateStatus @default(PENDING)
@@ -1906,9 +1906,9 @@ model UpdateHistory {
   rollbackAt     DateTime?
   rollbackReason String?
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
-  Backup         Backup?      @relation(fields: [backupId], references: [id])
-  User           User?        @relation(fields: [initiatedBy], references: [id])
+  updatedAt DateTime @updatedAt
+  backup         Backup?      @relation(fields: [backupId], references: [id])
+  initiatedByUser User?       @relation(fields: [initiatedBy], references: [id])
 
   @@index([fromVersion, toVersion])
   @@index([startedAt])
@@ -1916,7 +1916,7 @@ model UpdateHistory {
 }
 
 model User {
-  id                                                      String                    @id
+  id String @id @default(cuid())
   email                                                   String                    @unique
   name                                                    String
   password                                                String
@@ -1924,7 +1924,7 @@ model User {
   avatar                                                  String?
   bio                                                     String?
   createdAt                                               DateTime                  @default(now())
-  updatedAt                                               DateTime
+  updatedAt DateTime @updatedAt
   accountLockedUntil                                      DateTime?
   failedLoginAttempts                                     Int                       @default(0)
   lastFailedLogin                                         DateTime?
@@ -1952,10 +1952,10 @@ model User {
   passwordResetExpires                                    DateTime?
   passwordResetToken                                      String?                   @unique
   Backup                                                  Backup[]
-  Certificate                                             Certificate[]
-  Conversation_Conversation_participant1IdToUser          Conversation[]            @relation("Conversation_participant1IdToUser")
-  Conversation_Conversation_participant2IdToUser          Conversation[]            @relation("Conversation_participant2IdToUser")
-  Course                                                  Course[]
+  certificates                                            Certificate[]
+  conversationsAsParticipant1          Conversation[]            @relation("Conversation_participant1IdToUser")
+  conversationsAsParticipant2          Conversation[]            @relation("Conversation_participant2IdToUser")
+  instructedCourses                                       Course[]
   CustomTheme                                             CustomTheme[]
   Developer                                               Developer?
   DeveloperReview                                         DeveloperReview[]
@@ -1979,7 +1979,7 @@ model User {
   Page                                                    Page[]
   PageView                                                PageView[]
   PasswordHistory                                         PasswordHistory[]
-  Post                                                    Post[]
+  posts                                                   Post[]
   Project                                                 Project[]
   QuizAttempt                                             QuizAttempt[]
   RecommendationClick                                     RecommendationClick[]
@@ -1988,20 +1988,20 @@ model User {
   Subscription                                            Subscription?
   UpdateHistory                                           UpdateHistory[]
   UserBadge                                               UserBadge[]
-  UserFollow_UserFollow_followerIdToUser                  UserFollow[]              @relation("UserFollow_followerIdToUser")
-  UserFollow_UserFollow_followingIdToUser                 UserFollow[]              @relation("UserFollow_followingIdToUser")
+  followers                  UserFollow[]              @relation("UserFollow_followingIdToUser")
+  following                  UserFollow[]              @relation("UserFollow_followerIdToUser")
   UserInteraction                                         UserInteraction[]
   Activity                                                Activity[]
 }
 
 model UserBadge {
-  id       String   @id
+  id String @id @default(cuid())
   userId   String
   badgeId  String
   earnedAt DateTime @default(now())
   metadata Json?
   Badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  User     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
   @@index([badgeId])
@@ -2009,12 +2009,12 @@ model UserBadge {
 }
 
 model UserFollow {
-  id                                String   @id
+  id String @id @default(cuid())
   followerId                        String
   followingId                       String
   createdAt                         DateTime @default(now())
-  User_UserFollow_followerIdToUser  User     @relation("UserFollow_followerIdToUser", fields: [followerId], references: [id], onDelete: Cascade)
-  User_UserFollow_followingIdToUser User     @relation("UserFollow_followingIdToUser", fields: [followingId], references: [id], onDelete: Cascade)
+  follower  User     @relation("UserFollow_followerIdToUser", fields: [followerId], references: [id], onDelete: Cascade)
+  following User     @relation("UserFollow_followingIdToUser", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@index([followerId])
@@ -2022,7 +2022,7 @@ model UserFollow {
 }
 
 model UserInteraction {
-  id              String   @id
+  id String @id @default(cuid())
   userId          String?
   sessionId       String?
   contentType     String
@@ -2052,7 +2052,7 @@ model Activity {
   metadata    Json?
   isPublic    Boolean      @default(true)
   createdAt   DateTime     @default(now())
-  User        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([type])
@@ -2075,7 +2075,7 @@ enum ActivityType {
 }
 
 model VideoAsset {
-  id              String        @id
+  id String @id @default(cuid())
   provider        VideoProvider @default(UPLOAD)
   url             String?
   playbackId      String?
@@ -2084,7 +2084,7 @@ model VideoAsset {
   isProtected     Boolean       @default(true)
   thumbnailUrl    String?
   createdAt       DateTime      @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
   Lesson          Lesson[]
 }
 

@@ -5,7 +5,13 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "tsconfig.json"
+    "tsConfigPath": "tsconfig.json",
+    "builder": {
+      "type": "swc",
+      "options": {
+        "swcrcPath": ".swcrc"
+      }
+    }
   }
 }
 

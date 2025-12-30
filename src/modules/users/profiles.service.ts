@@ -124,12 +124,12 @@ export class ProfilesService {
             },
           },
         },
-        badges: {
+        UserBadge: {
           orderBy: { earnedAt: 'desc' },
           select: {
             id: true,
             earnedAt: true,
-            badge: true,
+            Badge: true,
           },
         },
       },
