@@ -630,14 +630,20 @@
   <main style="padding-top: 60px;">
 
 <script>
-// Update cart count from localStorage
+// Update cart count from API
 (function() {
-  try {
-    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    var count = cart.reduce(function(sum, item) { return sum + (item.quantity || 1); }, 0);
-    var el = document.getElementById('cartCount');
-    if (el && count > 0) { el.textContent = count; el.style.display = 'flex'; }
-  } catch(e) {}
+  fetch('/api/shop/cart', { credentials: 'include' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(cart) {
+      if (!cart) return;
+      var count = cart.items ? cart.items.reduce(function(s, i) { return s + i.quantity; }, 0) : 0;
+      var el = document.getElementById('cartCount');
+      if (el) {
+        el.textContent = count;
+        el.style.display = count > 0 ? 'flex' : 'none';
+      }
+    })
+    .catch(function() {});
 })();
 
 // Mobile menu toggle

@@ -419,6 +419,33 @@
     }
   }
 
+  // Notification helper
+  function showNotification(message, type) {
+    var div = document.createElement('div');
+    div.style.cssText = 'position:fixed;top:80px;right:20px;padding:1rem 1.5rem;background:' +
+      (type === 'success' ? '#10b981' : '#ef4444') +
+      ';color:white;border-radius:8px;z-index:9999;animation:slideIn 0.3s ease;';
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 3000);
+  }
+
+  // Update cart count in header
+  function updateCartCount() {
+    fetch('/api/shop/cart', { credentials: 'include' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(cart) {
+        if (!cart) return;
+        var count = cart.items ? cart.items.reduce(function(s, i) { return s + i.quantity; }, 0) : 0;
+        var el = document.getElementById('cartCount');
+        if (el) {
+          el.textContent = count;
+          el.style.display = count > 0 ? 'flex' : 'none';
+        }
+      })
+      .catch(function() {});
+  }
+
   // Add to cart
   document.getElementById('addToCartBtn').addEventListener('click', async function() {
     var productId = this.dataset.productId;
@@ -436,18 +463,32 @@
     btn.disabled = true;
 
     try {
-      var success = await window.addToCart('product', productId, quantity, variantId);
-      if (success) {
+      var body = { productId: productId, quantity: quantity };
+      if (variantId) body.variantId = variantId;
+
+      var response = await fetch('/api/shop/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        showNotification('Added to cart!', 'success');
+        updateCartCount();
         btn.innerHTML = '✓ Added to Cart!';
         setTimeout(function() {
           btn.innerHTML = originalText;
           if (!hasVariants || selectedVariant) btn.disabled = false;
         }, 2000);
       } else {
+        var err = await response.json().catch(function() { return {}; });
+        showNotification(err.message || 'Failed to add to cart', 'error');
         btn.innerHTML = originalText;
         if (!hasVariants || selectedVariant) btn.disabled = false;
       }
     } catch (e) {
+      showNotification('Failed to add to cart', 'error');
       btn.innerHTML = originalText;
       if (!hasVariants || selectedVariant) btn.disabled = false;
     }
