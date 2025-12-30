@@ -20,6 +20,7 @@ const USER_SELECT = {
   name: true,
   email: true,
   avatar: true,
+  coverImage: true,
   role: true,
   createdAt: true,
   accountLockedUntil: true,
@@ -126,7 +127,7 @@ export class DevelopersService {
     const developer = await this.prisma.developer.findUnique({
       where: { slug, status: 'ACTIVE' },
       include: {
-        user: { select: { id: true, name: true, avatar: true, username: true } },
+        user: { select: { id: true, name: true, avatar: true, username: true, coverImage: true } },
         reviews: {
           where: { isApproved: true },
           orderBy: { createdAt: 'desc' },
@@ -137,12 +138,14 @@ export class DevelopersService {
     });
     if (!developer) throw new NotFoundException('Developer not found');
 
-    // Flatten user data for frontend compatibility
+    // Flatten user data for frontend compatibility - use user's avatar/cover if developer-specific not set
     return {
       ...developer,
       name: developer.user?.name || developer.displayName,
       username: developer.user?.username || developer.slug,
       avatar: developer.user?.avatar || developer.profileImage,
+      profileImage: developer.profileImage || developer.user?.avatar,
+      coverImage: developer.coverImage || developer.user?.coverImage,
     };
   }
 
@@ -163,6 +166,8 @@ export class DevelopersService {
       name: developer.user?.name || developer.displayName,
       username: developer.user?.username || developer.slug,
       avatar: developer.user?.avatar || developer.profileImage,
+      profileImage: developer.profileImage || developer.user?.avatar,
+      coverImage: developer.coverImage || developer.user?.coverImage,
     };
   }
 
@@ -240,6 +245,8 @@ export class DevelopersService {
       name: dev.user?.name || dev.displayName,
       username: dev.user?.username || dev.slug,
       avatar: dev.user?.avatar || dev.profileImage,
+      profileImage: dev.profileImage || dev.user?.avatar,
+      coverImage: dev.coverImage || dev.user?.coverImage,
     }));
 
     return { developers, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
