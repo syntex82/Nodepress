@@ -39,11 +39,19 @@ export class SeoService implements OnModuleInit {
     ];
 
     for (const setting of seoSettings) {
-      await this.prisma.setting.upsert({
-        where: { key: setting.key },
-        update: {},
-        create: setting,
-      });
+      try {
+        // Check if setting exists first
+        const existing = await this.prisma.setting.findUnique({
+          where: { key: setting.key },
+        });
+        if (!existing) {
+          await this.prisma.setting.create({
+            data: setting,
+          });
+        }
+      } catch (error) {
+        this.logger.warn(`Could not initialize setting ${setting.key}: ${error.message}`);
+      }
     }
     this.logger.log('SEO settings initialized');
   }
@@ -297,11 +305,20 @@ ${urlEntries}
 
   async updateSeoSettings(data: Record<string, string>) {
     for (const [key, value] of Object.entries(data)) {
-      await this.prisma.setting.upsert({
-        where: { key: `seo_${key}` },
-        update: { value },
-        create: { key: `seo_${key}`, value, type: 'string', group: 'seo' },
+      const settingKey = `seo_${key}`;
+      const existing = await this.prisma.setting.findUnique({
+        where: { key: settingKey },
       });
+      if (existing) {
+        await this.prisma.setting.update({
+          where: { key: settingKey },
+          data: { value },
+        });
+      } else {
+        await this.prisma.setting.create({
+          data: { key: settingKey, value, type: 'string', group: 'seo' },
+        });
+      }
     }
     return this.getSeoSettings();
   }

@@ -39,10 +39,15 @@ export class SettingsService {
    * Set or update a setting
    */
   async set(key: string, value: any, type: string, group?: string) {
-    return this.prisma.setting.upsert({
-      where: { key },
-      update: { value, type, group },
-      create: { key, value, type, group },
+    const existing = await this.prisma.setting.findUnique({ where: { key } });
+    if (existing) {
+      return this.prisma.setting.update({
+        where: { key },
+        data: { value, type, group },
+      });
+    }
+    return this.prisma.setting.create({
+      data: { key, value, type, group },
     });
   }
 
