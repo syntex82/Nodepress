@@ -40,7 +40,10 @@ export class ProfilesController {
   @Put('me')
   @UseGuards(JwtAuthGuard)
   async updateMyProfile(@Request() req, @Body() data: UpdateProfileDto) {
-    return this.profilesService.updateProfile(req.user.id, data);
+    console.log('📝 Profile update request:', { userId: req.user.id, data });
+    const result = await this.profilesService.updateProfile(req.user.id, data);
+    console.log('✅ Profile updated:', { avatar: result.avatar, coverImage: result.coverImage });
+    return result;
   }
 
   /**
