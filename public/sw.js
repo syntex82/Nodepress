@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wp-node-v4';
+const CACHE_NAME = 'nodepress-v5';
 
 // Install - skip waiting immediately
 self.addEventListener('install', (event) => {
