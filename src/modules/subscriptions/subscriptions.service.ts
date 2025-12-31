@@ -39,10 +39,17 @@ export class SubscriptionsService {
   // ==================== PLANS ====================
 
   async getPlans(includeInactive = false) {
-    return this.prisma.subscriptionPlan.findMany({
+    const plans = await this.prisma.subscriptionPlan.findMany({
       where: includeInactive ? {} : { isActive: true },
       orderBy: { displayOrder: 'asc' },
     });
+
+    // Convert Decimal fields to numbers for JSON serialization
+    return plans.map((plan) => ({
+      ...plan,
+      monthlyPrice: plan.monthlyPrice ? Number(plan.monthlyPrice) : 0,
+      yearlyPrice: plan.yearlyPrice ? Number(plan.yearlyPrice) : 0,
+    }));
   }
 
   async getPlanById(id: string) {
@@ -50,7 +57,11 @@ export class SubscriptionsService {
       where: { id },
     });
     if (!plan) throw new NotFoundException('Plan not found');
-    return plan;
+    return {
+      ...plan,
+      monthlyPrice: plan.monthlyPrice ? Number(plan.monthlyPrice) : 0,
+      yearlyPrice: plan.yearlyPrice ? Number(plan.yearlyPrice) : 0,
+    };
   }
 
   async getPlanBySlug(slug: string) {
@@ -58,7 +69,11 @@ export class SubscriptionsService {
       where: { slug },
     });
     if (!plan) throw new NotFoundException('Plan not found');
-    return plan;
+    return {
+      ...plan,
+      monthlyPrice: plan.monthlyPrice ? Number(plan.monthlyPrice) : 0,
+      yearlyPrice: plan.yearlyPrice ? Number(plan.yearlyPrice) : 0,
+    };
   }
 
   async createPlan(dto: CreatePlanDto) {
