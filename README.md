@@ -39,7 +39,11 @@ https://github.com/user-attachments/assets/bd8a8a34-a0d5-432d-8555-5d74f8ee886b
 <br />
 
 <p align="center">
-  <strong>A powerful, extensible CMS platform combining the flexibility of WordPress<br />with the performance and type-safety of modern JavaScript technologies.</strong>
+  <strong>A powerful, extensible CMS platform inspired by WordPress functionality,<br />built from scratch with modern JavaScript technologies for superior performance and type-safety.</strong>
+</p>
+
+<p align="center">
+  <sub>⚠️ <em>This is an independent project, not affiliated with WordPress or Automattic Inc.</em></sub>
 </p>
 
 <br />
@@ -3485,6 +3489,16 @@ pm2 restart wordpress-node
 # or for development:
 npm run dev
 ```
+
+<br />
+
+---
+
+## ⚖️ Legal Disclaimer
+
+**Disclaimer:** WordPress Node is an independent project and is not affiliated with, endorsed by, or sponsored by WordPress or Automattic Inc. "WordPress" is a trademark of the WordPress Foundation. This project is a separate CMS platform built with Node.js and does not use WordPress code or components.
+
+This project draws inspiration from WordPress's user-friendly approach to content management while being built entirely from scratch using modern technologies including Node.js, NestJS, React, and PostgreSQL. No WordPress source code, plugins, themes, or other components are used in this project.
 
 <br />
 
