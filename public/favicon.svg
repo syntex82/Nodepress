@@ -4,26 +4,38 @@
       <stop offset="0%" style="stop-color:#1a2332"/>
       <stop offset="100%" style="stop-color:#0f172a"/>
     </linearGradient>
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5eead4"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
   </defs>
-  
+
   <!-- Background -->
   <rect width="32" height="32" rx="6" fill="url(#bgGrad)"/>
-  
+
   <!-- Hexagon outline -->
-  <polygon 
-    points="16,5 26,10 26,22 16,27 6,22 6,10" 
-    fill="none" 
-    stroke="#2dd4bf" 
+  <polygon
+    points="16,4 27,9.5 27,22.5 16,28 5,22.5 5,9.5"
+    fill="none"
+    stroke="url(#hexGrad)"
     stroke-width="1.5"
     stroke-linejoin="round"
   />
-  
-  <!-- WP Text -->
-  <text x="16" y="18" 
-    font-family="Arial, sans-serif" 
-    font-size="8" 
-    font-weight="bold" 
-    fill="#ffffff" 
-    text-anchor="middle">WP</text>
+
+  <!-- Corner dots -->
+  <circle cx="16" cy="4" r="2" fill="#5eead4"/>
+  <circle cx="27" cy="9.5" r="2" fill="#6366f1"/>
+  <circle cx="27" cy="22.5" r="2" fill="#5eead4"/>
+  <circle cx="16" cy="28" r="2" fill="#6366f1"/>
+  <circle cx="5" cy="22.5" r="2" fill="#6366f1"/>
+  <circle cx="5" cy="9.5" r="2" fill="#5eead4"/>
+
+  <!-- NP Text -->
+  <text x="16" y="18.5"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="9"
+    font-weight="bold"
+    fill="#ffffff"
+    text-anchor="middle">NP</text>
 </svg>
 

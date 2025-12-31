@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Learn Online",
-  "short_name": "LearnOnline",
-  "description": "Online learning platform with courses, quizzes, certificates, and real-time messaging",
+  "name": "NodePress",
+  "short_name": "NodePress",
+  "description": "Modern CMS platform built with Node.js - Enterprise-grade features out of the box",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -12,25 +12,25 @@
   "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/api/pwa/icons/icon-192.svg",
+      "src": "/pwa/icons/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/api/pwa/icons/icon-192.svg",
+      "src": "/pwa/icons/icon-192-maskable.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "maskable"
     },
     {
-      "src": "/api/pwa/icons/icon-512.svg",
+      "src": "/pwa/icons/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/api/pwa/icons/icon-512.svg",
+      "src": "/pwa/icons/icon-512-maskable.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"
@@ -43,9 +43,9 @@
       "url": "/courses"
     },
     {
-      "name": "Messages",
-      "short_name": "Messages",
-      "url": "/admin/messages"
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "url": "/admin"
     }
   ],
   "prefer_related_applications": false

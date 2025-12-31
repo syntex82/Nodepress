@@ -324,9 +324,11 @@ export default function Layout() {
         {/* Mobile Sidebar Header */}
         <div className="relative p-4 border-b border-slate-800/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <span className="text-white font-bold text-lg">W</span>
-            </div>
+            <img
+              src="/images/nodepress-icon.svg"
+              alt="NodePress Logo"
+              className="w-10 h-10 rounded-xl shadow-lg shadow-blue-500/20"
+            />
             <div>
               <h1 className="text-lg font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">NodePress</h1>
               <p className="text-xs text-slate-500">Admin Panel</p>
@@ -666,9 +668,11 @@ export default function Layout() {
         <div className="relative p-4 border-b border-slate-800/50">
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <span className="text-white font-bold text-lg">W</span>
-              </div>
+              <img
+                src="/images/nodepress-icon.svg"
+                alt="NodePress Logo"
+                className="w-10 h-10 rounded-xl shadow-lg shadow-blue-500/20"
+              />
               {!sidebarCollapsed && (
                 <div>
                   <h1 className="text-lg font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">NodePress</h1>

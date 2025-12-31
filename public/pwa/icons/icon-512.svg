@@ -4,43 +4,46 @@
       <stop offset="0%" style="stop-color:#1a2332"/>
       <stop offset="100%" style="stop-color:#0f172a"/>
     </linearGradient>
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5eead4"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
   </defs>
-  
+
   <!-- Background -->
   <rect width="512" height="512" fill="url(#bgGrad)"/>
-  
+
   <!-- Hexagon outline -->
-  <polygon 
-    points="256,80 400,152 400,360 256,432 112,360 112,152" 
-    fill="none" 
-    stroke="#2dd4bf" 
-    stroke-width="4"
+  <polygon
+    points="256,66 413,146 413,366 256,446 99,366 99,146"
+    fill="none"
+    stroke="url(#hexGrad)"
+    stroke-width="6"
     stroke-linejoin="round"
   />
-  
+
   <!-- Corner dots -->
-  <circle cx="256" cy="80" r="10" fill="#6366f1"/>
-  <circle cx="400" cy="152" r="10" fill="#2dd4bf"/>
-  <circle cx="400" cy="360" r="10" fill="#2dd4bf"/>
-  <circle cx="256" cy="432" r="10" fill="#6366f1"/>
-  <circle cx="112" cy="360" r="10" fill="#2dd4bf"/>
-  <circle cx="112" cy="152" r="10" fill="#2dd4bf"/>
-  
-  <!-- WP Text -->
-  <text x="256" y="245" 
-    font-family="Arial, sans-serif" 
-    font-size="72" 
-    font-weight="bold" 
-    fill="#ffffff" 
-    text-anchor="middle">WP</text>
-  
+  <circle cx="256" cy="66" r="16" fill="#5eead4"/>
+  <circle cx="413" cy="146" r="16" fill="#6366f1"/>
+  <circle cx="413" cy="366" r="16" fill="#5eead4"/>
+  <circle cx="256" cy="446" r="16" fill="#6366f1"/>
+  <circle cx="99" cy="366" r="16" fill="#6366f1"/>
+  <circle cx="99" cy="146" r="16" fill="#5eead4"/>
+
   <!-- NODE Text -->
-  <text x="256" y="320" 
-    font-family="Arial, sans-serif" 
-    font-size="48" 
-    font-weight="bold" 
-    fill="#2dd4bf" 
-    text-anchor="middle" 
-    letter-spacing="8">NODE</text>
+  <text x="256" y="235"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="80"
+    font-weight="bold"
+    fill="#ffffff"
+    text-anchor="middle">NODE</text>
+
+  <!-- PRESS Text -->
+  <text x="256" y="315"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="80"
+    font-weight="bold"
+    fill="#ffffff"
+    text-anchor="middle">PRESS</text>
 </svg>
 
