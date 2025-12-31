@@ -83,7 +83,7 @@ fi
 
 # Generate secure values
 DB_NAME="nodepress"
-DB_USER="wpnode"
+DB_USER="nodepress"
 DB_PASS=$(generate_random_string 16)
 JWT_SECRET=$(generate_random_string 64)
 SESSION_SECRET=$(generate_random_string 64)
@@ -191,7 +191,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
-REDIS_PREFIX=wpnode:
+REDIS_PREFIX=nodepress:
 CACHE_TTL=300
 MAX_FILE_SIZE=104857600
 UPLOAD_DIR=./uploads

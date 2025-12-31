@@ -1,8 +1,8 @@
 #!/bin/bash
-# Hostinger VPS Setup Script for WordPressNode
+# Hostinger VPS Setup Script for NodePress CMS
 # Run this script after uploading and extracting deploy-package.zip
 
-echo "=== WordPressNode Hostinger VPS Setup ==="
+echo "=== NodePress CMS - Hostinger VPS Setup ==="
 
 # Update system
 echo "Updating system..."
@@ -21,20 +21,18 @@ sudo npm install -g pm2
 echo "Installing Nginx..."
 sudo apt install -y nginx
 
-# Install MySQL
-echo "Installing MySQL..."
-sudo apt install -y mysql-server
-sudo mysql_secure_installation
+# Install PostgreSQL
+echo "Installing PostgreSQL..."
+sudo apt install -y postgresql postgresql-contrib
 
 # Create database
 echo "Creating database..."
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS wordpressnode;"
-sudo mysql -e "CREATE USER IF NOT EXISTS 'wpnode'@'localhost' IDENTIFIED BY 'YOUR_DB_PASSWORD';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON wordpressnode.* TO 'wpnode'@'localhost';"
-sudo mysql -e "FLUSH PRIVILEGES;"
+sudo -u postgres psql -c "CREATE DATABASE IF NOT EXISTS nodepress;"
+sudo -u postgres psql -c "CREATE USER IF NOT EXISTS 'nodepress'@'localhost' IDENTIFIED BY 'YOUR_DB_PASSWORD';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE nodepress TO nodepress;"
 
 # Navigate to app directory
-cd /var/www/wordpressnode
+cd /var/www/NodePress
 
 # Install dependencies
 echo "Installing dependencies..."
@@ -49,7 +47,7 @@ npx prisma migrate deploy
 echo "Creating .env file..."
 cat > .env << 'EOF'
 # Database
-DATABASE_URL="mysql://wpnode:YOUR_DB_PASSWORD@localhost:3306/wordpressnode"
+DATABASE_URL="postgresql://nodepress:YOUR_DB_PASSWORD@localhost:5432/nodepress"
 
 # App
 PORT=3000
@@ -58,29 +56,29 @@ JWT_SECRET=your-super-secret-jwt-key-change-this
 SESSION_SECRET=your-session-secret-change-this
 
 # Domain
-APP_URL=https://wordpressnode.co.uk
-CORS_ORIGINS=https://wordpressnode.co.uk
+APP_URL=https://nodepress.co.uk
+CORS_ORIGINS=https://nodepress.co.uk
 
 # Email (configure your SMTP)
 SMTP_HOST=smtp.hostinger.com
 SMTP_PORT=465
-SMTP_USER=noreply@wordpressnode.co.uk
+SMTP_USER=noreply@nodepress.co.uk
 SMTP_PASS=your-email-password
 EOF
 
 # Start with PM2
 echo "Starting application..."
-pm2 start dist/main.js --name wordpressnode
+pm2 start dist/main.js --name nodepress
 pm2 save
 pm2 startup
 
 # Configure Nginx
 echo "Configuring Nginx..."
-sudo tee /etc/nginx/sites-available/wordpressnode << 'EOF'
+sudo tee /etc/nginx/sites-available/nodepress << 'EOF'
 server {
     listen 80;
-    server_name wordpressnode.co.uk www.wordpressnode.co.uk;
-    
+    server_name nodepress.co.uk www.nodepress.co.uk;
+
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -95,14 +93,14 @@ server {
 }
 EOF
 
-sudo ln -sf /etc/nginx/sites-available/wordpressnode /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/nodepress /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 
 # Install SSL with Certbot
 echo "Installing SSL certificate..."
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d wordpressnode.co.uk -d www.wordpressnode.co.uk
+sudo certbot --nginx -d nodepress.co.uk -d www.nodepress.co.uk
 
 echo "=== Setup Complete! ==="
-echo "Your site should be live at https://wordpressnode.co.uk"
+echo "Your site should be live at https://nodepress.co.uk"
 

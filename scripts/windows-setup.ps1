@@ -141,7 +141,7 @@ Write-Host ""
 
 # Database configuration
 $defaultDbName = "nodepress"
-$defaultDbUser = "wpnode"
+$defaultDbUser = "nodepress"
 $defaultDbPassword = Get-SecureRandomString -Length 16
 $defaultPort = "3000"
 $defaultAdminEmail = "admin@starter.dev"
@@ -411,7 +411,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
-REDIS_PREFIX=wpnode:
+REDIS_PREFIX=nodepress:
 CACHE_TTL=300
 
 # ─────────────────────────────────────────────────────────────

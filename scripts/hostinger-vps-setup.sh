@@ -1,12 +1,12 @@
 #!/bin/bash
 #═══════════════════════════════════════════════════════════════════════════════
 # NodePress CMS - Hostinger VPS Production Setup Script
-# Domain: wordpressnode.co.uk
-# 
+# Domain: nodepress.co.uk
+#
 # Prerequisites:
 #   1. Fresh Ubuntu 22.04+ VPS from Hostinger
 #   2. SSH access as root
-#   3. Domain DNS pointed to VPS IP (A record: wordpressnode.co.uk -> VPS_IP)
+#   3. Domain DNS pointed to VPS IP (A record: nodepress.co.uk -> VPS_IP)
 #
 # Usage:
 #   1. SSH into your VPS: ssh root@your-vps-ip
@@ -20,9 +20,9 @@ set -e
 # ══════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ══════════════════════════════════════════════════════════════
-DOMAIN="wordpressnode.co.uk"
+DOMAIN="nodepress.co.uk"
 APP_DIR="/var/www/NodePress"
-APP_USER="wpnode"
+APP_USER="nodepress"
 APP_PORT="3000"
 NODE_VERSION="20"
 
@@ -79,8 +79,8 @@ ADMIN_PASSWORD=${INPUT_ADMIN_PASSWORD:-"SecurePass123!"}
 read -p "  Database name [nodepress]: " INPUT_DB_NAME
 DB_NAME=${INPUT_DB_NAME:-"nodepress"}
 
-read -p "  Database user [wpnode]: " INPUT_DB_USER
-DB_USER=${INPUT_DB_USER:-"wpnode"}
+read -p "  Database user [nodepress]: " INPUT_DB_USER
+DB_USER=${INPUT_DB_USER:-"nodepress"}
 
 DB_PASSWORD=$(generate_secret 24)
 JWT_SECRET=$(generate_secret 64)
@@ -268,7 +268,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
-REDIS_PREFIX=wpnode:
+REDIS_PREFIX=nodepress:
 CACHE_TTL=300
 
 # ─────────────────────────────────────────────────────────────
@@ -340,7 +340,7 @@ limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
 
 # Upstream backend
-upstream wpnode_backend {
+upstream nodepress_backend {
     server 127.0.0.1:3000;
     keepalive 32;
 }
@@ -369,7 +369,7 @@ server {
 
     # Health check endpoint
     location /health {
-        proxy_pass http://wpnode_backend;
+        proxy_pass http://nodepress_backend;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         access_log off;
@@ -379,7 +379,7 @@ server {
     location /api {
         limit_req zone=api_limit burst=20 nodelay;
 
-        proxy_pass http://wpnode_backend;
+        proxy_pass http://nodepress_backend;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -396,7 +396,7 @@ server {
     location /api/auth/login {
         limit_req zone=login_limit burst=5 nodelay;
 
-        proxy_pass http://wpnode_backend;
+        proxy_pass http://nodepress_backend;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -430,7 +430,7 @@ server {
 
     # WebSocket support
     location /socket.io {
-        proxy_pass http://wpnode_backend;
+        proxy_pass http://nodepress_backend;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -442,7 +442,7 @@ server {
 
     # Default - proxy to backend
     location / {
-        proxy_pass http://wpnode_backend;
+        proxy_pass http://nodepress_backend;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -484,7 +484,7 @@ print_info "Configuring PM2 process manager..."
 cat > "$APP_DIR/ecosystem.config.js" << 'PM2EOF'
 module.exports = {
   apps: [{
-    name: 'wpnode',
+    name: 'nodepress',
     script: 'dist/main.js',
     cwd: '/var/www/NodePress',
     instances: 'max',
@@ -496,8 +496,8 @@ module.exports = {
       NODE_ENV: 'production',
       PORT: 3000
     },
-    error_file: '/var/log/wpnode/error.log',
-    out_file: '/var/log/wpnode/out.log',
+    error_file: '/var/log/nodepress/error.log',
+    out_file: '/var/log/nodepress/out.log',
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z'
   }]
 };
@@ -506,8 +506,8 @@ PM2EOF
 chown "$APP_USER:$APP_USER" "$APP_DIR/ecosystem.config.js"
 
 # Create log directory
-mkdir -p /var/log/wpnode
-chown "$APP_USER:$APP_USER" /var/log/wpnode
+mkdir -p /var/log/nodepress
+chown "$APP_USER:$APP_USER" /var/log/nodepress
 
 # Start with PM2
 sudo -u "$APP_USER" bash -c "cd $APP_DIR && pm2 start ecosystem.config.js"
@@ -556,9 +556,9 @@ echo ""
 echo -e "${CYAN}┌─────────────────────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${CYAN}│  USEFUL COMMANDS                                                            │${NC}"
 echo -e "${CYAN}└─────────────────────────────────────────────────────────────────────────────┘${NC}"
-echo -e "    View logs:     sudo -u ${APP_USER} pm2 logs wpnode"
-echo -e "    Restart app:   sudo -u ${APP_USER} pm2 restart wpnode"
-echo -e "    Stop app:      sudo -u ${APP_USER} pm2 stop wpnode"
+echo -e "    View logs:     sudo -u ${APP_USER} pm2 logs nodepress"
+echo -e "    Restart app:   sudo -u ${APP_USER} pm2 restart nodepress"
+echo -e "    Stop app:      sudo -u ${APP_USER} pm2 stop nodepress"
 echo -e "    App status:    sudo -u ${APP_USER} pm2 status"
 echo -e "    Nginx logs:    tail -f /var/log/nginx/error.log"
 echo ""

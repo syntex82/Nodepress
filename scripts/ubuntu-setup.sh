@@ -134,7 +134,7 @@ echo ""
 
 # Default values
 DEFAULT_DB_NAME="nodepress"
-DEFAULT_DB_USER="wpnode"
+DEFAULT_DB_USER="nodepress"
 DEFAULT_DB_PASSWORD=$(generate_random_string 16)
 DEFAULT_PORT="3000"
 DEFAULT_ADMIN_EMAIL="admin@starter.dev"
@@ -370,7 +370,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
-REDIS_PREFIX=wpnode:
+REDIS_PREFIX=nodepress:
 CACHE_TTL=300
 
 # ─────────────────────────────────────────────────────────────
