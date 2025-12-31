@@ -146,7 +146,6 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/pricing" element={<Pricing />} />
 
             {/* Public Profile */}
             <Route path="/u/:identifier" element={<PublicProfile />} />
@@ -259,9 +258,10 @@ function App() {
                 {/* Settings */}
                 <Route path="settings" element={<ProtectedRoute feature="settings" requiredRole="ADMIN"><Settings /></ProtectedRoute>} />
 
-                {/* Subscription */}
+                {/* Subscription & Pricing (authenticated users only) */}
                 <Route path="subscription" element={<Subscription />} />
                 <Route path="subscription/success" element={<Subscription />} />
+                <Route path="pricing" element={<Pricing />} />
 
                 {/* Catch-all for authenticated users - redirect to dashboard */}
                 <Route path="*" element={<Navigate to="/" replace />} />

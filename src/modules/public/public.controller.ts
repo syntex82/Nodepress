@@ -1347,34 +1347,20 @@ Sitemap: ${baseUrl}/sitemap.xml
   // ============================================
 
   /**
-   * Pricing page - show subscription plans
+   * Pricing page - redirect to admin pricing (requires authentication)
    * GET /pricing
    */
   @Get('pricing')
   @UseGuards(OptionalJwtAuthGuard)
   async pricing(@Req() req: Request, @Res() res: Response) {
-    try {
-      const user = (req as any).user;
-      const plans = await this.subscriptionsService.getPlans(false);
+    const user = (req as any).user;
 
-      console.log('[Pricing] Plans fetched:', plans?.length || 0, 'plans');
-      if (plans?.length) {
-        console.log(
-          '[Pricing] Plan names:',
-          plans.map((p) => `${p.name} (active: ${p.isActive})`).join(', '),
-        );
-      }
-
-      const html = await this.themeRenderer.render('pricing', {
-        title: 'Pricing Plans',
-        description: 'Choose the perfect plan for your needs',
-        plans,
-        user,
-      });
-      res.send(html);
-    } catch (error) {
-      console.error('Error rendering pricing page:', error);
-      res.status(500).send('Error loading pricing');
+    if (user) {
+      // Authenticated users go directly to admin pricing
+      return res.redirect('/admin/pricing');
+    } else {
+      // Unauthenticated users go to login with redirect to pricing
+      return res.redirect('/login?redirect=/admin/pricing');
     }
   }
 
