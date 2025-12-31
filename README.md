@@ -18,7 +18,7 @@ https://github.com/sponsors/syntex82
 ### **A Modern, Full-Featured Content Management System Built with Node.js**
 
 
-https://github.com/user-attachments/assets/bd8a8a34-a0d5-432d-8555-5d74f8ee886b
+
 
 
 
