@@ -1591,6 +1591,171 @@ export const feedApi = {
   deleteActivity: (id: string) => api.delete(`/feed/activities/${id}`),
 };
 
+// Timeline Post types
+export interface PostMedia {
+  id: string;
+  type: 'IMAGE' | 'VIDEO' | 'GIF';
+  url: string;
+  thumbnail?: string;
+  altText?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  order: number;
+}
+
+export interface TimelinePostUser {
+  id: string;
+  name: string;
+  username?: string;
+  avatar?: string;
+  headline?: string;
+}
+
+export interface TimelineHashtag {
+  id: string;
+  tag: string;
+}
+
+export interface TimelineMention {
+  id: string;
+  username?: string;
+  name: string;
+  avatar?: string;
+}
+
+export interface TimelinePost {
+  id: string;
+  content?: string;
+  shareComment?: string;
+  isPublic: boolean;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  createdAt: string;
+  updatedAt: string;
+  user: TimelinePostUser;
+  media: PostMedia[];
+  hashtags: TimelineHashtag[];
+  mentions: TimelineMention[];
+  originalPost?: {
+    id: string;
+    content?: string;
+    createdAt: string;
+    user: TimelinePostUser;
+    media: PostMedia[];
+  };
+  isLiked: boolean;
+  isShared: boolean;
+}
+
+export interface PostComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  likesCount: number;
+  user: {
+    id: string;
+    name: string;
+    username?: string;
+    avatar?: string;
+  };
+  replies?: PostComment[];
+  _count?: { replies: number };
+}
+
+export interface TimelinePostsResponse {
+  data: TimelinePost[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
+export interface CreatePostMediaDto {
+  type: 'IMAGE' | 'VIDEO' | 'GIF';
+  url: string;
+  thumbnail?: string;
+  altText?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+}
+
+export interface CreateTimelinePostInputDto {
+  content?: string;
+  isPublic?: boolean;
+  media?: CreatePostMediaDto[];
+}
+
+// Timeline API
+export const timelineApi = {
+  // Create a new post
+  createPost: (dto: CreateTimelinePostInputDto) =>
+    api.post<TimelinePost>('/timeline/posts', dto),
+
+  // Get feed (posts from followed users)
+  getFeed: (page?: number, limit?: number) =>
+    api.get<TimelinePostsResponse>('/timeline/feed', { params: { page, limit } }),
+
+  // Get discover feed (all public posts)
+  getDiscover: (page?: number, limit?: number) =>
+    api.get<TimelinePostsResponse>('/timeline/discover', { params: { page, limit } }),
+
+  // Get user's posts
+  getUserPosts: (userId: string, page?: number, limit?: number) =>
+    api.get<TimelinePostsResponse>(`/timeline/users/${userId}/posts`, { params: { page, limit } }),
+
+  // Get single post
+  getPost: (postId: string) =>
+    api.get<TimelinePost>(`/timeline/posts/${postId}`),
+
+  // Like a post
+  likePost: (postId: string) =>
+    api.post(`/timeline/posts/${postId}/like`),
+
+  // Unlike a post
+  unlikePost: (postId: string) =>
+    api.delete(`/timeline/posts/${postId}/like`),
+
+  // Add comment
+  addComment: (postId: string, content: string, parentId?: string) =>
+    api.post<PostComment>(`/timeline/posts/${postId}/comments`, { content, parentId }),
+
+  // Get comments
+  getComments: (postId: string, page?: number, limit?: number) =>
+    api.get<{ data: PostComment[]; meta: { total: number; page: number; limit: number; totalPages: number } }>(
+      `/timeline/posts/${postId}/comments`,
+      { params: { page, limit } }
+    ),
+
+  // Delete a post
+  deletePost: (postId: string) =>
+    api.delete(`/timeline/posts/${postId}`),
+
+  // Share a post
+  sharePost: (postId: string, comment?: string, isPublic?: boolean) =>
+    api.post<TimelinePost>(`/timeline/posts/${postId}/share`, { comment, isPublic }),
+
+  // Get trending hashtags
+  getTrendingHashtags: (limit?: number) =>
+    api.get<{ id: string; tag: string; postCount: number }[]>('/timeline/hashtags/trending', { params: { limit } }),
+
+  // Get posts by hashtag
+  getPostsByHashtag: (tag: string, page?: number, limit?: number) =>
+    api.get<TimelinePostsResponse & { hashtag: { tag: string; postCount: number } }>(
+      `/timeline/hashtags/${encodeURIComponent(tag)}`,
+      { params: { page, limit } }
+    ),
+
+  // Search users for mention autocomplete
+  searchUsersForMention: (query: string) =>
+    api.get<TimelinePostUser[]>('/timeline/mentions/search', { params: { q: query } }),
+};
+
 // Developer Marketplace types
 export interface DeveloperProfile {
   id: string;

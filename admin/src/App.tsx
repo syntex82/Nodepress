@@ -96,6 +96,7 @@ const PublicProfile = lazy(() => import('./pages/profile/PublicProfile'));
 
 // Lazy-loaded pages - Feed
 const ActivityFeed = lazy(() => import('./pages/feed/ActivityFeed'));
+const Timeline = lazy(() => import('./pages/feed/Timeline'));
 
 // Lazy-loaded pages - Email
 const EmailTemplates = lazy(() => import('./pages/email/EmailTemplates'));
@@ -239,6 +240,7 @@ function App() {
 
                 {/* Activity Feed */}
                 <Route path="feed" element={<ActivityFeed />} />
+                <Route path="timeline" element={<Timeline />} />
 
                 {/* Security */}
                 <Route path="security/*" element={<ProtectedRoute feature="security" requiredRole="ADMIN"><Security /></ProtectedRoute>} />

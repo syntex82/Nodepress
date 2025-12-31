@@ -43,6 +43,7 @@ import { UpdatesModule } from './modules/updates/updates.module';
 import { VideoModule } from './modules/video/video.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { FeedModule } from './modules/feed/feed.module';
+import { TimelineModule } from './modules/timeline/timeline.module';
 
 // Check if admin dist exists
 const adminDistPath = join(process.cwd(), 'admin', 'dist');
@@ -113,6 +114,7 @@ const staticModules = adminDistExists
     VideoModule,
     SubscriptionsModule,
     FeedModule,
+    TimelineModule,
   ],
 })
 export class AppModule {}

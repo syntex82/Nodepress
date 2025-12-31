@@ -1012,6 +1012,24 @@
       <p>Meta tags, sitemaps, schema markup, and search engine optimization tools.</p>
       <span class="wp-feature-expand">Learn more →</span>
     </div>
+    <div class="wp-feature-card" data-feature="timeline">
+      <div class="wp-feature-icon">📱</div>
+      <h3>Social Timeline</h3>
+      <p>Real-time social feed with posts, likes, comments, shares, hashtags, and @mentions.</p>
+      <span class="wp-feature-expand">Learn more →</span>
+    </div>
+    <div class="wp-feature-card" data-feature="messaging">
+      <div class="wp-feature-icon">💬</div>
+      <h3>Real-Time Messaging</h3>
+      <p>Direct messaging, group chats, media sharing, and WebRTC video calls.</p>
+      <span class="wp-feature-expand">Learn more →</span>
+    </div>
+    <div class="wp-feature-card" data-feature="marketplace">
+      <div class="wp-feature-icon">👨‍💻</div>
+      <h3>Developer Marketplace</h3>
+      <p>Hire developers, manage projects, escrow payments, and rating system.</p>
+      <span class="wp-feature-expand">Learn more →</span>
+    </div>
   </div>
 </section>
 
@@ -1616,6 +1634,136 @@ X-XSS-Protection: 1; mode=block</code></pre>
         <li>Fast page load times</li>
         <li>Core Web Vitals optimized</li>
       </ul>
+    `
+  },
+  timeline: {
+    icon: '📱',
+    title: 'Social Timeline',
+    subtitle: 'Full-featured social networking feed with real-time updates',
+    content: `
+      <h3>📖 Overview</h3>
+      <p>A complete social timeline system that lets users create posts, engage with content through likes and comments, share posts, use hashtags for discovery, and @mention other users. Built with WebSocket support for real-time updates.</p>
+
+      <h3>✨ Key Features</h3>
+      <ul>
+        <li><strong>Timeline Posts</strong> - Create posts with text, images, and videos</li>
+        <li><strong>Likes & Comments</strong> - Full engagement system with real-time counters</li>
+        <li><strong>Post Sharing</strong> - Repost content with optional comments (like Twitter retweets)</li>
+        <li><strong>#Hashtags</strong> - Auto-detected hashtags with trending topics</li>
+        <li><strong>@Mentions</strong> - Tag users with autocomplete and notifications</li>
+        <li><strong>Real-Time Updates</strong> - WebSocket broadcasting for instant feed updates</li>
+        <li><strong>Follow System</strong> - Follow users and see their posts in your feed</li>
+        <li><strong>Discover Feed</strong> - Explore public posts from all users</li>
+        <li><strong>Privacy Controls</strong> - Public/private post visibility</li>
+        <li><strong>Media Gallery</strong> - Multi-image and video uploads per post</li>
+      </ul>
+
+      <h3>🔌 API Endpoints</h3>
+      <pre><code>POST /api/timeline/posts           # Create a post
+GET  /api/timeline/posts           # Get feed posts
+GET  /api/timeline/discover        # Discover public posts
+POST /api/timeline/posts/:id/like  # Like a post
+POST /api/timeline/posts/:id/share # Share/repost
+GET  /api/timeline/hashtags/trending  # Trending hashtags
+GET  /api/timeline/hashtags/:tag/posts # Posts by hashtag
+GET  /api/timeline/mentions/search # User search for @mentions</code></pre>
+
+      <h3>📡 WebSocket Events</h3>
+      <ul>
+        <li><code>timeline:newPost</code> - New post created</li>
+        <li><code>timeline:postLiked</code> - Post liked/unliked</li>
+        <li><code>timeline:newComment</code> - New comment added</li>
+        <li><code>timeline:postShared</code> - Post shared</li>
+      </ul>
+
+      <h3>🔔 Notification Types</h3>
+      <ul>
+        <li><strong>MENTION</strong> - When you're @mentioned in a post</li>
+        <li><strong>POST_LIKED</strong> - When someone likes your post</li>
+        <li><strong>POST_COMMENT</strong> - When someone comments on your post</li>
+        <li><strong>POST_SHARED</strong> - When someone shares your post</li>
+        <li><strong>FOLLOW</strong> - When someone follows you</li>
+      </ul>
+    `
+  },
+  messaging: {
+    icon: '💬',
+    title: 'Real-Time Messaging',
+    subtitle: 'Private messaging, group chats, and video calling',
+    content: `
+      <h3>📖 Overview</h3>
+      <p>Complete real-time communication system with private direct messages, group conversations, media sharing, and WebRTC-powered video calling. Perfect for building community features.</p>
+
+      <h3>✨ Key Features</h3>
+      <ul>
+        <li><strong>Direct Messages</strong> - Private 1-on-1 conversations</li>
+        <li><strong>Group Chats</strong> - Multi-user conversations with admin controls</li>
+        <li><strong>Media Sharing</strong> - Send images, videos, and files in chat</li>
+        <li><strong>Video Calls</strong> - WebRTC 1-on-1 video calling from DMs</li>
+        <li><strong>Group Video Calls</strong> - Multi-participant video meetings</li>
+        <li><strong>Online Status</strong> - See who's currently online</li>
+        <li><strong>Read Receipts</strong> - Know when messages are read</li>
+        <li><strong>Message History</strong> - Full searchable conversation history</li>
+        <li><strong>Push Notifications</strong> - Get notified of new messages</li>
+        <li><strong>Emoji Picker</strong> - Rich emoji support in messages</li>
+      </ul>
+
+      <h3>📹 Video Calling Features</h3>
+      <ul>
+        <li>Camera/microphone toggle</li>
+        <li>Front/back camera switch</li>
+        <li>Picture-in-picture mode</li>
+        <li>Fullscreen video</li>
+        <li>Call duration timer</li>
+        <li>Incoming call notifications</li>
+        <li>TURN/STUN server support</li>
+      </ul>
+
+      <h3>🔌 WebSocket Events</h3>
+      <pre><code>message:new       # New message received
+message:read      # Message read receipt
+user:online       # User came online
+user:offline      # User went offline
+call:incoming     # Incoming video call
+call:accepted     # Call was answered
+call:ended        # Call ended</code></pre>
+    `
+  },
+  marketplace: {
+    icon: '👨‍💻',
+    title: 'Developer Marketplace',
+    subtitle: 'Hire developers, manage projects, and process payments',
+    content: `
+      <h3>📖 Overview</h3>
+      <p>A complete freelance marketplace for hiring developers. Includes developer profiles, project management, escrow payments via Stripe Connect, and a rating/review system.</p>
+
+      <h3>✨ Key Features</h3>
+      <ul>
+        <li><strong>Developer Profiles</strong> - Skills, portfolio, hourly rates, availability</li>
+        <li><strong>Hire Workflow</strong> - Send hiring requests to developers</li>
+        <li><strong>Project Management</strong> - Milestones, progress tracking, messaging</li>
+        <li><strong>Escrow Payments</strong> - Funds held until work is approved</li>
+        <li><strong>Stripe Connect</strong> - Automated developer payouts</li>
+        <li><strong>Rating System</strong> - 5-star reviews with verified badges</li>
+        <li><strong>Dispute Resolution</strong> - Admin mediation for conflicts</li>
+        <li><strong>Search & Filters</strong> - Find developers by skill, rate, availability</li>
+      </ul>
+
+      <h3>💼 Project Workflow</h3>
+      <pre><code>1. Client sends hiring request
+2. Developer accepts/rejects
+3. Project created from accepted request
+4. Work completed with milestone tracking
+5. Client marks project complete
+6. Payment released to developer
+7. Client leaves review</code></pre>
+
+      <h3>🔌 API Endpoints</h3>
+      <pre><code>GET  /api/marketplace/developers     # List developers
+POST /api/marketplace/developers     # Apply as developer
+POST /api/marketplace/hiring-requests # Create hiring request
+POST /api/marketplace/projects       # Create project
+POST /api/marketplace/payments/payout # Request payout</code></pre>
     `
   }
 };

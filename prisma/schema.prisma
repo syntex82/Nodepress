@@ -1992,6 +1992,12 @@ model User {
   following                  UserFollow[]              @relation("UserFollow_followerIdToUser")
   UserInteraction                                         UserInteraction[]
   Activity                                                Activity[]
+  timelinePosts              TimelinePost[]
+  postLikes                  PostLike[]
+  postComments               PostComment[]
+  postShares                 PostShare[]
+  mentionsReceived           PostMention[]             @relation("MentionedUser")
+  mentionsMade               PostMention[]             @relation("MentionerUser")
 }
 
 model UserBadge {
@@ -2073,6 +2079,159 @@ enum ActivityType {
   NEW_FOLLOWER
   STARTED_FOLLOWING
   STATUS_UPDATE
+}
+
+// Timeline Posts - Rich content posts for social feed
+model TimelinePost {
+  id              String   @id @default(cuid())
+  userId          String
+  content         String?  @db.Text // Text content (can be empty for media-only posts)
+  isPublic        Boolean  @default(true)
+  likesCount      Int      @default(0)
+  commentsCount   Int      @default(0)
+  sharesCount     Int      @default(0)
+  // For shared posts (retweet-style)
+  originalPostId  String?  // Reference to original post if this is a share
+  shareComment    String?  @db.Text // Optional comment when sharing
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media        PostMedia[]
+  likes        PostLike[]
+  comments     PostComment[]
+  shares       PostShare[]       // Users who shared this post
+  originalPost TimelinePost?     @relation("PostShares", fields: [originalPostId], references: [id], onDelete: SetNull)
+  sharedPosts  TimelinePost[]    @relation("PostShares") // Posts that are shares of this post
+  hashtags     PostHashtag[]
+  mentions     PostMention[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isPublic])
+  @@index([originalPostId])
+}
+
+model PostMedia {
+  id        String        @id @default(cuid())
+  postId    String
+  type      PostMediaType
+  url       String
+  thumbnail String?       // Thumbnail for videos
+  altText   String?
+  width     Int?
+  height    Int?
+  duration  Int?          // Duration in seconds for videos
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  post TimelinePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+enum PostMediaType {
+  IMAGE
+  VIDEO
+  GIF
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post TimelinePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  content   String   @db.Text
+  parentId  String?  // For nested replies
+  likesCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post   TimelinePost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent PostComment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies PostComment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+// Post Shares - Track who shared a post
+model PostShare {
+  id        String   @id @default(cuid())
+  postId    String   // Original post being shared
+  userId    String   // User who shared
+  createdAt DateTime @default(now())
+
+  post TimelinePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// Hashtags - Extracted from post content
+model Hashtag {
+  id        String   @id @default(cuid())
+  tag       String   @unique // Normalized hashtag (lowercase, no #)
+  postCount Int      @default(0) // Denormalized count for trending
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts PostHashtag[]
+
+  @@index([postCount])
+  @@index([tag])
+}
+
+// Many-to-many relationship between posts and hashtags
+model PostHashtag {
+  id        String   @id @default(cuid())
+  postId    String
+  hashtagId String
+  createdAt DateTime @default(now())
+
+  post    TimelinePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag      @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([postId])
+  @@index([hashtagId])
+}
+
+// Mentions - Track @username mentions in posts/comments
+model PostMention {
+  id              String   @id @default(cuid())
+  postId          String?  // Mention in a post
+  commentId       String?  // Mention in a comment
+  mentionedUserId String   // User being mentioned
+  mentionerUserId String   // User who wrote the mention
+  createdAt       DateTime @default(now())
+
+  post          TimelinePost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mentionedUser User          @relation("MentionedUser", fields: [mentionedUserId], references: [id], onDelete: Cascade)
+  mentionerUser User          @relation("MentionerUser", fields: [mentionerUserId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([commentId])
+  @@index([mentionedUserId])
+  @@index([mentionerUserId])
 }
 
 model VideoAsset {
@@ -2263,6 +2422,11 @@ enum NotificationType {
   CONTENT
   SECURITY
   MARKETPLACE
+  MENTION
+  POST_LIKED
+  POST_COMMENT
+  POST_SHARED
+  FOLLOW
 }
 
 enum OrderStatus {
