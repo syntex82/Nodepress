@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# WordPress Node CMS - Release Workflow
+# NodePress CMS - Release Workflow
 # ═══════════════════════════════════════════════════════════════════════════════
 # Creates a GitHub release with pre-built dist files when a version tag is pushed
 # Usage: git tag v1.0.1 && git push origin v1.0.1
@@ -31,7 +31,7 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
-          echo "release_dir=wordpress-node-${VERSION}" >> $GITHUB_OUTPUT
+          echo "release_dir=nodepress-${VERSION}" >> $GITHUB_OUTPUT
 
       - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -101,9 +101,9 @@ jobs:
           ### Installation
           \`\`\`bash
           # Download and extract
-          wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/wordpress-node-${VERSION}.tar.gz
-          tar -xzf wordpress-node-${VERSION}.tar.gz
-          cd wordpress-node-${VERSION}
+          wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/nodepress-${VERSION}.tar.gz
+          tar -xzf nodepress-${VERSION}.tar.gz
+          cd nodepress-${VERSION}
 
           # Install dependencies and start
           npm install --production
@@ -120,7 +120,7 @@ jobs:
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          name: WordPress Node CMS ${{ steps.version.outputs.tag }}
+          name: NodePress CMS ${{ steps.version.outputs.tag }}
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: ${{ contains(steps.version.outputs.tag, 'alpha') || contains(steps.version.outputs.tag, 'beta') || contains(steps.version.outputs.tag, 'rc') }}
