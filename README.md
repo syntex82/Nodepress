@@ -391,6 +391,71 @@ NodePress CMS provides a comprehensive set of features for building modern web a
 
 </details>
 
+<details>
+<summary><strong>📋 Click to view Project Workflow & Reviews</strong></summary>
+
+<br />
+
+**How Projects Are Created:**
+
+Projects are created through the hiring request workflow:
+
+| Step | Action | Status |
+|------|--------|--------|
+| 1 | Client sends hiring request to developer | `PENDING` |
+| 2 | Developer accepts or rejects | `ACCEPTED` / `REJECTED` |
+| 3 | Client creates project from accepted request | `ACTIVE` |
+| 4 | Work is completed | `COMPLETED` |
+| 5 | Client leaves review | Review created |
+
+**Project Status Flow:**
+```
+DRAFT → ACTIVE → ON_HOLD / COMPLETED / CANCELLED
+```
+
+| Status | Description |
+|--------|-------------|
+| `DRAFT` | Created directly (not from hiring request) |
+| `ACTIVE` | Work in progress |
+| `ON_HOLD` | Temporarily paused |
+| `COMPLETED` | Client marked as done - can now leave review |
+| `CANCELLED` | Project was cancelled |
+
+**API Endpoints for Project Workflow:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/marketplace/hiring-requests` | Client sends hiring request |
+| `POST /api/marketplace/hiring-requests/:id/accept` | Developer accepts request |
+| `POST /api/marketplace/hiring-requests/:id/reject` | Developer rejects request |
+| `POST /api/marketplace/hiring-requests/:id/create-project` | Create project from accepted request |
+| `POST /api/marketplace/projects/:id/complete` | Client marks project complete |
+| `POST /api/marketplace/projects/:id/review` | Client submits review |
+
+**How Reviews Work:**
+
+Reviews are created when a client completes a project:
+
+| Field | Description |
+|-------|-------------|
+| `overallRating` | 1-5 star rating (required) |
+| `communicationRating` | Optional sub-rating |
+| `qualityRating` | Optional sub-rating |
+| `timelinessRating` | Optional sub-rating |
+| `valueRating` | Optional sub-rating |
+| `title` | Optional review title |
+| `content` | Review text |
+| `isVerified` | True if tied to completed project |
+
+**Rating Calculation:**
+```
+newRating = (currentRating × reviewCount + newRating) / (reviewCount + 1)
+```
+
+The developer's `rating`, `reviewCount`, and `projectsCompleted` are automatically updated when a review is submitted.
+
+</details>
+
 <br />
 
 ---
