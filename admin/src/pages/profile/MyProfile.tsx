@@ -12,6 +12,8 @@ import {
   FiMoreHorizontal, FiTrash2, FiImage, FiSend
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import CreatePostForm from '../../components/CreatePostForm';
+import PostMediaGallery from '../../components/PostMediaGallery';
 
 export default function MyProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -30,9 +32,6 @@ export default function MyProfile() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
-  const [postContent, setPostContent] = useState('');
-  const [postImage, setPostImage] = useState('');
-  const [isPosting, setIsPosting] = useState(false);
   const [openPostMenu, setOpenPostMenu] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,27 +74,15 @@ export default function MyProfile() {
     }
   };
 
-  const handleCreatePost = async () => {
-    if (!postContent.trim()) {
-      toast.error('Please enter some content');
-      return;
-    }
-    setIsPosting(true);
-    try {
-      const media = postImage ? [{ type: 'IMAGE' as const, url: postImage }] : undefined;
-      const res = await timelineApi.createPost({
-        content: postContent.trim(),
-        media,
-      });
-      setTimelinePosts(prev => [res.data, ...prev]);
-      setPostContent('');
-      setPostImage('');
-      toast.success('Post shared to your timeline!');
-    } catch (err) {
-      console.error('Error creating post:', err);
-      toast.error('Failed to share post');
-    } finally {
-      setIsPosting(false);
+  const handlePostCreated = async () => {
+    // Reload timeline posts after creating a new post
+    if (profile?.id) {
+      try {
+        const postsRes = await timelineApi.getUserPosts(profile.id);
+        setTimelinePosts(postsRes.data?.data || []);
+      } catch (e) {
+        console.error('Error reloading timeline:', e);
+      }
     }
   };
 
@@ -411,57 +398,8 @@ export default function MyProfile() {
 
       {activeTab === 'posts' ? (
         <div className="px-2 sm:px-6 pb-6 sm:pb-8">
-          {/* Create Post Form */}
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 sm:p-6 border border-slate-700/50 mb-6">
-            <div className="flex gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt="" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <span className="text-white font-bold">{profile.name?.charAt(0) || 'U'}</span>
-                )}
-              </div>
-              <div className="flex-1">
-                <textarea
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="What's on your mind?"
-                  rows={3}
-                  className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl p-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-                />
-                {postImage && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={postImage} alt="Preview" className="h-20 rounded-lg" />
-                    <button onClick={() => setPostImage('')} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><FiX className="w-3 h-3" /></button>
-                  </div>
-                )}
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={postImage}
-                      onChange={(e) => setPostImage(e.target.value)}
-                      placeholder="Image URL (optional)"
-                      className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                    />
-                    <FiImage className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <button
-                    onClick={handleCreatePost}
-                    disabled={isPosting || !postContent.trim()}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    {isPosting ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <FiSend className="w-4 h-4" />
-                    )}
-                    Post
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Create Post Form - Using enhanced CreatePostForm component */}
+          <CreatePostForm onPostCreated={handlePostCreated} />
 
           {/* Timeline Posts */}
           <div className="space-y-4">
@@ -509,11 +447,15 @@ export default function MyProfile() {
                       </div>
                       <p className="text-slate-300 mt-2 whitespace-pre-wrap">{post.content}</p>
                       {post.media && post.media.length > 0 && (
-                        <div className="mt-3 grid gap-2">
-                          {post.media.map((m, idx) => (
-                            <img key={idx} src={m.url} alt={m.altText || ''} className="rounded-lg max-h-96 object-cover" />
-                          ))}
-                        </div>
+                        <PostMediaGallery
+                          media={post.media.map(m => ({
+                            type: m.type,
+                            url: m.url,
+                            altText: m.altText,
+                            thumbnail: m.thumbnail,
+                          }))}
+                          className="mt-3"
+                        />
                       )}
                       <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-700/50">
                         <button

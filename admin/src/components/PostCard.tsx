@@ -11,6 +11,7 @@ import { FiHeart, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiPlay,
 import { TimelinePost, timelineApi } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
+import PostMediaGallery from './PostMediaGallery';
 
 interface PostCardProps {
   post: TimelinePost;
@@ -128,66 +129,17 @@ export default function PostCard({ post, onDelete, onCommentClick, onHashtagClic
   const renderMedia = () => {
     if (!post.media || post.media.length === 0) return null;
 
-    // Single media item
-    if (post.media.length === 1) {
-      const media = post.media[0];
-      if (media.type === 'VIDEO') {
-        return (
-          <div className="relative mt-3 rounded-xl overflow-hidden bg-black">
-            <video
-              src={media.url}
-              poster={media.thumbnail}
-              controls
-              className="w-full max-h-[500px] object-contain"
-            />
-          </div>
-        );
-      }
-      return (
-        <div className="mt-3 rounded-xl overflow-hidden">
-          <img
-            src={media.url}
-            alt={media.altText || 'Post image'}
-            className="w-full max-h-[500px] object-cover"
-          />
-        </div>
-      );
-    }
-
-    // Multiple media - grid layout
-    const gridClass =
-      post.media.length === 2
-        ? 'grid-cols-2'
-        : post.media.length === 3
-          ? 'grid-cols-2'
-          : 'grid-cols-2';
-
     return (
-      <div className={`mt-3 grid ${gridClass} gap-1 rounded-xl overflow-hidden`}>
-        {post.media.slice(0, 4).map((media, index) => (
-          <div key={media.id} className="relative aspect-square">
-            {media.type === 'VIDEO' ? (
-              <>
-                <img
-                  src={media.thumbnail || media.url}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <FiPlay className="w-12 h-12 text-white" />
-                </div>
-              </>
-            ) : (
-              <img src={media.url} alt={media.altText || ''} className="w-full h-full object-cover" />
-            )}
-            {index === 3 && post.media.length > 4 && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-2xl font-bold">
-                +{post.media.length - 4}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <PostMediaGallery
+        media={post.media.map(m => ({
+          id: m.id,
+          type: m.type,
+          url: m.url,
+          thumbnail: m.thumbnail,
+          altText: m.altText,
+        }))}
+        className="mt-3"
+      />
     );
   };
 
