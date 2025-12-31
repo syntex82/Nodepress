@@ -176,24 +176,26 @@ pm2 save && pm2 startup</code></div>
                 <div class="step">
                     <div class="step-num">1</div>
                     <div class="step-content">
-                        <h3>Pull Latest Changes</h3>
-                        <p>Navigate to your NodePress directory and pull the latest updates:</p>
-                        <div class="code"><code>cd /var/www/NodePress
-git pull origin main</code></div>
+                        <h3>Built-in Auto-Update (Recommended)</h3>
+                        <p>NodePress includes a built-in update system. Simply go to:</p>
+                        <div class="code"><code>Admin Panel → System → Updates</code></div>
+                        <p style="margin-top: 10px;">Click "Update Now" when a new version is available. The system will automatically backup, download, and apply updates.</p>
                     </div>
                 </div>
                 <div class="step">
                     <div class="step-num">2</div>
                     <div class="step-content">
-                        <h3>Rebuild & Restart</h3>
-                        <p>Rebuild the application and restart the server:</p>
-                        <div class="code"><code>npm run build
-pm2 restart NodePress</code></div>
+                        <h3>Manual Update (Alternative)</h3>
+                        <p>If you prefer manual updates via SSH:</p>
+                        <div class="code"><code>cd /var/www/NodePress
+git pull origin main
+npm run build
+pm2 restart nodepress</code></div>
                     </div>
                 </div>
             </div>
             <p style="color: #8899a6; font-size: 14px; margin-top: 20px;">
-                <strong style="color: #f39c12;">⚠️ Note:</strong> NodePress does not auto-update. You must manually run these commands each time a new version is released.
+                <strong style="color: #27ae60;">✅ Tip:</strong> The admin panel will notify you when updates are available. Updates include automatic backups so you can rollback if needed.
             </p>
         </div>
 
