@@ -10,8 +10,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { CreateDeveloperDto, UpdateDeveloperDto, DeveloperStatus, DeveloperCategory } from '../dto';
-import { Prisma } from '@prisma/client';
+import { CreateDeveloperDto, UpdateDeveloperDto, DeveloperStatus } from '../dto';
+import { Prisma, DeveloperCategory as PrismaDeveloperCategory } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
 // User selection for developer queries - includes comprehensive user data
@@ -201,7 +201,7 @@ export class DevelopersService {
 
     const where: Prisma.DeveloperWhereInput = {};
     if (status) where.status = status;
-    if (category) where.category = category;
+    if (category) where.category = category as PrismaDeveloperCategory;
     if (availability) where.availability = availability;
     if (minRating) where.rating = { gte: minRating };
     if (minRate || maxRate) {
@@ -370,7 +370,7 @@ export class DevelopersService {
         slug,
         headline: dto.headline,
         bio: dto.bio,
-        category: dto.category || DeveloperCategory.FULLSTACK,
+        category: (dto.category || 'FULLSTACK') as PrismaDeveloperCategory,
         skills: dto.skills || [],
         languages: dto.languages || [],
         frameworks: dto.frameworks || [],
@@ -474,7 +474,7 @@ export class DevelopersService {
     limit = 10,
   ) {
     const where: Prisma.DeveloperWhereInput = { status: 'ACTIVE', availability: 'available' };
-    if (requirements.category) where.category = requirements.category;
+    if (requirements.category) where.category = requirements.category as PrismaDeveloperCategory;
     if (requirements.skills?.length) where.skills = { hasSome: requirements.skills };
     if (requirements.budget && requirements.budgetType === 'hourly') {
       where.hourlyRate = { lte: requirements.budget };
