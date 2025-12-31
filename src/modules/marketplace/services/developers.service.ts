@@ -174,7 +174,7 @@ export class DevelopersService {
    */
   async findAll(filters: {
     status?: DeveloperStatus;
-    category?: DeveloperCategory;
+    category?: PrismaDeveloperCategory;
     skills?: string[];
     minRate?: number;
     maxRate?: number;
@@ -322,7 +322,7 @@ export class DevelopersService {
     displayName: string;
     headline?: string;
     bio?: string;
-    category?: DeveloperCategory;
+    category?: PrismaDeveloperCategory;
     skills?: string[];
     languages?: string[];
     frameworks?: string[];
@@ -466,7 +466,7 @@ export class DevelopersService {
    */
   async matchDevelopers(
     requirements: {
-      category?: DeveloperCategory;
+      category?: PrismaDeveloperCategory;
       skills?: string[];
       budget?: number;
       budgetType?: string;
