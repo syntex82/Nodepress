@@ -89,7 +89,10 @@ NodePress CMS provides a comprehensive set of features for building modern web a
 | **Role-Based Access Control** | Four granular user roles: **Admin**, **Editor**, **Author**, **Viewer** |
 | **JWT Authentication** | Secure stateless API authentication with JSON Web Tokens |
 | **Password Reset** | Secure email-based password reset with expiring tokens (1 hour) |
-| **User Profiles** | Rich user profiles with avatars, bios, social links, and activity tracking |
+| **User Profiles** | Rich user profiles with avatars, bios, work info, skills, interests, and social links |
+| **Follow System** | Follow/unfollow users to see their posts in your Activity Feed |
+| **Public Profiles** | View any user's public profile and timeline at `/profile/:username` |
+| **Profile Discovery** | Find suggested users to follow based on activity and interests |
 | **Direct Messaging** | Real-time private messaging system between users |
 | **Session Management** | Secure session handling with automatic expiration |
 
@@ -111,6 +114,9 @@ NodePress CMS provides a comprehensive set of features for building modern web a
 | Upload Media | ✅ | ✅ | ✅ | ❌ |
 | View Dashboard | ✅ | ✅ | ✅ | ✅ |
 | Send Messages | ✅ | ✅ | ✅ | ✅ |
+| Create Timeline Posts | ✅ | ✅ | ✅ | ✅ |
+| Follow/Unfollow Users | ✅ | ✅ | ✅ | ✅ |
+| Like & Comment on Posts | ✅ | ✅ | ✅ | ✅ |
 
 </details>
 
@@ -250,6 +256,101 @@ NodePress CMS provides a comprehensive set of features for building modern web a
 > 💡 **1-on-1 Calls:** Admin Panel → Messages → Select a DM conversation → Click the 📞 phone icon (green when user is online)
 >
 > 💡 **Group Calls:** Admin Panel → Messages → Select a group conversation → Click the 📞 phone icon → All members can join
+
+<br />
+
+### 📣 Social Timeline & Developer Profiles
+
+| Feature | Description |
+|---------|-------------|
+| **Timeline Posts** | Create and share posts on your profile timeline with text and images |
+| **Activity Feed** | View posts from users you follow in the Following tab |
+| **Discover Feed** | Browse trending posts from all public users |
+| **Profile Timeline** | Each user has a dedicated timeline showing their posts |
+| **Like & Comment** | Engage with posts through likes and comments |
+| **Share Posts** | Share posts with optional comments to your timeline |
+| **Media Attachments** | Add images to posts with full media library integration |
+| **Hashtags** | Use hashtags in posts for discoverability |
+| **Mentions** | @mention other users in posts with autocomplete |
+| **Developer Profiles** | Rich developer profiles with skills, portfolio, hourly rates |
+| **Follow System** | Follow other users to see their posts in your feed |
+| **Suggested Users** | Discover new users to follow based on interests |
+
+<details>
+<summary><strong>🔧 Click to view Timeline & Profile Routes</strong></summary>
+
+<br />
+
+**Admin Panel Routes:**
+| Route | Description |
+|-------|-------------|
+| `/profile` | Your own profile with timeline post creation |
+| `/profile/:identifier` | View another user's public profile and timeline |
+| `/feed` | Activity feed with Following and Discover tabs |
+| `/timeline` | Full timeline page with advanced features |
+
+**Timeline API Endpoints:**
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/timeline/feed` | Get posts from users you follow |
+| `GET /api/timeline/discover` | Get trending public posts |
+| `POST /api/timeline/posts` | Create a new timeline post |
+| `GET /api/timeline/users/:userId/posts` | Get posts for a specific user |
+| `POST /api/timeline/posts/:id/like` | Like a post |
+| `DELETE /api/timeline/posts/:id/like` | Unlike a post |
+| `POST /api/timeline/posts/:id/share` | Share a post to your timeline |
+| `DELETE /api/timeline/posts/:id` | Delete your own post |
+| `GET /api/timeline/posts/:id/comments` | Get comments on a post |
+| `POST /api/timeline/posts/:id/comments` | Add a comment to a post |
+| `GET /api/timeline/hashtags/trending` | Get trending hashtags |
+| `GET /api/timeline/hashtags/:tag` | Get posts by hashtag |
+| `GET /api/timeline/mentions/search` | Search users for @mention autocomplete |
+
+**Profile API Endpoints:**
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/profiles/me` | Get your own profile |
+| `PUT /api/profiles/me` | Update your profile |
+| `GET /api/profiles/:identifier` | Get a public profile by ID or username |
+| `POST /api/profiles/:userId/follow` | Follow a user |
+| `DELETE /api/profiles/:userId/follow` | Unfollow a user |
+| `GET /api/profiles/:userId/followers` | Get a user's followers |
+| `GET /api/profiles/:userId/following` | Get users someone is following |
+| `GET /api/profiles/suggested` | Get suggested users to follow |
+
+</details>
+
+<details>
+<summary><strong>📋 Click to view Timeline Post Workflow</strong></summary>
+
+<br />
+
+**How Timeline Posts Work:**
+
+| Step | Location | Action |
+|------|----------|--------|
+| 1 | Your Profile (`/profile`) | Click "Posts" tab → Write content → Click "Post" |
+| 2 | Activity Feed (`/feed`) | Your followers see your post in their "Following" tab |
+| 3 | Public Profiles | Anyone can view posts on your public profile |
+| 4 | Discover Feed | Public posts appear in the "Discover" tab for all users |
+
+**Post Features:**
+| Feature | Description |
+|---------|-------------|
+| Text Content | Write posts with any length |
+| Media | Attach images via URL or media library |
+| Likes | Users can like/unlike posts |
+| Comments | Threaded comments on posts |
+| Shares | Repost to your timeline with optional comment |
+| Delete | Only you can delete your own posts |
+
+**Profile Tabs:**
+| Tab | Description |
+|-----|-------------|
+| **Posts** | Shows timeline posts and post creation form |
+| **About** | Shows bio, work info, skills, interests, social links |
+
+</details>
 
 <br />
 
