@@ -401,7 +401,9 @@ export default function MyProfile() {
       {activeTab === 'posts' ? (
         <div className="px-2 sm:px-6 pb-6 sm:pb-8">
           {/* Create Post Form - Using enhanced CreatePostForm component */}
-          <CreatePostForm onPostCreated={handlePostCreated} />
+          <div className="relative z-20">
+            <CreatePostForm onPostCreated={handlePostCreated} />
+          </div>
 
           {/* Click outside to close post menu */}
           {openPostMenu && (
@@ -409,9 +411,9 @@ export default function MyProfile() {
           )}
 
           {/* Timeline Posts */}
-          <div className="space-y-4 relative">
+          <div className="space-y-4 relative z-10">
             {timelinePosts.length === 0 ? (
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-8 border border-slate-700/50 text-center">
+              <div className="bg-slate-800/50 rounded-xl p-8 border border-slate-700/50 text-center">
                 <FiEdit2 className="w-12 h-12 text-slate-600 mx-auto mb-3" />
                 <h3 className="text-lg font-medium text-white mb-2">No posts yet</h3>
                 <p className="text-slate-400">Share what's on your mind above!</p>
