@@ -1357,8 +1357,8 @@ export default function Layout() {
         />
       )}
 
-      {/* Hidden audio for ringtone */}
-      <audio ref={incomingCallAudioRef} src="/sounds/ringtone.mp3" />
+      {/* Hidden audio for ringtone - preload none to avoid 404 errors if file missing */}
+      <audio ref={incomingCallAudioRef} src="/sounds/ringtone.mp3" preload="none" />
     </div>
   );
 }
