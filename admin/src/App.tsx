@@ -113,6 +113,7 @@ const MarketplaceProjects = lazy(() => import('./pages/marketplace').then(m => (
 const DeveloperApplication = lazy(() => import('./pages/marketplace').then(m => ({ default: m.DeveloperApplication })));
 const HireForm = lazy(() => import('./pages/marketplace').then(m => ({ default: m.HireForm })));
 const MyDeveloperProfile = lazy(() => import('./pages/marketplace').then(m => ({ default: m.MyDeveloperProfile })));
+const EditDeveloper = lazy(() => import('./pages/marketplace').then(m => ({ default: m.EditDeveloper })));
 
 // Lazy-loaded pages - Subscriptions
 const Pricing = lazy(() => import('./pages/Pricing'));
@@ -201,6 +202,7 @@ function App() {
                 <Route path="dev-marketplace" element={<ProtectedRoute feature="marketplace"><MarketplaceDashboard /></ProtectedRoute>} />
                 <Route path="dev-marketplace/browse" element={<ProtectedRoute feature="marketplace"><BrowseDevelopers /></ProtectedRoute>} />
                 <Route path="dev-marketplace/developers" element={<ProtectedRoute feature="marketplace" requiredRole="ADMIN"><MarketplaceDevelopers /></ProtectedRoute>} />
+                <Route path="dev-marketplace/developers/:id/edit" element={<ProtectedRoute feature="marketplace" requiredRole="ADMIN"><EditDeveloper /></ProtectedRoute>} />
                 <Route path="dev-marketplace/requests" element={<ProtectedRoute feature="marketplace"><HiringRequests /></ProtectedRoute>} />
                 <Route path="dev-marketplace/projects" element={<ProtectedRoute feature="marketplace"><MarketplaceProjects /></ProtectedRoute>} />
                 <Route path="dev-marketplace/apply" element={<ProtectedRoute feature="marketplace"><DeveloperApplication /></ProtectedRoute>} />

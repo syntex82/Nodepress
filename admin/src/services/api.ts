@@ -1782,6 +1782,7 @@ export interface DeveloperProfile {
   certificatesCount: number;
   rating?: number;
   reviewsCount?: number;
+  reviewCount?: number;
   completedProjects?: number;
   websiteUrl?: string;
   githubUrl?: string;
@@ -1792,6 +1793,9 @@ export interface DeveloperProfile {
     twitter?: string;
     website?: string;
   };
+  status?: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED' | 'INACTIVE';
+  isVerified?: boolean;
+  isFeatured?: boolean;
   createdAt: string;
 }
 
@@ -1909,6 +1913,14 @@ export const developerMarketplaceApi = {
   // Admin: Delete developer permanently
   adminDelete: (id: string) =>
     api.delete(`/marketplace/developers/${id}`),
+
+  // Admin: Update developer profile
+  adminUpdate: (id: string, data: Partial<DeveloperProfile>) =>
+    api.put<DeveloperProfile>(`/marketplace/developers/${id}`, data),
+
+  // Admin: Get developer by ID
+  adminGetDeveloper: (id: string) =>
+    api.get<DeveloperProfile>(`/marketplace/developers/${id}`),
 };
 
 // Direct Messages API

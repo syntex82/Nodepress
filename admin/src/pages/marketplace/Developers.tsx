@@ -9,7 +9,7 @@ import {
   FiUsers, FiSearch, FiX, FiEye, FiCheckCircle,
   FiXCircle, FiSlash, FiRefreshCw, FiStar, FiBarChart2,
   FiChevronLeft, FiChevronRight, FiUser, FiShield, FiCalendar,
-  FiLock, FiExternalLink, FiPlus, FiTrash2
+  FiLock, FiExternalLink, FiPlus, FiTrash2, FiEdit2
 } from 'react-icons/fi';
 import api from '../../services/api';
 import { developerMarketplaceApi } from '../../services/api';
@@ -447,12 +447,12 @@ export default function Developers() {
                           </button>
                         </Tooltip>
                       )}
-                      <Tooltip title={MARKETPLACE_TOOLTIPS.viewDetails.title} content={MARKETPLACE_TOOLTIPS.viewDetails.content} position="top">
+                      <Tooltip title="Edit Developer" content="Edit developer profile details" position="top">
                         <Link
-                          to={`/marketplace/developers/${dev.id}`}
+                          to={`/dev-marketplace/developers/${dev.id}/edit`}
                           className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
                         >
-                          <FiEye size={16} />
+                          <FiEdit2 size={16} />
                         </Link>
                       </Tooltip>
                       <Tooltip title="Delete Developer" content="Permanently remove this developer profile" position="top">
