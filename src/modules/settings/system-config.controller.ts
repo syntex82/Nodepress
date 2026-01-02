@@ -13,6 +13,8 @@ import {
   UseGuards,
   HttpException,
   HttpStatus,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import {
   SystemConfigService,
@@ -26,12 +28,17 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
+import { EmailService } from '../email/email.service';
 
 @Controller('api/system-config')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class SystemConfigController {
-  constructor(private readonly systemConfig: SystemConfigService) {}
+  constructor(
+    private readonly systemConfig: SystemConfigService,
+    @Inject(forwardRef(() => EmailService))
+    private readonly emailService: EmailService,
+  ) {}
 
   /**
    * Get SMTP configuration (passwords masked)
@@ -73,6 +80,10 @@ export class SystemConfigController {
     };
 
     await this.systemConfig.saveSmtpConfig(configToSave);
+
+    // Reload the email service transporter with new config
+    await this.emailService.reloadConfig();
+
     return { success: true, message: 'Email settings saved successfully' };
   }
 

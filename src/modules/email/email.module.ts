@@ -3,7 +3,7 @@
  * Provides email sending, templates, and logging functionality
  */
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../../database/prisma.module';
 import { SettingsModule } from '../settings/settings.module';
@@ -15,7 +15,7 @@ import { EmailTemplatesSeederService } from './email-templates-seeder.service';
 import { EmailController } from './email.controller';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, SettingsModule],
+  imports: [ConfigModule, PrismaModule, forwardRef(() => SettingsModule)],
   controllers: [EmailController],
   providers: [
     EmailService,
