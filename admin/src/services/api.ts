@@ -161,7 +161,7 @@ export const systemConfigApi = {
   // Email/SMTP configuration
   getEmailConfig: () => api.get<SmtpConfig>('/system-config/email'),
   saveEmailConfig: (config: SmtpConfig) => api.put('/system-config/email', config),
-  testEmail: (recipientEmail: string) => api.post('/system-config/email/test', { recipientEmail }),
+  testEmail: (testEmail: string) => api.post('/system-config/email/test', { testEmail }),
 
   // Domain configuration
   getDomainConfig: () => api.get<DomainConfig>('/system-config/domain'),
