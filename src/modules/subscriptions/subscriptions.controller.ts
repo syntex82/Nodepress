@@ -130,4 +130,25 @@ export class SubscriptionsController {
   async activateAllPlans() {
     return this.subscriptionsService.activateAllPlans();
   }
+
+  @Get('admin/diagnostic')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getDiagnostic() {
+    return this.subscriptionsService.getDiagnosticInfo();
+  }
+
+  @Post('admin/sync-stripe-prices')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async syncStripePrices() {
+    return this.subscriptionsService.syncStripePrices();
+  }
+
+  @Post('admin/create-stripe-prices')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async createStripePrices(@Body() dto: { plans: Array<{ slug: string; productId: string; monthlyPrice: number; yearlyPrice: number }> }) {
+    return this.subscriptionsService.createStripePricesForProducts(dto.plans);
+  }
 }

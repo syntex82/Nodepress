@@ -142,7 +142,19 @@ export class SubscriptionsService {
       dto.billingCycle === 'yearly' ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
 
     if (!priceId) {
-      throw new BadRequestException(`No Stripe price configured for ${dto.billingCycle} billing`);
+      throw new BadRequestException(
+        `No Stripe price configured for ${plan.name} plan (${dto.billingCycle} billing). ` +
+        `Please configure Stripe Price IDs in Admin > Settings > Subscription Plans. ` +
+        `You need to create products in Stripe Dashboard first and copy the Price IDs.`
+      );
+    }
+
+    // Validate price ID format
+    if (!priceId.startsWith('price_')) {
+      throw new BadRequestException(
+        `Invalid Stripe Price ID format for ${plan.name} plan. ` +
+        `Price IDs should start with "price_". Current value: "${priceId}"`
+      );
     }
 
     // Create checkout session
@@ -244,16 +256,85 @@ export class SubscriptionsService {
   }
 
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-    const { userId, planId, billingCycle } = session.metadata || {};
-    if (!userId || !planId) return;
-
     const stripe = await this.getStripe();
+
+    // Get subscription from Stripe
+    if (!session.subscription) return;
     const stripeSubscription = (await stripe.subscriptions.retrieve(
       session.subscription as string,
     )) as Stripe.Subscription;
 
+    // Try to get userId from metadata, or find user by customer email
+    let userId = session.metadata?.userId || stripeSubscription.metadata?.userId;
+
+    if (!userId && session.customer_email) {
+      const user = await this.prisma.user.findUnique({
+        where: { email: session.customer_email },
+      });
+      if (user) userId = user.id;
+    }
+
+    // If still no user, try to find by customer ID
+    if (!userId && session.customer) {
+      const existingSub = await this.prisma.subscription.findFirst({
+        where: { stripeCustomerId: session.customer as string },
+      });
+      if (existingSub) userId = existingSub.userId;
+    }
+
+    if (!userId) {
+      console.warn('Webhook: Could not determine userId for checkout session', session.id);
+      return;
+    }
+
+    // Determine plan from metadata or from the product
+    let planId = session.metadata?.planId || stripeSubscription.metadata?.planId;
+
+    if (!planId) {
+      // Try to find plan by matching Stripe price ID
+      const priceId = stripeSubscription.items.data[0]?.price?.id;
+      if (priceId) {
+        const plan = await this.prisma.subscriptionPlan.findFirst({
+          where: {
+            OR: [
+              { stripePriceIdMonthly: priceId },
+              { stripePriceIdYearly: priceId },
+            ],
+          },
+        });
+        if (plan) planId = plan.id;
+      }
+    }
+
+    // If still no plan, try to match by product name
+    if (!planId) {
+      const productId = stripeSubscription.items.data[0]?.price?.product as string;
+      if (productId) {
+        const product = await stripe.products.retrieve(productId);
+        const planName = product.name?.toLowerCase();
+        if (planName) {
+          const plan = await this.prisma.subscriptionPlan.findFirst({
+            where: {
+              slug: { in: ['pro', 'business', 'enterprise'] },
+              name: { contains: planName, mode: 'insensitive' },
+            },
+          });
+          if (plan) planId = plan.id;
+        }
+      }
+    }
+
+    if (!planId) {
+      console.warn('Webhook: Could not determine planId for checkout session', session.id);
+      return;
+    }
+
     const periodStart = (stripeSubscription as any).current_period_start;
     const periodEnd = (stripeSubscription as any).current_period_end;
+
+    // Determine billing cycle from subscription interval
+    const interval = stripeSubscription.items.data[0]?.price?.recurring?.interval;
+    const billingCycle = interval === 'year' ? 'YEARLY' : 'MONTHLY';
 
     await this.prisma.subscription.upsert({
       where: { userId },
@@ -261,7 +342,7 @@ export class SubscriptionsService {
         userId,
         planId,
         status: 'ACTIVE',
-        billingCycle: billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY',
+        billingCycle,
         stripeSubscriptionId: stripeSubscription.id,
         stripeCustomerId: session.customer as string,
         currentPeriodStart: new Date(periodStart * 1000),
@@ -270,7 +351,7 @@ export class SubscriptionsService {
       update: {
         planId,
         status: 'ACTIVE',
-        billingCycle: billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY',
+        billingCycle,
         stripeSubscriptionId: stripeSubscription.id,
         stripeCustomerId: session.customer as string,
         currentPeriodStart: new Date(periodStart * 1000),
@@ -397,8 +478,8 @@ export class SubscriptionsService {
         name: 'Pro',
         slug: 'pro',
         description: 'Author & Editor Account - Create content and teach',
-        monthlyPrice: 19,
-        yearlyPrice: 190,
+        monthlyPrice: 29,
+        yearlyPrice: 290,
         maxUsers: 5,
         maxStorageMb: 10240,
         maxProjects: 10,
@@ -425,8 +506,8 @@ export class SubscriptionsService {
         name: 'Business',
         slug: 'business',
         description: 'Admin Account - Full platform control',
-        monthlyPrice: 49,
-        yearlyPrice: 490,
+        monthlyPrice: 99,
+        yearlyPrice: 990,
         maxUsers: 25,
         maxStorageMb: 102400,
         maxCourses: null,
@@ -539,5 +620,205 @@ export class SubscriptionsService {
       currentPlanTier: subscription?.plan?.name || 'Free',
       availablePlans: plans,
     };
+  }
+
+  /**
+   * Get diagnostic information for troubleshooting Stripe issues
+   */
+  async getDiagnosticInfo() {
+    // Get all plans with their Stripe configuration
+    const plans = await this.prisma.subscriptionPlan.findMany({
+      orderBy: { displayOrder: 'asc' },
+    });
+
+    // Check Stripe configuration
+    let stripeConfigured = false;
+    let stripeError: string | null = null;
+
+    try {
+      const stripe = await this.getStripe();
+      stripeConfigured = !!stripe;
+    } catch (error: any) {
+      stripeError = error.message;
+    }
+
+    // Check each plan's Stripe configuration
+    const planDiagnostics = plans.map(plan => ({
+      id: plan.id,
+      name: plan.name,
+      slug: plan.slug,
+      isActive: plan.isActive,
+      monthlyPrice: Number(plan.monthlyPrice),
+      yearlyPrice: Number(plan.yearlyPrice),
+      hasMonthlyPriceId: !!plan.stripePriceIdMonthly,
+      hasYearlyPriceId: !!plan.stripePriceIdYearly,
+      monthlyPriceIdValid: plan.stripePriceIdMonthly?.startsWith('price_') ?? false,
+      yearlyPriceIdValid: plan.stripePriceIdYearly?.startsWith('price_') ?? false,
+      issues: [] as string[],
+    }));
+
+    // Identify issues for each plan
+    for (const diag of planDiagnostics) {
+      if (diag.monthlyPrice > 0 && !diag.hasMonthlyPriceId) {
+        diag.issues.push('Missing Stripe monthly price ID');
+      }
+      if (diag.yearlyPrice > 0 && !diag.hasYearlyPriceId) {
+        diag.issues.push('Missing Stripe yearly price ID');
+      }
+      if (diag.hasMonthlyPriceId && !diag.monthlyPriceIdValid) {
+        diag.issues.push('Invalid monthly price ID format (should start with "price_")');
+      }
+      if (diag.hasYearlyPriceId && !diag.yearlyPriceIdValid) {
+        diag.issues.push('Invalid yearly price ID format (should start with "price_")');
+      }
+    }
+
+    return {
+      stripe: {
+        configured: stripeConfigured,
+        error: stripeError,
+      },
+      plans: planDiagnostics,
+      summary: {
+        totalPlans: plans.length,
+        activePlans: plans.filter(p => p.isActive).length,
+        plansWithIssues: planDiagnostics.filter(p => p.issues.length > 0).length,
+        paidPlansWithoutStripe: planDiagnostics.filter(
+          p => (p.monthlyPrice > 0 || p.yearlyPrice > 0) && !p.hasMonthlyPriceId && !p.hasYearlyPriceId
+        ).length,
+      },
+      instructions: [
+        'To fix Stripe issues:',
+        '1. Go to Stripe Dashboard > Products and create products for each paid plan',
+        '2. Copy the Price IDs (price_xxx) for monthly and yearly prices',
+        '3. Update each plan via Admin > Settings > Subscription or API',
+        '4. Test with Stripe test cards (4242 4242 4242 4242)',
+      ],
+    };
+  }
+
+  /**
+   * Sync prices from Stripe - fetches all prices and matches them to plans by product ID
+   */
+  async syncStripePrices() {
+    const stripe = await this.getStripe();
+
+    // Fetch all prices from Stripe
+    const prices = await stripe.prices.list({ limit: 100, active: true });
+
+    // Get all plans
+    const plans = await this.prisma.subscriptionPlan.findMany();
+
+    const updates: Array<{ planName: string; monthlyPriceId?: string; yearlyPriceId?: string }> = [];
+
+    for (const plan of plans) {
+      if (!plan.stripeProductId) continue;
+
+      // Find prices for this product
+      const productPrices = prices.data.filter(p => p.product === plan.stripeProductId);
+
+      let monthlyPriceId: string | undefined;
+      let yearlyPriceId: string | undefined;
+
+      for (const price of productPrices) {
+        if (price.recurring?.interval === 'month') {
+          monthlyPriceId = price.id;
+        } else if (price.recurring?.interval === 'year') {
+          yearlyPriceId = price.id;
+        }
+      }
+
+      if (monthlyPriceId || yearlyPriceId) {
+        await this.prisma.subscriptionPlan.update({
+          where: { id: plan.id },
+          data: {
+            ...(monthlyPriceId && { stripePriceIdMonthly: monthlyPriceId }),
+            ...(yearlyPriceId && { stripePriceIdYearly: yearlyPriceId }),
+          },
+        });
+        updates.push({ planName: plan.name, monthlyPriceId, yearlyPriceId });
+      }
+    }
+
+    return {
+      message: 'Synced prices from Stripe',
+      updates,
+      totalPricesFound: prices.data.length,
+    };
+  }
+
+  /**
+   * Create Stripe prices for products and update plans
+   * Supports both: 1 product with 2 prices, or 2 products with 1 price each
+   */
+  async createStripePricesForProducts(planConfigs: Array<{
+    slug: string;
+    monthlyProductId?: string;
+    yearlyProductId?: string;
+    productId?: string;
+    monthlyPrice: number;
+    yearlyPrice: number;
+  }>) {
+    const stripe = await this.getStripe();
+    const results: Array<{ slug: string; monthlyPriceId?: string; yearlyPriceId?: string; error?: string }> = [];
+
+    for (const config of planConfigs) {
+      try {
+        const plan = await this.prisma.subscriptionPlan.findUnique({
+          where: { slug: config.slug },
+        });
+
+        if (!plan) {
+          results.push({ slug: config.slug, error: 'Plan not found' });
+          continue;
+        }
+
+        let monthlyPriceId: string | undefined;
+        let yearlyPriceId: string | undefined;
+
+        // Handle monthly price
+        const monthlyProductId = config.monthlyProductId || config.productId;
+        if (monthlyProductId && config.monthlyPrice > 0) {
+          const monthlyPrice = await stripe.prices.create({
+            product: monthlyProductId,
+            unit_amount: Math.round(config.monthlyPrice * 100),
+            currency: 'gbp',
+            recurring: { interval: 'month' },
+          });
+          monthlyPriceId = monthlyPrice.id;
+        }
+
+        // Handle yearly price
+        const yearlyProductId = config.yearlyProductId || config.productId;
+        if (yearlyProductId && config.yearlyPrice > 0) {
+          const yearlyPrice = await stripe.prices.create({
+            product: yearlyProductId,
+            unit_amount: Math.round(config.yearlyPrice * 100),
+            currency: 'gbp',
+            recurring: { interval: 'year' },
+          });
+          yearlyPriceId = yearlyPrice.id;
+        }
+
+        // Update plan with price IDs
+        await this.prisma.subscriptionPlan.update({
+          where: { id: plan.id },
+          data: {
+            ...(monthlyPriceId && { stripePriceIdMonthly: monthlyPriceId }),
+            ...(yearlyPriceId && { stripePriceIdYearly: yearlyPriceId }),
+          },
+        });
+
+        results.push({
+          slug: config.slug,
+          monthlyPriceId,
+          yearlyPriceId,
+        });
+      } catch (error: any) {
+        results.push({ slug: config.slug, error: error.message });
+      }
+    }
+
+    return { message: 'Created Stripe prices', results };
   }
 }

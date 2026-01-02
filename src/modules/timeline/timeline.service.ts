@@ -483,6 +483,16 @@ export class TimelineService {
     const post = await this.prisma.timelinePost.findUnique({ where: { id: postId } });
     if (!post) throw new NotFoundException('Post not found');
 
+    // Check if user already liked this post
+    const existingLike = await this.prisma.postLike.findUnique({
+      where: { postId_userId: { postId, userId } },
+    });
+
+    if (existingLike) {
+      // Already liked, return success without error
+      return { success: true, alreadyLiked: true };
+    }
+
     await this.prisma.$transaction([
       this.prisma.postLike.create({
         data: { postId, userId },
@@ -549,6 +559,11 @@ export class TimelineService {
    * Add a comment to a post
    */
   async addComment(postId: string, userId: string, content: string, parentId?: string) {
+    // Validate content
+    if (!content || !content.trim()) {
+      throw new Error('Comment content is required');
+    }
+
     const post = await this.prisma.timelinePost.findUnique({ where: { id: postId } });
     if (!post) throw new NotFoundException('Post not found');
 

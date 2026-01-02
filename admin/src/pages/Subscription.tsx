@@ -3,7 +3,6 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   getCurrentSubscription,
   getPlans,
-  createCheckout,
   getBillingPortal,
   cancelSubscription,
   seedDefaultPlans,
@@ -14,11 +13,47 @@ import {
 import { showToast } from '../utils/toast';
 import { FaCreditCard, FaCalendar, FaExclamationTriangle, FaCheck, FaExternalLinkAlt, FaCrown, FaStar, FaDatabase } from 'react-icons/fa';
 
+// Stripe Pricing Table Configuration
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RjyaDFzzHwoqssW7e8C8sFpNTIOMuZ8gDf783cQdgOAfTeHna4Bqt4qHL6vsH3SjTZ9xtAMR6o5KlFmihtOkOiJ00VkqHy520';
+const PRICING_TABLES = {
+  pro: {
+    monthly: 'prctbl_1SlFs9FzzHwoqssW6FnSSRPp',
+    yearly: 'prctbl_1SlFwxFzzHwoqssWGVxPpjJY',
+  },
+  business: {
+    monthly: 'prctbl_1SlFv0FzzHwoqssWOMKoUr4r',
+    yearly: 'prctbl_1SlFvzFzzHwoqssWaFG9da7G',
+  },
+};
+
+// Stripe Pricing Table Component
+function StripePricingTable({ pricingTableId }: { pricingTableId: string }) {
+  useEffect(() => {
+    // Load Stripe Pricing Table script if not already loaded
+    if (!document.querySelector('script[src="https://js.stripe.com/v3/pricing-table.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/pricing-table.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  return (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: `<stripe-pricing-table pricing-table-id="${pricingTableId}" publishable-key="${STRIPE_PUBLISHABLE_KEY}"></stripe-pricing-table>`,
+      }}
+    />
+  );
+}
+
 export default function Subscription() {
   const [subscription, setSubscription] = useState<SubscriptionType | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'pro' | 'business'>('pro');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -40,18 +75,6 @@ export default function Subscription() {
       showToast.error('Failed to load subscription data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpgrade = async (plan: SubscriptionPlan, cycle: 'monthly' | 'yearly') => {
-    setActionLoading(true);
-    try {
-      const { url } = await createCheckout(plan.id, cycle);
-      if (url) window.location.href = url;
-    } catch {
-      showToast.error('Failed to create checkout session');
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -226,7 +249,7 @@ export default function Subscription() {
           </div>
         </div>
       ) : (
-        /* No Subscription - Show Upgrade Options */
+        /* No Subscription - Show Upgrade Options with Stripe Pricing Tables */
         <div className="space-y-6">
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6">
             <div className="flex items-center gap-3">
@@ -238,69 +261,91 @@ export default function Subscription() {
             </div>
           </div>
 
-          {/* Available Plans */}
-          {plans.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
-              <FaDatabase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Subscription Plans Found</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                No subscription plans have been configured yet. Click below to create the default plans or activate existing ones.
-              </p>
+          {/* Billing Cycle Toggle */}
+          <div className="flex justify-center">
+            <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg inline-flex">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-6 py-2 rounded-md font-medium transition ${
+                  billingCycle === 'monthly'
+                    ? 'bg-white dark:bg-gray-700 text-blue-600 shadow'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-6 py-2 rounded-md font-medium transition ${
+                  billingCycle === 'yearly'
+                    ? 'bg-white dark:bg-gray-700 text-blue-600 shadow'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
+                }`}
+              >
+                Yearly <span className="text-green-500 text-sm">(Save ~17%)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Plan Selection Tabs */}
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => setSelectedPlan('pro')}
+              className={`px-8 py-3 rounded-lg font-semibold transition ${
+                selectedPlan === 'pro'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+              }`}
+            >
+              Pro Plan
+              <span className="block text-sm font-normal">
+                {billingCycle === 'monthly' ? '£29/month' : '£290/year'}
+              </span>
+            </button>
+            <button
+              onClick={() => setSelectedPlan('business')}
+              className={`px-8 py-3 rounded-lg font-semibold transition ${
+                selectedPlan === 'business'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+              }`}
+            >
+              Business Plan
+              <span className="block text-sm font-normal">
+                {billingCycle === 'monthly' ? '£99/month' : '£990/year'}
+              </span>
+            </button>
+          </div>
+
+          {/* Stripe Pricing Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <StripePricingTable
+              pricingTableId={PRICING_TABLES[selectedPlan][billingCycle]}
+            />
+          </div>
+
+          {/* Admin Tools (only show if no plans exist) */}
+          {plans.length === 0 && (
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 text-center">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Admin: Seed database plans for tracking</p>
               <div className="flex justify-center gap-4 flex-wrap">
                 <button
                   onClick={handleSeedPlans}
                   disabled={actionLoading}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 text-sm"
                 >
-                  <FaDatabase className="h-5 w-5" />
-                  {actionLoading ? 'Creating...' : 'Create Default Plans'}
+                  <FaDatabase className="h-4 w-4" />
+                  {actionLoading ? 'Creating...' : 'Create Plans'}
                 </button>
                 <button
                   onClick={handleActivatePlans}
                   disabled={actionLoading}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50 text-sm"
                 >
-                  <FaCheck className="h-5 w-5" />
-                  {actionLoading ? 'Activating...' : 'Activate All Plans'}
+                  <FaCheck className="h-4 w-4" />
+                  {actionLoading ? 'Activating...' : 'Activate Plans'}
                 </button>
               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {plans.filter(p => p.monthlyPrice > 0).map((plan) => (
-                <div key={plan.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.description}</p>
-                  <div className="mb-6">
-                    <span className="text-3xl font-bold text-gray-900 dark:text-white">${plan.monthlyPrice}</span>
-                    <span className="text-gray-500">/month</span>
-                  </div>
-                  <div className="space-y-2 mb-6">
-                    {(plan.features as string[]).slice(0, 5).map((feature) => (
-                      <div key={feature} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                        <FaCheck className="h-4 w-4 text-green-500" />
-                        <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => handleUpgrade(plan, 'monthly')}
-                      disabled={actionLoading}
-                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
-                    >
-                      Monthly ${plan.monthlyPrice}
-                    </button>
-                    <button
-                      onClick={() => handleUpgrade(plan, 'yearly')}
-                      disabled={actionLoading}
-                      className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
-                    >
-                      Yearly ${plan.yearlyPrice} (Save 17%)
-                    </button>
-                  </div>
-                </div>
-              ))}
             </div>
           )}
         </div>
