@@ -78,10 +78,7 @@ jobs:
 
       - name: 📦 Install dependencies
         working-directory: admin
-        run: |
-          rm -rf node_modules package-lock.json
-          npm cache clean --force
-          npm install
+        run: npm install
 
       - name: 🏗️ Build Frontend (Vite)
         working-directory: admin
