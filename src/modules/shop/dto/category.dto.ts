@@ -1,7 +1,7 @@
 /**
  * Product Category DTOs
  */
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
@@ -16,7 +16,7 @@ export class CreateCategoryDto {
   image?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   parentId?: string;
 }
 

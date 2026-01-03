@@ -1,14 +1,14 @@
 /**
  * Cart DTOs
  */
-import { IsString, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class AddToCartDto {
-  @IsUUID()
+  @IsString()
   productId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   variantId?: string;
 
   @IsNumber()

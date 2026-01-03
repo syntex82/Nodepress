@@ -8,7 +8,6 @@ import {
   IsBoolean,
   IsEnum,
   IsArray,
-  IsUUID,
   Min,
   ValidateNested,
   IsInt,
@@ -235,7 +234,7 @@ export class CreateProductDto {
   metaDescription?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   categoryId?: string;
 
   @IsOptional()
@@ -276,7 +275,7 @@ export class GenerateVariantsDto {
 
 // DTO for updating variant stock
 export class UpdateVariantStockDto {
-  @IsUUID()
+  @IsString()
   variantId: string;
 
   @IsInt()
@@ -297,7 +296,7 @@ export class ProductQueryDto {
   status?: ProductStatus;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   categoryId?: string;
 
   @IsOptional()
