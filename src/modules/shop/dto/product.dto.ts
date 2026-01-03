@@ -12,7 +12,6 @@ import {
   Min,
   ValidateNested,
   IsInt,
-  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -236,9 +235,8 @@ export class CreateProductDto {
   metaDescription?: string;
 
   @IsOptional()
-  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
   @IsUUID()
-  categoryId?: string | null;
+  categoryId?: string;
 
   @IsOptional()
   @IsArray()
@@ -299,7 +297,6 @@ export class ProductQueryDto {
   status?: ProductStatus;
 
   @IsOptional()
-  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
   @IsUUID()
   categoryId?: string;
 

@@ -257,7 +257,6 @@ export default function ProductEditor() {
         lowStockThreshold: parseInt(form.lowStockThreshold) || 5,
         status: form.status,
         type: form.type,
-        categoryId: form.categoryId || undefined,
         images: form.images.length > 0 ? form.images : undefined,
         featuredImage: form.images.length > 0 ? form.images[0] : undefined,
         // Variant configuration
@@ -280,6 +279,11 @@ export default function ProductEditor() {
           options: { size: v.size, color: v.color, colorCode: v.colorCode },
         })) : undefined,
       };
+
+      // Only include categoryId if it's a valid non-empty value
+      if (form.categoryId && form.categoryId.trim() !== '') {
+        productData.categoryId = form.categoryId;
+      }
 
       if (isNew) {
         await productsApi.create(productData);
