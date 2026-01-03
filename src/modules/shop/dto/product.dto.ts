@@ -14,7 +14,7 @@ import {
   IsInt,
   ValidateIf,
 } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export enum ProductStatus {
   DRAFT = 'DRAFT',
@@ -236,8 +236,7 @@ export class CreateProductDto {
   metaDescription?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
-  @ValidateIf((o) => o.categoryId !== undefined && o.categoryId !== null && o.categoryId !== '')
+  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
   @IsUUID()
   categoryId?: string | null;
 
