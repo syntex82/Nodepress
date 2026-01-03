@@ -299,6 +299,7 @@ export class ProductQueryDto {
   status?: ProductStatus;
 
   @IsOptional()
+  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
   @IsUUID()
   categoryId?: string;
 
